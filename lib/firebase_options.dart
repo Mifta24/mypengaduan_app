@@ -50,11 +50,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyBT0wq64VqAitVOdS0TLX-QxOdDYN3GaX0',
+    appId: '1:184467851167:android:ba5d8a6fa20859698cdfaa',
+    messagingSenderId: '184467851167',
+    projectId: 'mypengaduan',
+    storageBucket: 'mypengaduan.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
