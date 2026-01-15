@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
@@ -64,7 +65,16 @@ class AuthService {
         'password': password,
       });
 
+      print('=== AUTH SERVICE DEBUG ===');
+      print('Response data: ${response.data}');
+      print('User data: ${response.data['data']?['user']}');
+      print('User role: ${response.data['data']?['user']?['role']}');
+      
       final authResponse = AuthResponse.fromJson(response.data);
+      
+      print('Parsed user: ${authResponse.data?.user.name}');
+      print('Parsed role: ${authResponse.data?.user.role}');
+      print('=== END DEBUG ===');
       
       if (authResponse.success && authResponse.data != null) {
         await _saveToken(authResponse.data!.token);
@@ -102,6 +112,110 @@ class AuthService {
     }
   }
 
+  // Update Profile
+  Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String phone,
+    required String address,
+    String? nik,
+    String? rtNumber,
+    String? rwNumber,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'User not authenticated',
+        };
+      }
+
+      final response = await _dio.put(
+        'auth/profile',
+        data: {
+          'name': name,
+          'phone': phone,
+          'address': address,
+          if (nik != null && nik.isNotEmpty) 'nik': nik,
+          if (rtNumber != null && rtNumber.isNotEmpty) 'rt_number': rtNumber,
+          if (rwNumber != null && rwNumber.isNotEmpty) 'rw_number': rwNumber,
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.data['success']) {
+        final user = User.fromJson(response.data['data']);
+        await _saveUser(user);
+        return {
+          'success': true,
+          'message': response.data['message'] ?? 'Profile updated successfully',
+          'user': user,
+        };
+      }
+
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Failed to update profile',
+      };
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return {
+          'success': false,
+          'message': e.response!.data['message'] ?? 'Failed to update profile',
+          'errors': e.response!.data['errors'],
+        };
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}',
+      };
+    }
+  }
+
+  // Change Password
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'User not authenticated',
+        };
+      }
+
+      final response = await _dio.put(
+        'auth/change-password',
+        data: {
+          'current_password': currentPassword,
+          'password': newPassword,
+          'password_confirmation': newPasswordConfirmation,
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return {
+        'success': response.data['success'] ?? false,
+        'message': response.data['message'] ?? 'Password changed successfully',
+      };
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return {
+          'success': false,
+          'message': e.response!.data['message'] ?? 'Failed to change password',
+          'errors': e.response!.data['errors'],
+        };
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}',
+      };
+    }
+  }
+
   // Logout
   Future<bool> logout() async {
     try {
@@ -134,8 +248,21 @@ class AuthService {
   Future<void> _saveUser(User user) async {
     await _storage.write(
       key: AppConfig.userKey,
-      value: user.toJson().toString(),
+      value: jsonEncode(user.toJson()),
     );
+  }
+
+  // Get user from storage
+  Future<User?> getUserFromStorage() async {
+    try {
+      final userJson = await _storage.read(key: AppConfig.userKey);
+      if (userJson == null) return null;
+      
+      final userMap = jsonDecode(userJson) as Map<String, dynamic>;
+      return User.fromJson(userMap);
+    } catch (e) {
+      return null;
+    }
   }
 
   // Clear storage

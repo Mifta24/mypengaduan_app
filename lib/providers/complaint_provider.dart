@@ -61,9 +61,15 @@ class ComplaintProvider extends ChangeNotifier {
       _currentPage = page;
       _hasMorePages = response.meta.hasMorePages;
 
+      print('Complaints loaded in provider: ${_complaints.length}');
+      for (var c in _complaints) {
+        print('Complaint: ${c.id} - ${c.title} - ${c.status}');
+      }
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      print('Error in loadComplaints provider: $e');
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
@@ -155,6 +161,14 @@ class ComplaintProvider extends ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
     }
+  }
+
+  // Get categories - synchronous access
+  Future<List<Category>> getCategories() async {
+    if (_categories.isEmpty) {
+      await loadCategories();
+    }
+    return _categories;
   }
 
   // Load statistics

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/notification_model.dart';
-import '../../services/notification_service.dart';
-import '../../services/auth_service.dart';
+import '../../providers/notification_provider.dart';
 
 class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
@@ -12,238 +13,301 @@ class NotificationListScreen extends StatefulWidget {
 }
 
 class _NotificationListScreenState extends State<NotificationListScreen> {
-  late NotificationService _notificationService;
-  List<NotificationModel> _notifications = [];
-  bool _isLoading = false;
-  int _currentPage = 1;
-  bool _hasMorePages = false;
-
   @override
   void initState() {
     super.initState();
-    _notificationService = NotificationService(AuthService());
-    _loadNotifications();
-  }
-
-  Future<void> _loadNotifications({bool refresh = false}) async {
-    if (refresh) {
-      _currentPage = 1;
-      _notifications = [];
-    }
-
-    setState(() {
-      _isLoading = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNotifications();
     });
-
-    try {
-      final response = await _notificationService.getNotifications(
-        page: _currentPage,
-      );
-
-      setState(() {
-        if (refresh) {
-          _notifications = response.data;
-        } else {
-          _notifications.addAll(response.data);
-        }
-        _hasMorePages = response.meta.hasMorePages;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    }
   }
 
-  Future<void> _markAsRead(int notificationId, int index) async {
-    final success = await _notificationService.markAsRead(notificationId);
-    if (success) {
-      setState(() {
-        _notifications[index] = NotificationModel(
-          id: _notifications[index].id,
-          type: _notifications[index].type,
-          title: _notifications[index].title,
-          body: _notifications[index].body,
-          data: _notifications[index].data,
-          isRead: true,
-          createdAt: _notifications[index].createdAt,
-          updatedAt: DateTime.now(),
-        );
-      });
-    }
-  }
-
-  Future<void> _markAllAsRead() async {
-    final success = await _notificationService.markAllAsRead();
-    if (success) {
-      await _loadNotifications(refresh: true);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Semua notifikasi ditandai sudah dibaca')),
-        );
-      }
-    }
+  Future<void> _loadNotifications() async {
+    final provider = context.read<NotificationProvider>();
+    await provider.loadNotifications(refresh: true);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text('Notifikasi'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F2937)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Notifikasi',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFF1F2937),
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all),
-            onPressed: _markAllAsRead,
-            tooltip: 'Tandai semua sudah dibaca',
+          Consumer<NotificationProvider>(
+            builder: (context, provider, _) {
+              if (provider.unreadCount > 0) {
+                return TextButton.icon(
+                  onPressed: () async {
+                    final success = await provider.markAllAsRead();
+                    if (success && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Semua notifikasi ditandai sudah dibaca'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.done_all, size: 18),
+                  label: const Text('Tandai Semua'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF6366F1),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => _loadNotifications(refresh: true),
-        child: _isLoading && _notifications.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : _notifications.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.notifications_off,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Tidak ada notifikasi',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: _notifications.length + (_hasMorePages ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _notifications.length) {
-                        return _isLoading
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
-                            : TextButton(
-                                onPressed: () {
-                                  _currentPage++;
-                                  _loadNotifications();
-                                },
-                                child: const Text('Load More'),
-                              );
-                      }
-
-                      final notification = _notifications[index];
-                      return _buildNotificationItem(notification, index);
-                    },
-                  ),
-      ),
-    );
-  }
-
-  Widget _buildNotificationItem(NotificationModel notification, int index) {
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
-    
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      elevation: notification.isRead ? 0 : 2,
-      color: notification.isRead ? null : Colors.blue.shade50,
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getNotificationColor(notification.type),
-          child: Icon(
-            _getNotificationIcon(notification.type),
-            color: Colors.white,
-          ),
-        ),
-        title: Text(
-          notification.title,
-          style: TextStyle(
-            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(notification.body),
-            const SizedBox(height: 4),
-            Text(
-              dateFormat.format(notification.createdAt),
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
+      body: Consumer<NotificationProvider>(
+        builder: (context, provider, _) {
+          if (provider.isLoading && provider.notifications.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
               ),
-            ),
-          ],
-        ),
-        trailing: notification.isRead
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.mark_email_read),
-                onPressed: () => _markAsRead(notification.id, index),
-                tooltip: 'Tandai sudah dibaca',
-              ),
-        onTap: () {
-          if (!notification.isRead) {
-            _markAsRead(notification.id, index);
+            );
           }
-          // TODO: Navigate based on notification type
+
+          if (provider.notifications.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_none,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Tidak ada notifikasi',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: const Color(0xFF6B7280),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Notifikasi akan muncul di sini',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: const Color(0xFF9CA3AF),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: _loadNotifications,
+            color: const Color(0xFF6366F1),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: provider.notifications.length,
+              itemBuilder: (context, index) {
+                final notification = provider.notifications[index];
+                return _buildNotificationCard(notification, provider);
+              },
+            ),
+          );
         },
       ),
     );
   }
 
+  Widget _buildNotificationCard(
+    NotificationModel notification,
+    NotificationProvider provider,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: notification.isRead 
+            ? Colors.white 
+            : const Color(0xFFEEF2FF),
+        borderRadius: BorderRadius.circular(16),
+        border: notification.isRead 
+            ? null 
+            : Border.all(color: const Color(0xFF6366F1).withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
+            if (!notification.isRead) {
+              await provider.markAsRead(notification.id);
+            }
+            // TODO: Navigate based on notification type
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _getIconBackgroundColor(notification.type),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getNotificationIcon(notification.type),
+                    color: _getIconColor(notification.type),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notification.title,
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: notification.isRead 
+                                    ? FontWeight.w500 
+                                    : FontWeight.w600,
+                                color: const Color(0xFF1F2937),
+                              ),
+                            ),
+                          ),
+                          if (!notification.isRead)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(left: 8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF6366F1),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        notification.body,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: const Color(0xFF6B7280),
+                          height: 1.5,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 14,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDateTime(notification.createdAt),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: const Color(0xFF9CA3AF),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   IconData _getNotificationIcon(String type) {
-    switch (type) {
-      case 'complaint_created':
-        return Icons.report;
-      case 'complaint_status_changed':
-        return Icons.update;
-      case 'admin_response':
-        return Icons.comment;
-      case 'complaint_resolved':
-        return Icons.check_circle;
-      case 'announcement_created':
-        return Icons.campaign;
-      case 'comment_added':
-        return Icons.message;
+    switch (type.toLowerCase()) {
+      case 'complaint':
+      case 'complaint_update':
+        return Icons.report_outlined;
+      case 'announcement':
+        return Icons.campaign_outlined;
+      case 'system':
+        return Icons.info_outlined;
       default:
-        return Icons.notifications;
+        return Icons.notifications_outlined;
     }
   }
 
-  Color _getNotificationColor(String type) {
-    switch (type) {
-      case 'complaint_created':
-        return Colors.blue;
-      case 'complaint_status_changed':
-        return Colors.orange;
-      case 'admin_response':
-        return Colors.purple;
-      case 'complaint_resolved':
-        return Colors.green;
-      case 'announcement_created':
-        return Colors.red;
-      case 'comment_added':
-        return Colors.teal;
+  Color _getIconColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'complaint':
+      case 'complaint_update':
+        return const Color(0xFFEF4444);
+      case 'announcement':
+        return const Color(0xFF6366F1);
+      case 'system':
+        return const Color(0xFF10B981);
       default:
-        return Colors.grey;
+        return const Color(0xFF6B7280);
+    }
+  }
+
+  Color _getIconBackgroundColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'complaint':
+      case 'complaint_update':
+        return const Color(0xFFFEE2E2);
+      case 'announcement':
+        return const Color(0xFFEEF2FF);
+      case 'system':
+        return const Color(0xFFD1FAE5);
+      default:
+        return const Color(0xFFF3F4F6);
+    }
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'Baru saja';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} menit lalu';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} jam lalu';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} hari lalu';
+    } else {
+      return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
     }
   }
 }

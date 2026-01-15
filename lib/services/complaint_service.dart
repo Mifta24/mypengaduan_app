@@ -44,11 +44,15 @@ class ComplaintService {
         options: options,
       );
 
+      print('Get complaints response: ${response.data}');
+      print('Total complaints: ${response.data['data']?.length ?? 0}');
+      
       return PaginatedResponse.fromJson(
         response.data,
         (item) => Complaint.fromJson(item),
       );
     } on DioException catch (e) {
+      print('Error loading complaints: ${e.response?.data ?? e.message}');
       if (e.response != null) {
         throw Exception(e.response!.data['message'] ?? 'Failed to load complaints');
       }
@@ -84,7 +88,7 @@ class ComplaintService {
     List<String>? attachments,
   }) async {
     try {
-      final options = await _getOptions();
+      final token = await _authService.getToken();
       
       FormData formData = FormData.fromMap({
         'category_id': categoryId,
@@ -96,20 +100,34 @@ class ComplaintService {
 
       // Add attachments if any
       if (attachments != null && attachments.isNotEmpty) {
+        print('Uploading ${attachments.length} attachments...');
         for (int i = 0; i < attachments.length; i++) {
+          String fileName = attachments[i].split('/').last;
+          print('Adding attachment $i: $fileName from ${attachments[i]}');
           formData.files.add(MapEntry(
-            'attachments[$i]',
-            await MultipartFile.fromFile(attachments[i]),
+            'attachments[]',  // Changed from 'attachments[$i]' to 'attachments[]'
+            await MultipartFile.fromFile(
+              attachments[i],
+              filename: fileName,
+            ),
           ));
         }
+        print('Total files in FormData: ${formData.files.length}');
       }
 
       final response = await _dio.post(
         'complaints',
         data: formData,
-        options: options,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
       );
 
+      print('Create complaint response: ${response.data}');
       return ApiResponse.fromJson(
         response.data,
         (json) => Complaint.fromJson(json),

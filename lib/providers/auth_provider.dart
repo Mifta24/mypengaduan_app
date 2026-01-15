@@ -23,15 +23,38 @@ class AuthProvider extends ChangeNotifier {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
       if (isLoggedIn) {
-        _user = await _authService.getProfile();
-        _isAuthenticated = _user != null;
+        // First load user from storage for faster UI
+        _user = await _authService.getUserFromStorage();
+        if (_user != null) {
+          _isAuthenticated = true;
+          notifyListeners(); // Notify immediately with cached user
+        }
+        
+        // Try to verify with server (optional, jangan paksa)
+        try {
+          final serverUser = await _authService.getProfile();
+          if (serverUser != null) {
+            _user = serverUser;
+            _isAuthenticated = true;
+          }
+          // Jika gagal tapi ada cached user, tetap authenticated
+        } catch (e) {
+          debugPrint('Server verification failed, using cached user: $e');
+          // Keep authenticated with cached user
+          if (_user != null) {
+            _isAuthenticated = true;
+          }
+        }
       } else {
         _isAuthenticated = false;
         _user = null;
       }
     } catch (e) {
-      _isAuthenticated = false;
-      _user = null;
+      debugPrint('Check auth status error: $e');
+      // If error but we have cached user, keep authenticated
+      if (_user == null) {
+        _isAuthenticated = false;
+      }
     }
 
     _isLoading = false;
@@ -141,6 +164,24 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       // Handle error silently
     }
+  }
+
+  // Get profile (with loading state)
+  Future<void> getProfile() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _user = await _authService.getProfile();
+      if (_user != null) {
+        _isAuthenticated = true;
+      }
+    } catch (e) {
+      // Handle error silently
+    }
+
+    _isLoading = false;
+    notifyListeners();
   }
 
   // Clear error message
