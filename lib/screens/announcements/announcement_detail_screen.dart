@@ -1,0 +1,854 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../models/announcement_model.dart';
+import '../../models/comment_model.dart';
+import '../../services/announcement_service.dart';
+
+class AnnouncementDetailScreen extends StatefulWidget {
+  final Announcement announcement;
+
+  const AnnouncementDetailScreen({
+    super.key,
+    required this.announcement,
+  });
+
+  @override
+  State<AnnouncementDetailScreen> createState() => _AnnouncementDetailScreenState();
+}
+
+class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
+  final AnnouncementService _announcementService = AnnouncementService();
+  final TextEditingController _commentController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  
+  // Note: Bookmark feature disabled - backend endpoint not yet available
+  // bool _isBookmarked = false;
+  bool _isLoadingComments = false;
+  bool _isSubmittingComment = false;
+  bool _hasLoadedComments = false; // Track if comments already loaded
+  List<Comment> _comments = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Load comments once on init
+    _loadComments();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadComments({bool forceRefresh = false}) async {
+    if (!widget.announcement.allowComments) return;
+    
+    // Skip if already loaded and not forcing refresh
+    if (_hasLoadedComments && !forceRefresh) return;
+
+    setState(() => _isLoadingComments = true);
+    
+    try {
+      final comments = await _announcementService.getComments(widget.announcement.id);
+      setState(() {
+        _comments = comments;
+        _isLoadingComments = false;
+        _hasLoadedComments = true;
+      });
+    } catch (e) {
+      setState(() => _isLoadingComments = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat komentar: $e')),
+        );
+      }
+    }
+  }
+
+  // Note: Backend does not have bookmark endpoint yet
+  // Future<void> _toggleBookmark() async {
+  //   setState(() => _isBookmarked = !_isBookmarked);
+  //   
+  //   final response = await _announcementService.toggleBookmark(widget.announcement.id);
+  //   
+  //   if (mounted) {
+  //     if (response.success) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(_isBookmarked ? 'Pengumuman disimpan' : 'Pengumuman dihapus dari simpanan'),
+  //           backgroundColor: Colors.green,
+  //         ),
+  //       );
+  //     } else {
+  //       setState(() => _isBookmarked = !_isBookmarked); // Revert on failure
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Gagal: ${response.message}')),
+  //       );
+  //     }
+  //   }
+  // }
+
+  Future<void> _shareAnnouncement() async {
+    try {
+      final text = '${widget.announcement.title}\n\n${widget.announcement.content}\n\nDibagikan dari MyPengaduan';
+      
+      try {
+        await Share.share(text, subject: widget.announcement.title);
+      } catch (e) {
+        // Fallback: Copy to clipboard if share fails (mobile plugin issue)
+        await Clipboard.setData(ClipboardData(text: text));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Teks disalin ke clipboard!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _submitComment() async {
+    final content = _commentController.text.trim();
+    if (content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Komentar tidak boleh kosong')),
+      );
+      return;
+    }
+
+    if (content.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Komentar minimal 3 karakter')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmittingComment = true);
+
+    try {
+      final response = await _announcementService.addComment(
+        widget.announcement.id,
+        content,
+      );
+
+      setState(() => _isSubmittingComment = false);
+
+      if (mounted) {
+        if (response.success) {
+          _commentController.clear();
+          // Hide keyboard
+          FocusScope.of(context).unfocus();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Komentar berhasil dikirim!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          
+          // Reload comments to show the new one
+          _loadComments(forceRefresh: true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal: ${response.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isSubmittingComment = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: Text(
+          'Detail Pengumuman',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF1F2937),
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF1F2937)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFFE5E7EB),
+            height: 1,
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => _loadComments(forceRefresh: true),
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Card
+                    _buildHeaderCard(),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Content Card
+                    _buildContentCard(),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Action Buttons
+                    _buildActionButtons(),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Comments Section
+                    if (widget.announcement.allowComments) ...[
+                      _buildCommentsSection(),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          // Comment Input (sticky at bottom)
+          if (widget.announcement.allowComments)
+            _buildCommentInput(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: _getPriorityGradient(widget.announcement.priority),
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: _getPriorityColor(widget.announcement.priority).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Priority Badge
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.priority_high,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _getPriorityText(widget.announcement.priority),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              // Views count
+              Row(
+                children: [
+                  const Icon(Icons.visibility, size: 16, color: Colors.white70),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${widget.announcement.viewsCount} kali dilihat',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Title
+          Text(
+            widget.announcement.title,
+            style: GoogleFonts.poppins(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              height: 1.3,
+            ),
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Metadata
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              _buildMetadataItem(
+                Icons.person,
+                'Admin',
+                Colors.white70,
+              ),
+              _buildMetadataItem(
+                Icons.calendar_today,
+                DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(
+                  widget.announcement.publishedAt ?? widget.announcement.createdAt,
+                ),
+                Colors.white70,
+              ),
+              if (widget.announcement.updatedAt != widget.announcement.createdAt)
+                _buildMetadataItem(
+                  Icons.update,
+                  'Diperbarui ${DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(widget.announcement.updatedAt)}',
+                  Colors.white70,
+                ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Target Audience
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.people, size: 16, color: Colors.white),
+                const SizedBox(width: 6),
+                Text(
+                  'Ditujukan untuk:',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: Colors.white70,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  widget.announcement.targetAudience?.join(', ') ?? 'Semua Warga',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContentCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Summary if available
+          if (widget.announcement.summary != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Text(
+                widget.announcement.summary!,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                  color: const Color(0xFF6B7280),
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          // Content
+          Text(
+            widget.announcement.content,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: const Color(0xFF374151),
+              height: 1.7,
+            ),
+          ),
+          
+          // Attachments if available
+          if (widget.announcement.attachments != null && 
+              widget.announcement.attachments!.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
+              'Lampiran:',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...widget.announcement.attachments!.map((attachment) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.attachment, size: 20, color: Color(0xFF6366F1)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        attachment,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: const Color(0xFF374151),
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.download, size: 20, color: Color(0xFF6B7280)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Share Button (Full Width - Bookmark disabled)
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _shareAnnouncement,
+              icon: const Icon(Icons.share, size: 20),
+              label: Text(
+                'Bagikan Pengumuman',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          
+          // Note: Bookmark button disabled - backend endpoint not available
+          // const SizedBox(width: 12),
+          // 
+          // // Bookmark Button
+          // Expanded(
+          //   child: ElevatedButton.icon(
+          //     onPressed: _toggleBookmark,
+          //     icon: Icon(
+          //       _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+          //       size: 18,
+          //     ),
+          //     label: Text(
+          //       'Simpan',
+          //       style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          //     ),
+          //     style: ElevatedButton.styleFrom(
+          //       backgroundColor: _isBookmarked 
+          //           ? const Color(0xFF6366F1) 
+          //           : const Color(0xFFF3F4F6),
+          //       foregroundColor: _isBookmarked 
+          //           ? Colors.white 
+          //           : const Color(0xFF374151),
+          //       elevation: 0,
+          //       padding: const EdgeInsets.symmetric(vertical: 12),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //     ),
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommentsSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.comment, size: 20, color: Color(0xFF6366F1)),
+              const SizedBox(width: 8),
+              Text(
+                'Komentar',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1F2937),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          if (_isLoadingComments)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_comments.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.chat_bubble_outline,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Belum ada komentar',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: const Color(0xFF9CA3AF),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Jadilah yang pertama berkomentar!',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: const Color(0xFF9CA3AF),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _comments.length,
+              separatorBuilder: (context, index) => const Divider(height: 24),
+              itemBuilder: (context, index) {
+                final comment = _comments[index];
+                return _buildCommentItem(comment);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommentItem(Comment comment) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Avatar
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: const Color(0xFF6366F1),
+          child: Text(
+            comment.userName.substring(0, 1).toUpperCase(),
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        
+        const SizedBox(width: 12),
+        
+        // Comment content
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    comment.userName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(comment.createdAt),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: const Color(0xFF9CA3AF),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                comment.content,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: const Color(0xFF374151),
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCommentInput() {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _commentController,
+              maxLines: null,
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                hintText: 'Tulis komentar...',
+                hintStyle: GoogleFonts.inter(
+                  color: const Color(0xFF9CA3AF),
+                ),
+                filled: true,
+                fillColor: const Color(0xFFF3F4F6),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFF374151),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: _isSubmittingComment ? null : _submitComment,
+            icon: _isSubmittingComment
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.send),
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.all(12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadataItem(IconData icon, String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getPriorityText(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'urgent':
+        return 'Mendesak';
+      case 'high':
+        return 'Tinggi';
+      case 'normal':
+        return 'Sedang';
+      case 'low':
+        return 'Rendah';
+      default:
+        return 'Normal';
+    }
+  }
+
+  Color _getPriorityColor(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'urgent':
+        return const Color(0xFFDC2626);
+      case 'high':
+        return const Color(0xFFEA580C);
+      case 'normal':
+        return const Color(0xFF2563EB);
+      case 'low':
+        return const Color(0xFF16A34A);
+      default:
+        return const Color(0xFF6366F1);
+    }
+  }
+
+  List<Color> _getPriorityGradient(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'urgent':
+        return [const Color(0xFFDC2626), const Color(0xFFB91C1C)];
+      case 'high':
+        return [const Color(0xFFEA580C), const Color(0xFFC2410C)];
+      case 'normal':
+        return [const Color(0xFF2563EB), const Color(0xFF1D4ED8)];
+      case 'low':
+        return [const Color(0xFF16A34A), const Color(0xFF15803D)];
+      default:
+        return [const Color(0xFF6366F1), const Color(0xFF4F46E5)];
+    }
+  }
+}
