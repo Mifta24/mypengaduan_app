@@ -2,7 +2,7 @@ class AppConfig {
   // API Configuration
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://192.168.1.100:8000/api/',
+    defaultValue: 'https://mypengaduan.miftahaldi.my.id/api/',
   );
   
   // App Configuration
