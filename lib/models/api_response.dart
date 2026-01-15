@@ -13,13 +13,19 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     T Function(dynamic)? fromJsonT,
   ) {
-    return ApiResponse<T>(
-      success: json['success'] as bool,
-      message: json['message'] as String,
-      data: json['data'] != null && fromJsonT != null
-          ? fromJsonT(json['data'])
-          : json['data'],
-    );
+    try {
+      return ApiResponse<T>(
+        success: json['success'] == true || json['success'] == 1,
+        message: json['message']?.toString() ?? '',
+        data: json['data'] != null && fromJsonT != null
+            ? fromJsonT(json['data'])
+            : json['data'],
+      );
+    } catch (e) {
+      print('Error parsing ApiResponse: $e');
+      print('JSON: $json');
+      rethrow;
+    }
   }
 }
 
@@ -42,42 +48,70 @@ class PaginatedResponse<T> {
     Map<String, dynamic> json,
     T Function(dynamic) fromJsonT,
   ) {
-    return PaginatedResponse<T>(
-      success: json['success'] as bool,
-      message: json['message'] as String,
-      meta: PaginationMeta.fromJson(json['meta']),
-      data: (json['data'] as List).map((item) => fromJsonT(item)).toList(),
-      unreadCount: json['unread_count'] as int?,
-    );
+    try {
+      return PaginatedResponse<T>(
+        success: json['success'] == true || json['success'] == 1,
+        message: json['message']?.toString() ?? '',
+        meta: PaginationMeta.fromJson(json['meta'] as Map<String, dynamic>),
+        data: (json['data'] as List).map((item) => fromJsonT(item)).toList(),
+        unreadCount: json['unread_count'] != null
+            ? (json['unread_count'] is int 
+                ? json['unread_count'] as int 
+                : int.tryParse(json['unread_count'].toString()))
+            : null,
+      );
+    } catch (e) {
+      print('Error parsing PaginatedResponse: $e');
+      print('JSON: $json');
+      rethrow;
+    }
   }
 }
 
 class PaginationMeta {
   final int currentPage;
-  final int from;
+  final int? from;  // Made nullable - can be null when no data
   final int lastPage;
   final int perPage;
-  final int to;
+  final int? to;    // Made nullable - can be null when no data
   final int total;
 
   PaginationMeta({
     required this.currentPage,
-    required this.from,
+    this.from,
     required this.lastPage,
     required this.perPage,
-    required this.to,
+    this.to,
     required this.total,
   });
 
   factory PaginationMeta.fromJson(Map<String, dynamic> json) {
-    return PaginationMeta(
-      currentPage: json['current_page'] as int,
-      from: json['from'] as int,
-      lastPage: json['last_page'] as int,
-      perPage: json['per_page'] as int,
-      to: json['to'] as int,
-      total: json['total'] as int,
-    );
+    try {
+      return PaginationMeta(
+        currentPage: json['current_page'] is int 
+            ? json['current_page'] as int 
+            : int.parse(json['current_page'].toString()),
+        from: json['from'] != null
+            ? (json['from'] is int ? json['from'] as int : int.tryParse(json['from'].toString()))
+            : null,
+        lastPage: json['last_page'] is int 
+            ? json['last_page'] as int 
+            : int.parse(json['last_page'].toString()),
+        perPage: json['per_page'] is int 
+            ? json['per_page'] as int 
+            : int.parse(json['per_page'].toString()),
+        to: json['to'] != null
+            ? (json['to'] is int ? json['to'] as int : int.tryParse(json['to'].toString()))
+            : null,
+        total: json['total'] is int 
+            ? json['total'] as int 
+            : int.parse(json['total'].toString()),
+      );
+    } catch (e) {
+      print('Error parsing PaginationMeta: $e');
+      print('JSON: $json');
+      rethrow;
+    }
   }
 
   bool get hasMorePages => currentPage < lastPage;
