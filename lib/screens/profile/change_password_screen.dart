@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
+import '../../theme/app_theme.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -96,30 +98,56 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Ubah Password'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Ubah Password',
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.textPrimary,
+        elevation: 0,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            const Text(
+             Center(
+               child: Container(
+                 padding: const EdgeInsets.all(24),
+                 decoration: BoxDecoration(
+                   color: AppTheme.primary.withOpacity(0.1),
+                   shape: BoxShape.circle,
+                 ),
+                 child: Icon(
+                   Icons.lock_outline,
+                   size: 80,
+                   color: AppTheme.primary,
+                 ),
+               ),
+             ),
+             const SizedBox(height: 24),
+             Text(
               'Untuk keamanan akun Anda, pastikan password baru minimal 8 karakter dan berbeda dari password lama.',
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 14,
                 color: Colors.grey,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             TextFormField(
               controller: _currentPasswordController,
               decoration: InputDecoration(
                 labelText: 'Password Saat Ini',
                 prefixIcon: const Icon(Icons.lock_outline),
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureCurrentPassword
@@ -147,7 +175,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               decoration: InputDecoration(
                 labelText: 'Password Baru',
                 prefixIcon: const Icon(Icons.lock),
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureNewPassword
@@ -181,7 +211,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               decoration: InputDecoration(
                 labelText: 'Konfirmasi Password Baru',
                 prefixIcon: const Icon(Icons.lock),
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureConfirmPassword
@@ -227,9 +259,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
+                    :  Text(
                         'Ubah Password',
-                        style: TextStyle(fontSize: 16),
+                        style: GoogleFonts.nunito(fontSize: 16),
                       ),
               ),
             ),

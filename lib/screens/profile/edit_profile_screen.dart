@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
+import '../../theme/app_theme.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -96,8 +97,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         address: _addressController.text.trim(),
         // NIK tidak boleh diubah setelah registrasi, jadi jangan kirim ke backend
         nik: null,
-        rtNumber: _rtController.text.trim().isEmpty ? null : _rtController.text.trim(),
-        rwNumber: _rwController.text.trim().isEmpty ? null : _rwController.text.trim(),
+        rtNumber: _rtController.text.trim().isEmpty
+            ? null
+            : _rtController.text.trim(),
+        rwNumber: _rwController.text.trim().isEmpty
+            ? null
+            : _rwController.text.trim(),
       );
 
       if (mounted) {
@@ -142,10 +147,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = context.watch<AuthProvider>().user;
 
     return Scaffold(
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Edit Profil'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Edit Profil',
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.textPrimary,
+        elevation: 0,
       ),
       body: Form(
         key: _formKey,
@@ -155,7 +168,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // Header & description
             Text(
               'Edit Profil',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
               ),
@@ -163,7 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 4),
             Text(
               'Kelola informasi profil dan pengaturan akun Anda',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.nunito(
                 fontSize: 13,
                 color: Colors.grey[600],
               ),
@@ -173,7 +186,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // Informasi Profil
             Text(
               'Informasi Profil',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -181,7 +194,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 4),
             Text(
               'Update informasi profil dan alamat email Anda.',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.nunito(
                 fontSize: 13,
                 color: Colors.grey[600],
               ),
@@ -222,7 +235,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        helperText: 'Alamat email tidak dapat diubah dari aplikasi',
+                        helperText:
+                            'Alamat email tidak dapat diubah dari aplikasi',
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -255,7 +269,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // Foto Profil (placeholder, belum bisa diubah dari app)
             Text(
               'Foto Profil',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -277,15 +291,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           radius: 28,
                           backgroundColor:
                               Theme.of(context).primaryColor.withOpacity(0.1),
-                          backgroundImage:
-                              _profileImage != null ? FileImage(_profileImage!) : null,
+                          backgroundImage: _profileImage != null
+                              ? FileImage(_profileImage!)
+                              : null,
                           child: _profileImage == null
                               ? Text(
                                   (user?.name.isNotEmpty == true
                                           ? user!.name[0].toUpperCase()
                                           : 'U')
                                       .toString(),
-                                  style: TextStyle(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(context).primaryColor,
@@ -310,7 +325,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 'JPG, JPEG, PNG hingga 2MB',
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.nunito(
                                   fontSize: 12,
                                   color: Colors.grey[600],
                                 ),
@@ -318,7 +333,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 'Catatan: saat ini foto profil hanya disimpan di sisi aplikasi, belum diunggah ke server.',
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.nunito(
                                   fontSize: 11,
                                   color: Colors.grey[600],
                                 ),
@@ -337,7 +352,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // Informasi Identitas
             Text(
               'Informasi Identitas',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -369,7 +384,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     if (user?.ktpUrl != null && user!.ktpUrl!.isNotEmpty) ...[
                       Text(
                         'Foto KTP yang Terdaftar',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -403,7 +418,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         leading: const Icon(Icons.badge, color: Colors.green),
                         title: Text(
                           'KTP ${user.name}',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.nunito(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -415,7 +430,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               user.isUserVerified
                                   ? 'Terverifikasi. KTP Anda telah diverifikasi oleh admin.'
                                   : 'Belum terverifikasi oleh admin.',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 color: Colors.grey[700],
                               ),
@@ -423,7 +438,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             const SizedBox(height: 4),
                             Text(
                               'Klik untuk melihat lebih besar',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 color: Theme.of(context).primaryColor,
                               ),
@@ -442,7 +457,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // Alamat & RT/RW
             Text(
               'Alamat Lengkap',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -533,9 +548,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         'Simpan Perubahan',
-                        style: TextStyle(fontSize: 16),
+                        style: GoogleFonts.nunito(fontSize: 16),
                       ),
               ),
             ),

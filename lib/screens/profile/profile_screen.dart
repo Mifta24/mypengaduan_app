@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
@@ -28,12 +29,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.surface,
-      appBar: AppBar(
-        title: const Text('Profil Saya'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.textPrimary,
-        elevation: 0,
-      ),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           final user = authProvider.user;
@@ -50,14 +45,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: AppTheme.textSecondary,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                   Text(
                     'Tidak ada data profil',
-                    style: TextStyle(fontSize: 16),
+                    style: GoogleFonts.nunito(fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Silakan login untuk melihat profil',
-                    style: const TextStyle(color: AppTheme.textSecondary),
+                    style: GoogleFonts.nunito(color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -68,14 +63,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onRefresh: _loadProfile,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  _buildProfileHeader(user),
-                  const SizedBox(height: 24),
-                  _buildProfileInfo(user),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(context),
+                  _buildHeader(user),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildProfileInfo(user),
+                        const SizedBox(height: 24),
+                        _buildActionSettings(context),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -85,73 +86,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader(User user) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppTheme.border),
+  Widget _buildHeader(User user) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF15803D), AppTheme.primary, AppTheme.secondary],
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: AppTheme.primary.withOpacity(0.15),
+      padding: const EdgeInsets.only(top: 60, bottom: 30, left: 20, right: 20),
+      child: Column(
+        children: [
+          Text(
+            'Profil Saya',
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 24),
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.white,
+            child: CircleAvatar(
+              radius: 46,
+              backgroundColor: AppTheme.surface,
               child: Text(
                 user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                style: const TextStyle(
+                style: GoogleFonts.nunito(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primary,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              user.name,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            user.name,
+            style: GoogleFonts.nunito(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
-            const SizedBox(height: 4),
-            Text(
-              user.email,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppTheme.textSecondary,
-              ),
-              textAlign: TextAlign.center,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            user.email,
+            style: GoogleFonts.nunito(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.9),
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildBadge(
+                label: user.role.toUpperCase(),
+                color: user.role == 'admin' ? const Color(0xFFEF4444) : Colors.white.withOpacity(0.2),
+                textColor: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              if (user.isEmailVerified)
                 _buildBadge(
-                  label: user.role.toUpperCase(),
-                  color: user.role == 'admin' ? Colors.red : Colors.blue,
+                  label: 'Email Verified',
+                  color: Colors.white.withOpacity(0.2),
+                  textColor: Colors.white,
+                  icon: Icons.verified,
                 ),
-                const SizedBox(width: 8),
-                if (user.isEmailVerified)
-                  _buildBadge(
-                    label: 'Email Verified',
-                    color: Colors.green,
-                    icon: Icons.verified,
-                  ),
-                const SizedBox(width: 8),
-                if (user.isUserVerified)
-                  _buildBadge(
-                    label: 'User Verified',
-                    color: Colors.purple,
-                    icon: Icons.verified_user,
-                  ),
-              ],
-            ),
-          ],
-        ),
+              const SizedBox(width: 8),
+              if (user.isUserVerified)
+                _buildBadge(
+                  label: 'User Verified',
+                  color: Colors.white.withOpacity(0.2),
+                  textColor: Colors.white,
+                  icon: Icons.verified_user,
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -159,28 +182,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildBadge({
     required String label,
     required Color color,
+    required Color textColor,
     IconData? icon,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 14, color: color),
+            Icon(icon, size: 14, color: textColor),
             const SizedBox(width: 4),
           ],
           Text(
             label,
-            style: TextStyle(
+            style: GoogleFonts.nunito(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: color,
+              color: textColor,
             ),
           ),
         ],
@@ -189,78 +212,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileInfo(User user) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppTheme.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Informasi Pribadi',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            const Divider(height: 24, color: AppTheme.border),
-            _buildInfoRow(Icons.phone, 'Telepon', user.phone ?? '-'),
-            const SizedBox(height: 16),
-            _buildInfoRow(Icons.location_on, 'Alamat', user.address ?? '-'),
-            if (user.nik != null) ...[
-              const SizedBox(height: 16),
-              _buildInfoRow(Icons.credit_card, 'NIK', user.nik ?? '-'),
-            ],
-            if (user.rtNumber != null || user.rwNumber != null) ...[
-              const SizedBox(height: 16),
-              _buildInfoRow(
-                Icons.home,
-                'RT/RW',
-                'RT ${user.rtNumber ?? '-'} / RW ${user.rwNumber ?? '-'}',
-              ),
-            ],
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              Icons.calendar_today,
-              'Bergabung',
-              _formatDate(user.createdAt),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: AppTheme.textSecondary),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textSecondary,
-                ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Text(
+            'Informasi Pribadi',
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textPrimary,
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildInfoTile(Icons.phone, 'Nomor Telepon', user.phone ?? 'Belum diatur'),
+              const Divider(height: 1, indent: 56, color: AppTheme.border),
+              _buildInfoTile(Icons.location_on, 'Alamat Lengkap', user.address ?? 'Belum diatur'),
+              if (user.nik != null) ...[
+                const Divider(height: 1, indent: 56, color: AppTheme.border),
+                _buildInfoTile(Icons.credit_card, 'NIK', user.nik!),
+              ],
+              if (user.rtNumber != null || user.rwNumber != null) ...[
+                const Divider(height: 1, indent: 56, color: AppTheme.border),
+                _buildInfoTile(
+                  Icons.home_work,
+                  'Lingkungan',
+                  'RT ${user.rtNumber ?? '-'} / RW ${user.rwNumber ?? '-'}',
                 ),
+              ],
+              const Divider(height: 1, indent: 56, color: AppTheme.border),
+              _buildInfoTile(
+                Icons.calendar_today,
+                'Bergabung Sejak',
+                _formatDate(user.createdAt),
               ),
             ],
           ),
@@ -269,69 +268,127 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildInfoTile(IconData icon, String title, String subtitle) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppTheme.primary.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 20, color: AppTheme.primary),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.nunito(
+          fontSize: 12,
+          color: AppTheme.textSecondary,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: GoogleFonts.nunito(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textPrimary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionSettings(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () => context.push(AppRouter.editProfile).then((result) {
-              if (result == true) {
-                _loadProfile();
-              }
-            }),
-            icon: const Icon(Icons.edit),
-            label: const Text('Edit Profil'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Text(
+            'Pengaturan Akun',
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ChangePasswordScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.lock),
-            label: const Text('Ubah Password'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
-            ),
+            ],
           ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showLogoutDialog(context),
-            icon: const Icon(Icons.logout),
-            label: const Text('Keluar'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          child: Column(
+            children: [
+              _buildActionTile(
+                icon: Icons.edit_outlined,
+                title: 'Edit Profil',
+                onTap: () => context.push(AppRouter.editProfile).then((result) {
+                  if (result == true) {
+                    _loadProfile();
+                  }
+                }),
               ),
-            ),
+              const Divider(height: 1, indent: 56, color: AppTheme.border),
+              _buildActionTile(
+                icon: Icons.lock_outline,
+                title: 'Ubah Password',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChangePasswordScreen(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1, indent: 56, color: AppTheme.border),
+              _buildActionTile(
+                icon: Icons.logout,
+                title: 'Keluar',
+                isDestructive: true,
+                onTap: () => _showLogoutDialog(context),
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final color = isDestructive ? const Color(0xFFEF4444) : AppTheme.textPrimary;
+    final iconColor = isDestructive ? const Color(0xFFEF4444) : AppTheme.textSecondary;
+    
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isDestructive ? color.withOpacity(0.1) : AppTheme.surface,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 20, color: iconColor),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.nunito(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right, color: AppTheme.textSecondary, size: 20),
     );
   }
 
