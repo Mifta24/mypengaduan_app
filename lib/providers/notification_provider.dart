@@ -39,11 +39,25 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print('🔄 [NotificationProvider] Loading notifications...');
+      print('🔑 User requesting notifications (check auth_service for user details)');
+      
       final response = await _notificationService.getNotifications(
         page: page,
         status: status,
         type: type,
       );
+
+      print('✅ [NotificationProvider] Received ${response.data.length} notifications');
+      print('📊 Metadata: currentPage=${response.meta.currentPage}, total=${response.meta.total}');
+
+      if (response.meta.total == 0) {
+        print('⚠️ [NotificationProvider] ZERO notifications found for this user!');
+        print('💡 Possible reasons:');
+        print('   1. No notifications created for this user_id in database');
+        print('   2. User ID mismatch between app and backend');
+        print('   3. Data not inserted yet - try creating a test notification');
+      }
 
       if (page == 1 || refresh) {
         _notifications = response.data;
@@ -56,11 +70,25 @@ class NotificationProvider extends ChangeNotifier {
       
       // Count unread notifications
       _unreadCount = _notifications.where((n) => !n.isRead).length;
+      
+      print('✅ [NotificationProvider] Total notifications: ${_notifications.length}');
+      print('🔔 Unread count: $_unreadCount');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString();
+      print('❌ [NotificationProvider] Error loading notifications: $e');
+      
+      // Check if it's authentication error
+      if (e.toString().contains('Token expired') || 
+          e.toString().contains('Sesi Anda telah berakhir') ||
+          e.toString().contains('401')) {
+        _errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
+        print('🚨 TOKEN EXPIRED - Need to logout user');
+      } else {
+        _errorMessage = e.toString();
+      }
+      
       _isLoading = false;
       notifyListeners();
     }
@@ -128,6 +156,38 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getDeviceTokens() async {
+    try {
+      return await _notificationService.getDeviceTokens();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<bool> deleteDeviceToken(int id) async {
+    try {
+      return await _notificationService.deleteDeviceToken(id);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getNotificationSettings() async {
+    try {
+      return await _notificationService.getNotificationSettings();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> updateNotificationSettings(Map<String, dynamic> settings) async {
+    try {
+      return await _notificationService.updateNotificationSettings(settings);
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Add new notification (called when receiving push notification)
   void addNotification(NotificationModel notification) {
     _notifications.insert(0, notification);
@@ -141,5 +201,17 @@ class NotificationProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  // Clear all provider data (use on logout)
+  void clear() {
+    _notifications = [];
+    _unreadCount = 0;
+    _isLoading = false;
+    _errorMessage = null;
+    _currentPage = 1;
+    _hasMorePages = false;
+    notifyListeners();
+    print('✅ [NotificationProvider] State cleared');
   }
 }

@@ -22,27 +22,57 @@ class AuthService {
   // Register
   Future<AuthResponse> register({
     required String name,
+    required String nik,
+    required String ktpPhotoPath,
     required String email,
+    required String rt,
+    required String rw,
+    String? phone,
+    required String address,
     required String password,
     required String passwordConfirmation,
-    required String phone,
-    required String address,
   }) async {
     try {
-      final response = await _dio.post('auth/register', data: {
+      // Create FormData for multipart/form-data
+      final formData = FormData.fromMap({
         'name': name,
+        'nik': nik,
+        'ktp_photo': await MultipartFile.fromFile(
+          ktpPhotoPath,
+          filename: ktpPhotoPath.split('/').last,
+        ),
         'email': email,
+        'rt': rt,
+        'rw': rw,
+        'address': address,
         'password': password,
         'password_confirmation': passwordConfirmation,
-        'phone': phone,
-        'address': address,
       });
+
+      // Add phone only if provided
+      if (phone != null && phone.isNotEmpty) {
+        formData.fields.add(MapEntry('phone', phone));
+      }
+
+      final response = await _dio.post(
+        'auth/register',
+        data: formData,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
 
       final authResponse = AuthResponse.fromJson(response.data);
       
+      // Note: After registration with admin verification, user might not get token immediately
+      // Only save token if provided
       if (authResponse.success && authResponse.data != null) {
-        await _saveToken(authResponse.data!.token);
-        await _saveUser(authResponse.data!.user);
+        if (authResponse.data!.token.isNotEmpty) {
+          await _saveToken(authResponse.data!.token);
+          await _saveUser(authResponse.data!.user);
+        }
       }
 
       return authResponse;
@@ -229,6 +259,24 @@ class AuthService {
       await _clearStorage();
       return true;
     } catch (e) {
+      await _clearStorage();
+      return true;
+    }
+  }
+
+  // Logout from all devices/sessions
+  Future<bool> logoutAll() async {
+    try {
+      final token = await getToken();
+      if (token != null) {
+        await _dio.post(
+          'auth/logout-all',
+          options: Options(headers: {'Authorization': 'Bearer $token'}),
+        );
+      }
+      await _clearStorage();
+      return true;
+    } catch (_) {
       await _clearStorage();
       return true;
     }

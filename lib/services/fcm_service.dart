@@ -5,12 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import 'notification_service.dart';
 
-// Top-level function for background messages
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint('Background message: ${message.messageId}');
-}
-
 class FCMService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
@@ -62,9 +56,22 @@ class FCMService {
     // Get FCM token
     String? token = await _firebaseMessaging.getToken();
     if (token != null) {
-      debugPrint('FCM Token: $token');
+      debugPrint('✅ FCM Token berhasil didapat: $token');
       await _saveFCMToken(token);
-      await _notificationService.registerFCMToken(token);
+      
+      // Register token to backend with error handling
+      try {
+        final success = await _notificationService.registerFCMToken(token);
+        if (success) {
+          debugPrint('✅ FCM Token berhasil didaftarkan ke backend');
+        } else {
+          debugPrint('⚠️ FCM Token gagal didaftarkan ke backend');
+        }
+      } catch (e) {
+        debugPrint('❌ Error registering FCM token: $e');
+      }
+    } else {
+      debugPrint('❌ Failed to get FCM token');
     }
 
     // Listen for token refresh
@@ -89,12 +96,16 @@ class FCMService {
 
   // Handle foreground messages
   void _handleForegroundMessage(RemoteMessage message) {
-    debugPrint('Foreground message: ${message.messageId}');
+    debugPrint('📨 Foreground message received: ${message.messageId}');
+    debugPrint('📨 Title: ${message.notification?.title}');
+    debugPrint('📨 Body: ${message.notification?.body}');
+    debugPrint('📨 Data: ${message.data}');
 
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
     if (notification != null && android != null) {
+      debugPrint('📲 Showing local notification...');
       _localNotifications.show(
         notification.hashCode,
         notification.title,
@@ -111,20 +122,55 @@ class FCMService {
         ),
         payload: message.data.toString(),
       );
+    } else {
+      debugPrint('⚠️ Notification is null or no Android data');
     }
   }
 
   // Handle notification tap
   void _handleNotificationTap(RemoteMessage message) {
     debugPrint('Notification tapped: ${message.data}');
-    // Navigate based on notification type
-    // TODO: Implement navigation logic based on type
     
-    // TODO: Implement navigation logic based on type
-    // For example:
-    // if (type == 'complaint_created') {
-    //   Navigator.pushNamed(context, '/complaint-detail', arguments: message.data['complaint_id']);
-    // }
+    // Navigate based on notification type
+    final type = message.data['type'] as String?;
+    final data = message.data;
+    
+    // Delay to ensure app is fully loaded
+    Future.delayed(const Duration(milliseconds: 500), () {
+      try {
+        switch (type) {
+          case 'complaint_created':
+          case 'complaint_updated':
+          case 'complaint_status_changed':
+            final complaintId = data['complaint_id'];
+            if (complaintId != null) {
+              // Navigate to complaint detail
+              // Using go_router: context.go('/complaint/$complaintId')
+              debugPrint('Navigate to complaint: $complaintId');
+            }
+            break;
+          
+          case 'comment_added':
+            final complaintId = data['complaint_id'];
+            if (complaintId != null) {
+              debugPrint('Navigate to complaint with comment: $complaintId');
+            }
+            break;
+          
+          case 'announcement_created':
+            // Navigate to announcements
+            debugPrint('Navigate to announcements');
+            break;
+          
+          default:
+            // Navigate to notifications list
+            debugPrint('Navigate to notifications list');
+            break;
+        }
+      } catch (e) {
+        debugPrint('Navigation error: $e');
+      }
+    });
   }
 
   // Handle local notification tap

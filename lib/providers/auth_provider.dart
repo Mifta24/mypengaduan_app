@@ -23,27 +23,12 @@ class AuthProvider extends ChangeNotifier {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
       if (isLoggedIn) {
-        // First load user from storage for faster UI
+        // Only load user from storage - DON'T verify with server to avoid lag
         _user = await _authService.getUserFromStorage();
         if (_user != null) {
           _isAuthenticated = true;
-          notifyListeners(); // Notify immediately with cached user
-        }
-        
-        // Try to verify with server (optional, jangan paksa)
-        try {
-          final serverUser = await _authService.getProfile();
-          if (serverUser != null) {
-            _user = serverUser;
-            _isAuthenticated = true;
-          }
-          // Jika gagal tapi ada cached user, tetap authenticated
-        } catch (e) {
-          debugPrint('Server verification failed, using cached user: $e');
-          // Keep authenticated with cached user
-          if (_user != null) {
-            _isAuthenticated = true;
-          }
+        } else {
+          _isAuthenticated = false;
         }
       } else {
         _isAuthenticated = false;
@@ -51,10 +36,8 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Check auth status error: $e');
-      // If error but we have cached user, keep authenticated
-      if (_user == null) {
-        _isAuthenticated = false;
-      }
+      _isAuthenticated = false;
+      _user = null;
     }
 
     _isLoading = false;
@@ -99,11 +82,15 @@ class AuthProvider extends ChangeNotifier {
   // Register
   Future<bool> register({
     required String name,
+    required String nik,
+    required String ktpPhotoPath,
     required String email,
+    required String rt,
+    required String rw,
+    String? phone,
+    required String address,
     required String password,
     required String passwordConfirmation,
-    required String phone,
-    required String address,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -112,16 +99,27 @@ class AuthProvider extends ChangeNotifier {
     try {
       final response = await _authService.register(
         name: name,
+        nik: nik,
+        ktpPhotoPath: ktpPhotoPath,
         email: email,
-        password: password,
-        passwordConfirmation: passwordConfirmation,
+        rt: rt,
+        rw: rw,
         phone: phone,
         address: address,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
       );
 
-      if (response.success && response.data != null) {
-        _user = response.data!.user;
-        _isAuthenticated = true;
+      if (response.success) {
+        // If registration requires admin verification, don't set authenticated
+        // User will need to wait for admin approval
+        if (response.data != null && response.data!.token.isNotEmpty) {
+          _user = response.data!.user;
+          _isAuthenticated = true;
+        } else {
+          // Registration successful but needs verification
+          _isAuthenticated = false;
+        }
         _errorMessage = null;
         _isLoading = false;
         notifyListeners();
@@ -144,16 +142,40 @@ class AuthProvider extends ChangeNotifier {
 
   // Logout
   Future<void> logout() async {
-    _isLoading = true;
-    notifyListeners();
-
-    await _authService.logout();
+    print('🚪 [AuthProvider] Logout started - clearing data immediately');
+    
+    // Clear state FIRST before calling service
     _user = null;
     _isAuthenticated = false;
     _errorMessage = null;
-
     _isLoading = false;
     notifyListeners();
+    
+    print('✅ [AuthProvider] State cleared, now calling logout service');
+    
+    // Then call logout service (async in background)
+    try {
+      await _authService.logout();
+      print('✅ [AuthProvider] Logout service completed');
+    } catch (e) {
+      print('⚠️ [AuthProvider] Logout service error (ignored): $e');
+      // Ignore errors - user already logged out from app perspective
+    }
+  }
+
+  // Logout all sessions/devices
+  Future<void> logoutAll() async {
+    _user = null;
+    _isAuthenticated = false;
+    _errorMessage = null;
+    _isLoading = false;
+    notifyListeners();
+
+    try {
+      await _authService.logoutAll();
+    } catch (_) {
+      // Ignore errors - state is already cleared
+    }
   }
 
   // Refresh profile
@@ -182,6 +204,44 @@ class AuthProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  // Update profile
+  Future<void> updateProfile({
+    String? name,
+    String? phone,
+    String? address,
+    String? nik,
+    String? rt,
+    String? rw,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _authService.updateProfile(
+        name: name ?? _user?.name ?? '',
+        phone: phone ?? _user?.phone ?? '',
+        address: address ?? _user?.address ?? '',
+        nik: nik,
+        rtNumber: rt,
+        rwNumber: rw,
+      );
+
+      if (response['success'] == true && response['user'] != null) {
+        _user = response['user'] as User;
+        _errorMessage = null;
+      } else {
+        _errorMessage = response['message'];
+        throw Exception(response['message']);
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   // Clear error message

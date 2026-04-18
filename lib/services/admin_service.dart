@@ -1,14 +1,25 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 import '../models/api_response.dart';
 import 'auth_service.dart';
+import 'cache_service.dart';
 
 class AdminService {
   final Dio _dio = Dio(BaseOptions(
     baseUrl: AppConfig.baseUrl,
     connectTimeout: AppConfig.connectionTimeout,
     receiveTimeout: AppConfig.receiveTimeout,
-  ));
+    contentType: 'application/json',
+  ))..interceptors.add(
+    LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      error: true,
+      requestHeader: true,
+      responseHeader: false,
+    ),
+  );
   final AuthService _authService = AuthService();
 
   Future<void> _setAuthHeader() async {
@@ -25,17 +36,44 @@ class AdminService {
     try {
       await _setAuthHeader();
       final response = await _dio.get('admin/dashboard');
+      
+      // Check if response is HTML (token expired)
+      if (response.data is String && (response.data as String).contains('<!DOCTYPE html>')) {
+        debugPrint('❌ getDashboard: Received HTML response - Token expired!');
+        throw Exception('Token expired - Please login again');
+      }
+      
       return response.data;
     } catch (e) {
       rethrow;
     }
   }
 
-  /// Get quick stats
-  Future<Map<String, dynamic>> getQuickStats() async {
+  /// Get quick stats with caching
+  Future<Map<String, dynamic>> getQuickStats({bool forceRefresh = false}) async {
+    const cacheKey = 'quick_stats';
+    
+    // Try to get from cache first if not forcing refresh
+    if (!forceRefresh) {
+      final cached = await CacheService.get(cacheKey);
+      if (cached != null) {
+        return cached as Map<String, dynamic>;
+      }
+    }
+    
     try {
       await _setAuthHeader();
       final response = await _dio.get('admin/dashboard/quick-stats');
+      
+      // Check if response is HTML (token expired)
+      if (response.data is String && (response.data as String).contains('<!DOCTYPE html>')) {
+        debugPrint('❌ getQuickStats: Received HTML response - Token expired!');
+        throw Exception('Token expired - Please login again');
+      }
+      
+      // Cache for 2 minutes
+      await CacheService.set(cacheKey, response.data, ttl: const Duration(minutes: 2));
+      
       return response.data;
     } catch (e) {
       rethrow;
@@ -44,13 +82,15 @@ class AdminService {
 
   // ========== COMPLAINT MANAGEMENT ==========
   
-  /// Get all complaints with filters
+  /// Get all complaints with filters and smaller default pagination
   Future<Map<String, dynamic>> getComplaints({
     int page = 1,
-    int perPage = 15,
+    int perPage = 10, // Reduced from 15 to 10
     String? status,
     String? priority,
     String? search,
+    int? userId,
+    int? categoryId,
   }) async {
     try {
       await _setAuthHeader();
@@ -60,7 +100,16 @@ class AdminService {
         if (status != null) 'status': status,
         if (priority != null) 'priority': priority,
         if (search != null) 'search': search,
+        if (userId != null) 'user_id': userId,
+        if (categoryId != null) 'category_id': categoryId,
       });
+      
+      // Check if response is HTML (token expired)
+      if (response.data is String && (response.data as String).contains('<!DOCTYPE html>')) {
+        debugPrint('❌ getComplaints: Received HTML response - Token expired!');
+        throw Exception('Token expired - Please login again');
+      }
+      
       return response.data;
     } catch (e) {
       rethrow;
@@ -89,6 +138,28 @@ class AdminService {
     }
   }
 
+  /// Create complaint on behalf of user (admin scope)
+  Future<ApiResponse> createComplaint(Map<String, dynamic> data) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.post('admin/complaints', data: data);
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Update complaint (admin full update)
+  Future<ApiResponse> updateComplaint(int id, Map<String, dynamic> data) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.put('admin/complaints/$id', data: data);
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Update complaint status
   Future<ApiResponse> updateComplaintStatus(int id, String status, {String? notes}) async {
     try {
@@ -103,13 +174,44 @@ class AdminService {
     }
   }
 
-  /// Mark complaint as resolved
-  Future<ApiResponse> markComplaintAsResolved(int id, {String? resolution}) async {
+  /// Mark complaint as resolved with resolution response and photos
+  Future<ApiResponse> markComplaintAsResolved(
+    int id, {
+    required String resolution,
+    List<String>? photos,
+  }) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.post('admin/complaints/$id/resolve', data: {
-        if (resolution != null) 'resolution': resolution,
+
+      final formData = FormData.fromMap({
+        // Backend expects "resolution_response" field name
+        'resolution_response': resolution,
       });
+
+      if (photos != null && photos.isNotEmpty) {
+        debugPrint('📎 [AdminService] Uploading ${photos.length} resolution photos');
+        for (final path in photos) {
+          final normalizedPath = path.replaceAll('\\\\', '/');
+          final fileName = normalizedPath.split('/').last;
+          formData.files.add(
+            MapEntry(
+              'resolution_photos[]',
+              await MultipartFile.fromFile(path, filename: fileName),
+            ),
+          );
+        }
+      }
+
+      final response = await _dio.post(
+        'admin/complaints/$id/resolve',
+        data: formData,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+          },
+          contentType: 'multipart/form-data',
+        ),
+      );
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -121,7 +223,7 @@ class AdminService {
     try {
       await _setAuthHeader();
       final res = await _dio.post('admin/complaints/$id/response', data: {
-        'response': response,
+        'message': response,  // Backend expects "message" field
       });
       return ApiResponse.fromJson(res.data, null);
     } catch (e) {
@@ -155,6 +257,61 @@ class AdminService {
     }
   }
 
+  /// Get trashed complaints
+  Future<Map<String, dynamic>> getTrashedComplaints({
+    int page = 1,
+    int perPage = 15,
+    String? search,
+  }) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.get(
+        'admin/complaints/trashed',
+        queryParameters: {
+          'page': page,
+          'per_page': perPage,
+          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        },
+      );
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Restore soft-deleted complaint
+  Future<ApiResponse> restoreComplaint(int id) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.post('admin/complaints/$id/restore');
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Permanently delete complaint
+  Future<ApiResponse> forceDeleteComplaint(int id) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.delete('admin/complaints/$id/force-delete');
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Delete specific complaint attachment
+  Future<ApiResponse> deleteComplaintAttachment(int attachmentId) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.delete('admin/complaints/attachments/$attachmentId');
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // ========== CATEGORY MANAGEMENT ==========
   
   /// Get all categories
@@ -163,6 +320,28 @@ class AdminService {
       await _setAuthHeader();
       final response = await _dio.get('admin/categories');
       return response.data['data'] as List;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get active categories only
+  Future<List<dynamic>> getActiveCategories() async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.get('admin/categories/active');
+      return response.data['data'] as List;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get category by ID
+  Future<Map<String, dynamic>> getCategory(int id) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.get('admin/categories/$id');
+      return response.data;
     } catch (e) {
       rethrow;
     }
@@ -206,6 +385,28 @@ class AdminService {
     try {
       await _setAuthHeader();
       final response = await _dio.patch('admin/categories/$id/toggle-status');
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Bulk action for categories
+  Future<ApiResponse> bulkActionCategories({
+    required List<int> ids,
+    required String action,
+    Map<String, dynamic>? payload,
+  }) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.post(
+        'admin/categories/bulk-action',
+        data: {
+          'ids': ids,
+          'action': action,
+          ...?payload,
+        },
+      );
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -290,11 +491,33 @@ class AdminService {
     }
   }
 
+  /// Unverify user email
+  Future<ApiResponse> unverifyUserEmail(int id) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.patch('admin/users/$id/unverify-email');
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Verify user account
   Future<ApiResponse> verifyUser(int id) async {
     try {
       await _setAuthHeader();
       final response = await _dio.patch('admin/users/$id/verify-user');
+      return ApiResponse.fromJson(response.data, null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Reject user verification
+  Future<ApiResponse> rejectUserVerification(int id) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.patch('admin/users/$id/reject-verification');
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -453,10 +676,31 @@ class AdminService {
   }
 
   /// Get complaints report
-  Future<Map<String, dynamic>> getComplaintsReport() async {
+  Future<Map<String, dynamic>> getComplaintsReport({
+    String? dateFrom,
+    String? dateTo,
+    String? status,
+    int? categoryId,
+    int? userId,
+    String? priority,
+    int? perPage,
+    int? page,
+  }) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.get('admin/reports/complaints');
+      final response = await _dio.get(
+        'admin/reports/complaints',
+        queryParameters: {
+          if (dateFrom != null) 'date_from': dateFrom,
+          if (dateTo != null) 'date_to': dateTo,
+          if (status != null) 'status': status,
+          if (categoryId != null) 'category_id': categoryId,
+          if (userId != null) 'user_id': userId,
+          if (priority != null) 'priority': priority,
+          if (perPage != null) 'per_page': perPage,
+          if (page != null) 'page': page,
+        },
+      );
       return response.data;
     } catch (e) {
       rethrow;
@@ -464,25 +708,30 @@ class AdminService {
   }
 
   /// Get users report
-  Future<Map<String, dynamic>> getUsersReport() async {
+  Future<Map<String, dynamic>> getUsersReport({
+    String? dateFrom,
+    String? dateTo,
+    String? role,
+    bool? isActive,
+    String? search,
+    int? perPage,
+    int? page,
+  }) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.get('admin/reports/users');
+      final response = await _dio.get(
+        'admin/reports/users',
+        queryParameters: {
+          if (dateFrom != null) 'date_from': dateFrom,
+          if (dateTo != null) 'date_to': dateTo,
+          if (role != null) 'role': role,
+          if (isActive != null) 'is_active': isActive ? 1 : 0,
+          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+          if (perPage != null) 'per_page': perPage,
+          if (page != null) 'page': page,
+        },
+      );
       return response.data;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Export report
-  Future<ApiResponse> exportReport(String type, {Map<String, dynamic>? filters}) async {
-    try {
-      await _setAuthHeader();
-      final response = await _dio.post('admin/reports/export', data: {
-        'type': type,
-        if (filters != null) ...filters,
-      });
-      return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
     }

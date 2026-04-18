@@ -6,17 +6,17 @@ import '../services/auth_service.dart';
 class ComplaintProvider extends ChangeNotifier {
   final ComplaintService _complaintService;
 
-  ComplaintProvider(AuthService authService) 
+  ComplaintProvider(AuthService authService)
       : _complaintService = ComplaintService(authService);
 
   List<Complaint> _complaints = [];
   List<Category> _categories = [];
   Map<String, dynamic>? _statistics;
   Complaint? _selectedComplaint;
-  
+
   bool _isLoading = false;
   String? _errorMessage;
-  
+
   int _currentPage = 1;
   bool _hasMorePages = false;
 
@@ -40,7 +40,7 @@ class ComplaintProvider extends ChangeNotifier {
       _isLoading = true;
       _complaints = [];
     }
-    
+
     _errorMessage = null;
     notifyListeners();
 
@@ -99,7 +99,8 @@ class ComplaintProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _selectedComplaint = await _complaintService.getComplaintDetail(complaintId);
+      _selectedComplaint =
+          await _complaintService.getComplaintDetail(complaintId);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -107,6 +108,11 @@ class ComplaintProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // Track complaint timeline/status
+  Future<Map<String, dynamic>?> trackComplaint(int complaintId) async {
+    return _complaintService.trackComplaint(complaintId);
   }
 
   // Create complaint
@@ -124,6 +130,51 @@ class ComplaintProvider extends ChangeNotifier {
 
     try {
       final response = await _complaintService.createComplaint(
+        categoryId: categoryId,
+        title: title,
+        description: description,
+        location: location,
+        reportDate: reportDate,
+        attachments: attachments,
+      );
+
+      if (response.success) {
+        // Refresh complaints list
+        await loadComplaints(refresh: true);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.message;
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Update existing complaint (only allowed while still pending on backend)
+  Future<bool> updateComplaint({
+    required int id,
+    required int categoryId,
+    required String title,
+    required String description,
+    required String location,
+    required DateTime reportDate,
+    List<String>? attachments,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _complaintService.updateComplaint(
+        id: id,
         categoryId: categoryId,
         title: title,
         description: description,
@@ -192,5 +243,94 @@ class ComplaintProvider extends ChangeNotifier {
   void clearSelectedComplaint() {
     _selectedComplaint = null;
     notifyListeners();
+  }
+
+  // Delete complaint (user scope)
+  Future<bool> deleteComplaint(int complaintId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _complaintService.deleteComplaint(complaintId);
+      if (response.success) {
+        _complaints.removeWhere((item) => item.id == complaintId);
+        if (_selectedComplaint?.id == complaintId) {
+          _selectedComplaint = null;
+        }
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _errorMessage = response.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Add response/message to complaint thread (user scope)
+  Future<bool> addResponse(int complaintId, String message) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response =
+          await _complaintService.addResponse(complaintId, message);
+      _isLoading = false;
+      if (!response.success) {
+        _errorMessage = response.message;
+      }
+      notifyListeners();
+      return response.success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Confirm complaint resolution (user scope)
+  Future<bool> confirmResolution(int complaintId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _complaintService.confirmResolution(complaintId);
+      _isLoading = false;
+      if (!response.success) {
+        _errorMessage = response.message;
+      }
+      notifyListeners();
+      return response.success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Clear all provider data (use on logout)
+  void clear() {
+    _complaints = [];
+    _categories = [];
+    _statistics = null;
+    _selectedComplaint = null;
+    _isLoading = false;
+    _errorMessage = null;
+    _currentPage = 1;
+    _hasMorePages = false;
+    notifyListeners();
+    print('✅ [ComplaintProvider] State cleared');
   }
 }

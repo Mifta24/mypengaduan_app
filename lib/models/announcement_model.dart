@@ -1,3 +1,19 @@
+DateTime? _parseDate(dynamic value) {
+  if (value == null) return null;
+
+  if (value is String && value.isNotEmpty) {
+    return DateTime.parse(value);
+  }
+
+  // Handle Laravel/PHP style date objects: { date: "...", timezone: "..." }
+  if (value is Map<String, dynamic> && value['date'] != null) {
+    return DateTime.parse(value['date'].toString());
+  }
+
+  // Fallback: try to parse any other representation to string
+  return DateTime.tryParse(value.toString());
+}
+
 class Announcement {
   final int id;
   final String title;
@@ -38,30 +54,52 @@ class Announcement {
   });
 
   factory Announcement.fromJson(Map<String, dynamic> json) {
+    // Normalize attachments into a list of strings (e.g. URLs or filenames)
+    List<String>? attachments;
+    if (json['attachments'] != null && json['attachments'] is List) {
+      attachments = (json['attachments'] as List)
+          .map((item) {
+            if (item is String) return item;
+            if (item is Map<String, dynamic>) {
+              // Try common keys that might store a file path or URL
+              return item['file_url']?.toString() ??
+                  item['file_path']?.toString() ??
+                  item['url']?.toString() ??
+                  item['path']?.toString() ??
+                  item['name']?.toString() ??
+                  item.toString();
+            }
+            return item.toString();
+          })
+          .toList();
+    }
+
+    // Normalize target audience into list of strings as well
+    List<String>? targetAudience;
+    if (json['target_audience'] != null && json['target_audience'] is List) {
+      targetAudience = (json['target_audience'] as List)
+          .map((item) => item.toString())
+          .toList();
+    }
+
     return Announcement(
       id: json['id'] as int,
       title: json['title'] as String,
       slug: json['slug'] as String,
       summary: json['summary'] as String?,
       content: json['content'] as String,
-      priority: json['priority'] as String? ?? 'normal',
-      targetAudience: json['target_audience'] != null
-          ? List<String>.from(json['target_audience'])
-          : null,
-      attachments: json['attachments'] != null
-          ? List<String>.from(json['attachments'])
-          : null,
+      priority: json['priority'] as String? ?? 'medium',
+      targetAudience: targetAudience,
+      attachments: attachments,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
       isSticky: json['is_sticky'] == 1 || json['is_sticky'] == true,
       allowComments: json['allow_comments'] == 1 || json['allow_comments'] == true,
-      publishedAt: json['published_at'] != null
-          ? DateTime.parse(json['published_at'] as String)
-          : null,
+      publishedAt: _parseDate(json['published_at']),
       viewsCount: json['views_count'] as int? ?? 0,
       authorId: json['author_id'] as int?,
       status: json['status'] as String? ?? 'unpublished',
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: _parseDate(json['created_at']) ?? DateTime.now(),
+      updatedAt: _parseDate(json['updated_at']) ?? DateTime.now(),
     );
   }
 
