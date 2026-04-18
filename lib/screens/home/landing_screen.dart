@@ -121,7 +121,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         const SizedBox(height: 20),
         Text(
           'MyPengaduan',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             fontSize: 32,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -138,7 +138,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         Text(
           'Sistem Pengaduan\nGang Annur 2 RT 05',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -151,7 +151,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
           child: Text(
             'Sampaikan keluhan dan aspirasi Anda dengan mudah dan cepat. Kami berkomitmen untuk meningkatkan kualitas pelayanan di lingkungan Gang Annur 2 RT 05.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.nunito(
               fontSize: 16,
               color: Colors.white.withOpacity(0.9),
               height: 1.6,
@@ -190,7 +190,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
       children: [
         Text(
           'Fitur Unggulan',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -199,7 +199,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         const SizedBox(height: 10),
         Text(
           'Sistem yang dirancang untuk memudahkan komunikasi',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.nunito(
             fontSize: 14,
             color: Colors.white.withOpacity(0.8),
           ),
@@ -259,7 +259,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.nunito(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -268,7 +268,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 13,
                     color: Colors.white.withOpacity(0.85),
                     height: 1.4,
@@ -305,7 +305,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
               children: [
                 Text(
                   'Daftar Sekarang',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.nunito(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -333,7 +333,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
             ),
             child: Text(
               'Masuk',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

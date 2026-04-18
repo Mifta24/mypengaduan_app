@@ -200,7 +200,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   children: [
                                     Text(
                                       'Selamat Datang!',
-                                      style: GoogleFonts.inter(
+                                      style: GoogleFonts.nunito(
                                         fontSize: 14,
                                         color: Colors.white.withOpacity(0.9),
                                         fontWeight: FontWeight.w500,
@@ -209,7 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     const SizedBox(height: 4),
                                     Text(
                                       authProvider.user?.name ?? 'User',
-                                      style: GoogleFonts.poppins(
+                                      style: GoogleFonts.nunito(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
@@ -268,7 +268,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 notificationProvider.unreadCount > 99
                                     ? '99+'
                                     : '${notificationProvider.unreadCount}',
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.nunito(
                                   color: Colors.white,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -330,7 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.poppins(
+      style: GoogleFonts.nunito(
         fontSize: 20,
         fontWeight: FontWeight.bold,
         color: AppTheme.textPrimary,
@@ -396,7 +396,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               children: [
                 Text(
                   'Konfirmasi Penyelesaian Dibutuhkan',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.nunito(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF9A3412),
@@ -405,7 +405,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 const SizedBox(height: 4),
                 Text(
                   'Ada $count pengaduan yang sudah ditangani admin dan menunggu konfirmasi Anda.',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 12,
                     color: const Color(0xFF9A3412),
                     height: 1.4,
@@ -417,7 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   icon: const Icon(Icons.visibility_rounded, size: 16),
                   label: Text(
                     'Lihat Pengaduan',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                    style: GoogleFonts.nunito(fontWeight: FontWeight.w600),
                   ),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFFEA580C),
@@ -552,7 +552,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             children: [
                               Text(
                                 item['value'] as String,
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.nunito(
                                   fontSize: 20, // Reduced from 22 to 20
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -565,7 +565,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                               const SizedBox(height: 1),
                               Text(
                                 item['title'] as String,
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.nunito(
                                   fontSize: 9, // Reduced from 10 to 9
                                   color: Colors.white.withOpacity(0.9),
                                   fontWeight: FontWeight.w500,
@@ -665,7 +665,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         children: [
                           Text(
                             action['title'] as String,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.nunito(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.textPrimary,
@@ -674,7 +674,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           const SizedBox(height: 2),
                           Text(
                             action['subtitle'] as String,
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.nunito(
                               fontSize: 13,
                               color: AppTheme.textSecondary,
                             ),
@@ -755,7 +755,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   children: [
                     Text(
                       feature['title'] as String,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.nunito(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textPrimary,
@@ -764,7 +764,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 4),
                     Text(
                       feature['description'] as String,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.nunito(
                         fontSize: 13,
                         color: AppTheme.textSecondary,
                         height: 1.4,
