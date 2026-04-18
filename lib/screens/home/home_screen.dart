@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/complaint_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../routes/app_router.dart';
 import '../complaints/complaint_list_screen.dart';
 import '../notifications/notification_list_screen.dart';
 import '../announcements/announcement_list_screen.dart';
@@ -35,60 +38,47 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         body: _screens[_currentIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF6366F1),
-          unselectedItemColor: Colors.grey,
-          selectedLabelStyle: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
           ),
-          unselectedLabelStyle: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.dashboard_rounded),
+                selectedIcon: Icon(Icons.dashboard),
+                label: 'Beranda',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.report_outlined),
+                selectedIcon: Icon(Icons.report),
+                label: 'Keluhan',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.campaign_outlined),
+                selectedIcon: Icon(Icons.campaign),
+                label: 'Pengumuman',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Profil',
+              ),
+            ],
           ),
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_rounded),
-              activeIcon: Icon(Icons.dashboard),
-              label: 'Beranda',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.report_outlined),
-              activeIcon: Icon(Icons.report),
-              label: 'Keluhan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.campaign_outlined),
-              activeIcon: Icon(Icons.campaign),
-              label: 'Pengumuman',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profil',
-            ),
-          ],
         ),
-      ),
       ),
     );
   }
@@ -113,11 +103,25 @@ class _DashboardScreenState extends State<DashboardScreen>
       vsync: this,
     );
     _animationController.forward();
-    // Load data after build completes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
+    print('🏠 [DashboardScreen] Screen initialized - will load after visible');
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load only once when screen becomes visible
+    if (!_hasLoadedOnce) {
+      _hasLoadedOnce = true;
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) {
+          print('🏠 [DashboardScreen] Screen visible - loading data now');
+          _loadData();
+        }
+      });
+    }
+  }
+
+  bool _hasLoadedOnce = false;
 
   @override
   void dispose() {
@@ -128,13 +132,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   Future<void> _loadData() async {
     final complaintProvider =
         Provider.of<ComplaintProvider>(context, listen: false);
-    final notificationProvider =
-        Provider.of<NotificationProvider>(context, listen: false);
-    
-    await Future.wait([
-      complaintProvider.loadStatistics(),
-      notificationProvider.loadNotifications(refresh: true),
-    ]);
+
+    // Only load statistics, DON'T load notifications (too heavy)
+    await complaintProvider.loadStatistics();
   }
 
   @override
@@ -142,12 +142,14 @@ class _DashboardScreenState extends State<DashboardScreen>
     final authProvider = Provider.of<AuthProvider>(context);
     final complaintProvider = Provider.of<ComplaintProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
+    final waitingConfirmationCount =
+        _getWaitingConfirmationCount(complaintProvider.statistics);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppTheme.surface,
       body: RefreshIndicator(
         onRefresh: _loadData,
-        color: const Color(0xFF6366F1),
+        color: AppTheme.primary,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
@@ -156,7 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               expandedHeight: 200,
               floating: false,
               pinned: true,
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: AppTheme.primary,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   decoration: BoxDecoration(
@@ -164,8 +166,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFF6366F1),
-                        const Color(0xFF8B5CF6),
+                        AppTheme.primaryDark,
+                        AppTheme.primary,
+                        AppTheme.secondary,
                       ],
                     ),
                   ),
@@ -262,8 +265,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                             ),
                             child: Center(
                               child: Text(
-                                notificationProvider.unreadCount > 99 
-                                    ? '99+' 
+                                notificationProvider.unreadCount > 99
+                                    ? '99+'
                                     : '${notificationProvider.unreadCount}',
                                 style: GoogleFonts.inter(
                                   color: Colors.white,
@@ -288,6 +291,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (waitingConfirmationCount > 0) ...[
+                      _buildWaitingConfirmationAlert(
+                        context,
+                        waitingConfirmationCount,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
                     // Statistics Section
                     if (complaintProvider.statistics != null) ...[
                       _buildSectionTitle('Statistik Sistem'),
@@ -322,40 +333,156 @@ class _DashboardScreenState extends State<DashboardScreen>
       style: GoogleFonts.poppins(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF1F2937),
+        color: AppTheme.textPrimary,
+      ),
+    );
+  }
+
+  int _getWaitingConfirmationCount(Map<String, dynamic>? stats) {
+    if (stats == null) return 0;
+
+    int readValue(List<String> keys) {
+      for (final key in keys) {
+        final value = stats[key];
+        if (value is num) return value.toInt();
+        if (value is String) {
+          final parsed = int.tryParse(value);
+          if (parsed != null) return parsed;
+        }
+      }
+      return 0;
+    }
+
+    return readValue([
+      'waiting_user_confirmation',
+      'waiting_user_confirmations',
+      'waiting_confirmation',
+      'waitingUserConfirmation',
+    ]);
+  }
+
+  Widget _buildWaitingConfirmationAlert(BuildContext context, int count) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFDBA74), width: 1.2),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEA580C).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.fact_check_rounded,
+              color: Color(0xFFEA580C),
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Konfirmasi Penyelesaian Dibutuhkan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF9A3412),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Ada $count pengaduan yang sudah ditangani admin dan menunggu konfirmasi Anda.',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: const Color(0xFF9A3412),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                FilledButton.icon(
+                  onPressed: () => context.push(AppRouter.myComplaints),
+                  icon: const Icon(Icons.visibility_rounded, size: 16),
+                  label: Text(
+                    'Lihat Pengaduan',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFEA580C),
+                    foregroundColor: Colors.white,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildStatisticsGrid(Map<String, dynamic> stats) {
+    int _getStatValue(List<String> keys, {int fallback = 0}) {
+      for (final key in keys) {
+        final value = stats[key];
+        if (value is num) return value.toInt();
+        if (value is String) {
+          final parsed = int.tryParse(value);
+          if (parsed != null) return parsed;
+        }
+      }
+      return fallback;
+    }
+
+    final totalComplaints =
+        _getStatValue(['total_complaints', 'total', 'totalComplaints']);
+    final resolvedComplaints =
+        _getStatValue(['resolved', 'resolved_complaints', 'completed']);
+    final pendingComplaints =
+        _getStatValue(['pending', 'pending_complaints', 'in_progress']);
+    final activeUsers =
+        _getStatValue(['active_users', 'active', 'activeUsers', 'total_users']);
+
     final statItems = [
       {
         'title': 'Total Keluhan',
-        'value': stats['total_complaints']?.toString() ?? '0',
+        'value': totalComplaints.toString(),
         'icon': Icons.description_rounded,
-        'color': const Color(0xFF3B82F6),
-        'gradient': [const Color(0xFF3B82F6), const Color(0xFF2563EB)],
+        'color': const Color(0xFF16A34A),
+        'gradient': [const Color(0xFF22C55E), const Color(0xFF16A34A)],
       },
       {
         'title': 'Keluhan Selesai',
-        'value': stats['resolved']?.toString() ?? '0',
+        'value': resolvedComplaints.toString(),
         'icon': Icons.check_circle_rounded,
-        'color': const Color(0xFF10B981),
-        'gradient': [const Color(0xFF10B981), const Color(0xFF059669)],
+        'color': const Color(0xFF15803D),
+        'gradient': [const Color(0xFF16A34A), const Color(0xFF15803D)],
       },
       {
         'title': 'Keluhan Pending',
-        'value': stats['pending']?.toString() ?? '0',
+        'value': pendingComplaints.toString(),
         'icon': Icons.pending_rounded,
-        'color': const Color(0xFFF59E0B),
-        'gradient': [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+        'color': const Color(0xFFD97706),
+        'gradient': [const Color(0xFFFBBF24), const Color(0xFFD97706)],
       },
       {
         'title': 'Pengguna Aktif',
-        'value': stats['active_users']?.toString() ?? '4',
+        'value': activeUsers.toString(),
         'icon': Icons.people_rounded,
-        'color': const Color(0xFF8B5CF6),
-        'gradient': [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)],
+        'color': const Color(0xFF0891B2),
+        'gradient': [const Color(0xFF22D3EE), const Color(0xFF0891B2)],
       },
     ];
 
@@ -404,7 +531,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(6), // Reduced from 8 to 6
+                          padding:
+                              const EdgeInsets.all(6), // Reduced from 8 to 6
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
@@ -415,7 +543,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                             size: 18, // Reduced from 20 to 18
                           ),
                         ),
-                        Expanded( // Changed from Flexible to Expanded
+                        Expanded(
+                          // Changed from Flexible to Expanded
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -427,7 +556,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   fontSize: 20, // Reduced from 22 to 20
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
-                                  height: 1.0, // Tighter line height from 1.1 to 1.0
+                                  height:
+                                      1.0, // Tighter line height from 1.1 to 1.0
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -465,27 +595,29 @@ class _DashboardScreenState extends State<DashboardScreen>
         'icon': Icons.add_circle_rounded,
         'title': 'Buat Pengaduan',
         'subtitle': 'Sampaikan keluhan Anda',
-        'color': const Color(0xFF6366F1),
+        'color': AppTheme.primary,
         'onTap': () {
-          // TODO: Navigate to create complaint
+          // Navigate to create complaint screen
+          context.push(AppRouter.createComplaint);
         },
       },
       {
         'icon': Icons.history_rounded,
         'title': 'Riwayat Keluhan',
         'subtitle': 'Lihat keluhan Anda',
-        'color': const Color(0xFF8B5CF6),
+        'color': const Color(0xFF0891B2),
         'onTap': () {
-          // Navigate to complaints list
+          // Navigate to complaints list with go route
+          context.push(AppRouter.myComplaints);
         },
       },
       {
         'icon': Icons.campaign_rounded,
         'title': 'Pengumuman',
         'subtitle': 'Info terkini dari pengurus',
-        'color': const Color(0xFF10B981),
+        'color': const Color(0xFF15803D),
         'onTap': () {
-          // Navigate to announcements
+          context.push(AppRouter.announcementsList);
         },
       },
     ];
@@ -536,7 +668,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1F2937),
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -544,7 +676,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             action['subtitle'] as String,
                             style: GoogleFonts.inter(
                               fontSize: 13,
-                              color: const Color(0xFF6B7280),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -598,7 +730,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFFE5E7EB),
+              color: AppTheme.border,
               width: 1,
             ),
           ),
@@ -607,12 +739,12 @@ class _DashboardScreenState extends State<DashboardScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                  color: AppTheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   feature['icon'] as IconData,
-                  color: const Color(0xFF6366F1),
+                  color: AppTheme.primary,
                   size: 24,
                 ),
               ),
@@ -626,7 +758,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1F2937),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -634,7 +766,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       feature['description'] as String,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                         height: 1.4,
                       ),
                     ),

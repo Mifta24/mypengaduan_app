@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/complaint_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../providers/announcement_provider.dart';
 import '../../models/user_model.dart';
-import 'edit_profile_screen.dart';
+import '../../routes/app_router.dart';
+import '../../theme/app_theme.dart';
 import 'change_password_screen.dart';
-import '../home/landing_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,10 +27,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
         title: const Text('Profil Saya'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.textPrimary,
+        elevation: 0,
       ),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
@@ -41,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Icon(
                     Icons.person_off,
                     size: 80,
-                    color: Colors.grey[400],
+                    color: AppTheme.textSecondary,
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -51,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Silakan login untuk melihat profil',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: const TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -81,21 +87,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileHeader(User user) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppTheme.border),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+              backgroundColor: AppTheme.primary.withOpacity(0.15),
               child: Text(
                 user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: AppTheme.primary,
                 ),
               ),
             ),
@@ -111,9 +120,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 4),
             Text(
               user.email,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -181,8 +190,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileInfo(User user) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppTheme.border),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -193,9 +205,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimary,
               ),
             ),
-            const Divider(height: 24),
+            const Divider(height: 24, color: AppTheme.border),
             _buildInfoRow(Icons.phone, 'Telepon', user.phone ?? '-'),
             const SizedBox(height: 16),
             _buildInfoRow(Icons.location_on, 'Alamat', user.address ?? '-'),
@@ -227,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: AppTheme.textSecondary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -235,9 +248,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -246,6 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
+                  color: AppTheme.textPrimary,
                 ),
               ),
             ],
@@ -261,26 +275,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
-                ),
-              );
-
+            onPressed: () => context.push(AppRouter.editProfile).then((result) {
               if (result == true) {
                 _loadProfile();
               }
-            },
+            }),
             icon: const Icon(Icons.edit),
             label: const Text('Edit Profil'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
@@ -302,7 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
@@ -319,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               side: const BorderSide(color: Colors.red),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
@@ -328,28 +335,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext outerContext) {
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
+      context: outerContext,
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Konfirmasi Keluar'),
           content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                final authProvider = context.read<AuthProvider>();
+                Navigator.pop(dialogContext);
+                final authProvider = outerContext.read<AuthProvider>();
+                
+                // Clear all provider states before logout
+                try {
+                  outerContext.read<ComplaintProvider>().clear();
+                } catch (e) {
+                  print('ComplaintProvider not available: $e');
+                }
+                try {
+                  outerContext.read<NotificationProvider>().clear();
+                } catch (e) {
+                  print('NotificationProvider not available: $e');
+                }
+                try {
+                  outerContext.read<AnnouncementProvider>().clear();
+                } catch (e) {
+                  print('AnnouncementProvider not available: $e');
+                }
+                
                 await authProvider.logout();
                 if (mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const LandingScreen()),
-                    (route) => false,
-                  );
+                  outerContext.go(AppRouter.landing);
                 }
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),

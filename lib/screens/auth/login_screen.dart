@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
-import 'register_screen.dart';
-import '../home/home_screen.dart';
-import '../admin/admin_dashboard_screen.dart';
+import '../../routes/app_router.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,15 +46,11 @@ class _LoginScreenState extends State<LoginScreen> {
         if (user != null && user.role == 'admin') {
           // Redirect to Admin Dashboard
           debugPrint('Redirecting to Admin Dashboard');
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
-          );
+          context.go(AppRouter.adminDashboard);
         } else {
           // Redirect to User Home Screen
           debugPrint('Redirecting to User Home Screen');
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
+          context.go(AppRouter.home);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -455,14 +451,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                     TextButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => const RegisterScreen(),
-                                          ),
-                                        );
-                                      },
+                                      onPressed: () => context.go(AppRouter.register),
                                       style: TextButton.styleFrom(
                                         padding: EdgeInsets.zero,
                                         minimumSize: Size.zero,

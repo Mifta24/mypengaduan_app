@@ -1,43 +1,67 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import '../../providers/complaint_provider.dart';
-import '../../models/complaint_model.dart';
+import 'package:provider/provider.dart';
 
-class CreateComplaintScreen extends StatefulWidget {
-  const CreateComplaintScreen({super.key});
+import '../../models/complaint_model.dart';
+import '../../providers/complaint_provider.dart';
+
+class EditComplaintScreen extends StatefulWidget {
+  final Complaint complaint;
+
+  /// Jika true, abaikan pembatasan status (khusus admin).
+  final bool allowEditAnyStatus;
+
+  const EditComplaintScreen({
+    super.key,
+    required this.complaint,
+    this.allowEditAnyStatus = false,
+  });
 
   @override
-  State<CreateComplaintScreen> createState() => _CreateComplaintScreenState();
+  State<EditComplaintScreen> createState() => _EditComplaintScreenState();
 }
 
-class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
+class _EditComplaintScreenState extends State<EditComplaintScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
-  
+
   DateTime? _selectedDate;
   int? _selectedCategoryId;
   final List<File> _images = [];
   bool _isLoading = false;
-  
+
   List<Category> _categories = [];
 
   @override
   void initState() {
     super.initState();
-    // Get categories from provider (already loaded in ComplaintListScreen)
+
+    // Prefill form with existing complaint data
+    _titleController.text = widget.complaint.title;
+    _descriptionController.text = widget.complaint.description;
+    _locationController.text = widget.complaint.location;
+    _selectedDate = widget.complaint.reportDate;
+    _selectedCategoryId = widget.complaint.categoryId ?? widget.complaint.category?.id;
+
+    // Load categories from provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final provider = context.read<ComplaintProvider>();
-        setState(() {
-          _categories = provider.categories;
+      if (!mounted) return;
+      final provider = context.read<ComplaintProvider>();
+      setState(() {
+        _categories = provider.categories;
+      });
+      if (_categories.isEmpty) {
+        provider.loadCategories().then((_) {
+          if (!mounted) return;
+          setState(() {
+            _categories = provider.categories;
+          });
         });
-        print('📋 [CreateComplaint] Using ${_categories.length} categories from provider');
       }
     });
   }
@@ -49,8 +73,6 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
     _locationController.dispose();
     super.dispose();
   }
-
-
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -194,9 +216,9 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
     }
   }
 
-  Future<void> _submitComplaint() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -217,17 +239,28 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
       return;
     }
 
+    // Hanya boleh edit jika status masih pending (dicek juga di backend),
+    // kecuali jika diizinkan untuk semua status (admin).
+    if (!widget.allowEditAnyStatus && widget.complaint.status != 'pending') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pengaduan tidak dapat diedit karena sudah diproses'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final provider = context.read<ComplaintProvider>();
-      
-      // Convert File objects to String paths
       final attachmentPaths = _images.map((file) => file.path).toList();
-      
-      await provider.createComplaint(
+
+      final success = await provider.updateComplaint(
+        id: widget.complaint.id,
         categoryId: _selectedCategoryId!,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -236,29 +269,39 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
         attachments: attachmentPaths,
       );
 
-      if (mounted) {
+      if (!mounted) return;
+
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Pengaduan berhasil dibuat'),
+            content: Text('Pengaduan berhasil diperbarui'),
             backgroundColor: Colors.green,
           ),
         );
-        // Return true to indicate success
         Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.errorMessage ?? 'Gagal memperbarui pengaduan'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal membuat pengaduan: $e'),
+            content: Text('Gagal memperbarui pengaduan: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -274,7 +317,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Buat Pengaduan',
+          'Edit Pengaduan',
           style: GoogleFonts.poppins(
             color: const Color(0xFF1F2937),
             fontWeight: FontWeight.w600,
@@ -287,7 +330,6 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Category Dropdown
             _buildSectionTitle('Kategori'),
             const SizedBox(height: 8),
             Container(
@@ -305,8 +347,8 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
               child: DropdownButtonFormField<int>(
                 value: _selectedCategoryId,
                 decoration: InputDecoration(
-                  hintText: _categories.isEmpty 
-                      ? 'Tidak ada kategori tersedia' 
+                  hintText: _categories.isEmpty
+                      ? 'Tidak ada kategori tersedia'
                       : 'Pilih kategori pengaduan',
                   hintStyle: GoogleFonts.inter(
                     color: const Color(0xFF9CA3AF),
@@ -327,8 +369,8 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
                   ),
                 ),
                 isExpanded: true,
-                items: _categories.isEmpty 
-                    ? null 
+                items: _categories.isEmpty
+                    ? null
                     : _categories
                         .map((category) => DropdownMenuItem<int>(
                               value: category.id,
@@ -351,7 +393,6 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Title
             _buildSectionTitle('Judul Pengaduan'),
             const SizedBox(height: 8),
             _buildTextField(
@@ -370,7 +411,6 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Description
             _buildSectionTitle('Deskripsi'),
             const SizedBox(height: 8),
             _buildTextField(
@@ -390,7 +430,6 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Location
             _buildSectionTitle('Lokasi'),
             const SizedBox(height: 8),
             _buildTextField(
@@ -406,7 +445,6 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Report Date
             _buildSectionTitle('Tanggal Kejadian'),
             const SizedBox(height: 8),
             Container(
@@ -437,8 +475,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
                       Text(
                         _selectedDate == null
                             ? 'Pilih tanggal'
-                            : DateFormat('dd/MM/yyyy')
-                                .format(_selectedDate!),
+                            : DateFormat('dd/MM/yyyy').format(_selectedDate!),
                         style: GoogleFonts.inter(
                           color: _selectedDate == null
                               ? const Color(0xFF9CA3AF)
@@ -453,8 +490,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Images
-            _buildSectionTitle('Foto (Opsional)'),
+            _buildSectionTitle('Foto Tambahan (Opsional)'),
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
@@ -542,7 +578,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Tambah Foto',
+                            'Tambah Foto Baru',
                             style: GoogleFonts.inter(
                               color: const Color(0xFF6366F1),
                               fontWeight: FontWeight.w600,
@@ -557,11 +593,10 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Submit Button
             SizedBox(
               height: 54,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _submitComplaint,
+                onPressed: _isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6366F1),
                   foregroundColor: Colors.white,
@@ -569,7 +604,8 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  disabledBackgroundColor: const Color(0xFF6366F1).withOpacity(0.5),
+                  disabledBackgroundColor:
+                      const Color(0xFF6366F1).withOpacity(0.5),
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -577,11 +613,12 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
                         width: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : Text(
-                        'Kirim Pengaduan',
+                        'Simpan Perubahan',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

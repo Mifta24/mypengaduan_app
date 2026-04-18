@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../providers/auth_provider.dart';
-import '../home/home_screen.dart';
-import 'login_screen.dart';
+import '../../routes/app_router.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,30 +17,100 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _nikController = TextEditingController();
   final _emailController = TextEditingController();
+  final _rtController = TextEditingController();
+  final _rwController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  final _ktpController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
+  File? _ktpImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
     _nameController.dispose();
+    _nikController.dispose();
     _emailController.dispose();
+    _rtController.dispose();
+    _rwController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
-    _ktpController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickKtpImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        final File imageFile = File(image.path);
+        final int fileSize = await imageFile.length();
+        
+        // Check file size (max 2MB)
+        if (fileSize > 2 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Ukuran file maksimal 2MB'),
+                backgroundColor: const Color(0xFFEF4444),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          }
+          return;
+        }
+        
+        setState(() {
+          _ktpImage = imageFile;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih gambar: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_ktpImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Silakan upload foto KTP Anda'),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
 
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -58,18 +130,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
     
     final success = await authProvider.register(
       name: _nameController.text.trim(),
+      nik: _nikController.text.trim(),
+      ktpPhotoPath: _ktpImage!.path,
       email: _emailController.text.trim(),
+      rt: _rtController.text.trim(),
+      rw: _rwController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+      address: _addressController.text.trim(),
       password: _passwordController.text,
       passwordConfirmation: _confirmPasswordController.text,
-      phone: _phoneController.text.trim(),
-      address: _addressController.text.trim(),
     );
 
     if (mounted) {
       if (success) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        // Show success message for pending verification
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Pendaftaran berhasil! Menunggu verifikasi admin.'),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         );
+        
+        // Redirect to login page
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          context.go(AppRouter.login);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -220,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Lengkapi formulir di bawah untuk mendaftar',
+                            'Daftar untuk mulai melaporkan keluhan',
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               color: const Color(0xFF6B7280),
@@ -250,6 +341,130 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 const SizedBox(height: 16),
 
+                                // NIK field
+                                _buildLabel('NIK (Nomor Induk Kependudukan) *'),
+                                const SizedBox(height: 8),
+                                _buildTextField(
+                                  controller: _nikController,
+                                  hintText: 'Masukkan 16 digit NIK',
+                                  icon: Icons.badge_outlined,
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'NIK tidak boleh kosong';
+                                    }
+                                    if (value.length != 16) {
+                                      return 'NIK harus 16 digit angka sesuai KTP';
+                                    }
+                                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                                      return 'NIK hanya boleh berisi angka';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'NIK harus 16 digit angka sesuai KTP',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: const Color(0xFF6B7280),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Upload KTP
+                                _buildLabel('Upload Foto KTP *'),
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTap: _pickKtpImage,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF9FAFB),
+                                      border: Border.all(
+                                        color: _ktpImage == null
+                                            ? const Color(0xFFE5E7EB)
+                                            : const Color(0xFF6366F1),
+                                        width: 2,
+                                        style: BorderStyle.solid,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: _ktpImage == null
+                                        ? Column(
+                                            children: [
+                                              Icon(
+                                                Icons.cloud_upload_outlined,
+                                                size: 48,
+                                                color: const Color(0xFF6B7280),
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                'Klik untuk upload atau drag & drop',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: const Color(0xFF374151),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'JPG, JPEG atau PNG (MAX. 2MB)',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 12,
+                                                  color: const Color(0xFF6B7280),
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Image.file(
+                                                  _ktpImage!,
+                                                  height: 150,
+                                                  width: double.infinity,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              Positioned(
+                                                top: 8,
+                                                right: 8,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _ktpImage = null;
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(6),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.red,
+                                                      borderRadius: BorderRadius.circular(20),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.close,
+                                                      color: Colors.white,
+                                                      size: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Upload foto KTP untuk verifikasi oleh admin',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: const Color(0xFF6B7280),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
                                 // Email field
                                 _buildLabel('Alamat Email *'),
                                 const SizedBox(height: 8),
@@ -270,40 +485,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Phone field
-                                _buildLabel('Nomor Telepon *'),
+                                // RT field
+                                _buildLabel('Lurah (Rukun Tetangga) *'),
                                 const SizedBox(height: 8),
                                 _buildTextField(
-                                  controller: _phoneController,
-                                  hintText: '08xx-xxxx-xxxx',
-                                  icon: Icons.phone_outlined,
-                                  keyboardType: TextInputType.phone,
+                                  controller: _rtController,
+                                  hintText: '001',
+                                  icon: Icons.home_work_outlined,
+                                  keyboardType: TextInputType.number,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'Nomor telepon tidak boleh kosong';
+                                      return 'RT tidak boleh kosong';
                                     }
                                     return null;
                                   },
                                 ),
                                 const SizedBox(height: 16),
 
-                                // KTP field
-                                _buildLabel('NIK/No. KTP *'),
+                                // RW field
+                                _buildLabel('RW (Rukun Warga) *'),
                                 const SizedBox(height: 8),
                                 _buildTextField(
-                                  controller: _ktpController,
-                                  hintText: 'Masukkan NIK/No. KTP Anda',
-                                  icon: Icons.badge_outlined,
+                                  controller: _rwController,
+                                  hintText: '001',
+                                  icon: Icons.location_city_outlined,
                                   keyboardType: TextInputType.number,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'NIK/No. KTP tidak boleh kosong';
-                                    }
-                                    if (value.length < 16) {
-                                      return 'NIK/No. KTP harus 16 digit';
+                                      return 'RW tidak boleh kosong';
                                     }
                                     return null;
                                   },
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Phone field
+                                _buildLabel('Nomor Telepon'),
+                                const SizedBox(height: 8),
+                                _buildTextField(
+                                  controller: _phoneController,
+                                  hintText: '08xxxxxxxxxx',
+                                  icon: Icons.phone_outlined,
+                                  keyboardType: TextInputType.phone,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Opsional, untuk mempermudah komunikasi',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: const Color(0xFF6B7280),
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
 
@@ -312,7 +543,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 const SizedBox(height: 8),
                                 _buildTextField(
                                   controller: _addressController,
-                                  hintText: 'Masukkan alamat lengkap Anda',
+                                  hintText: 'Masukkan alamat lengkap sesuai KTP',
                                   icon: Icons.home_outlined,
                                   maxLines: 3,
                                   validator: (value) {
@@ -322,6 +553,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     return null;
                                   },
                                 ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Alamat harus sesuai dengan yang tertera di KTP',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: const Color(0xFF6B7280),
+                                  ),
+                                ),
                                 const SizedBox(height: 16),
 
                                 // Password field
@@ -329,7 +568,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 const SizedBox(height: 8),
                                 _buildTextField(
                                   controller: _passwordController,
-                                  hintText: 'Minimal 6 karakter',
+                                  hintText: 'Minimal 8 karakter',
                                   icon: Icons.lock_outline,
                                   obscureText: _obscurePassword,
                                   suffixIcon: IconButton(
@@ -349,8 +588,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     if (value == null || value.isEmpty) {
                                       return 'Password tidak boleh kosong';
                                     }
-                                    if (value.length < 6) {
-                                      return 'Password minimal 6 karakter';
+                                    if (value.length < 8) {
+                                      return 'Password minimal 8 karakter';
                                     }
                                     return null;
                                   },
@@ -415,7 +654,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       child: Wrap(
                                         children: [
                                           Text(
-                                            'Saya menyetujui ',
+                                            'Saya setuju dengan ',
                                             style: GoogleFonts.inter(
                                               fontSize: 14,
                                               color: const Color(0xFF374151),
@@ -519,14 +758,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     TextButton(
-                                      onPressed: () {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => const LoginScreen(),
-                                          ),
-                                        );
-                                      },
+                                      onPressed: () => context.go(AppRouter.login),
                                       style: TextButton.styleFrom(
                                         padding: EdgeInsets.zero,
                                         minimumSize: Size.zero,

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/announcement_model.dart';
 import '../../models/comment_model.dart';
 import '../../services/announcement_service.dart';
@@ -16,16 +18,17 @@ class AnnouncementDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<AnnouncementDetailScreen> createState() => _AnnouncementDetailScreenState();
+  State<AnnouncementDetailScreen> createState() =>
+      _AnnouncementDetailScreenState();
 }
 
 class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   final AnnouncementService _announcementService = AnnouncementService();
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
-  // Note: Bookmark feature disabled - backend endpoint not yet available
-  // bool _isBookmarked = false;
+
+  bool _isBookmarked = false;
+  bool _isBookmarkLoading = false;
   bool _isLoadingComments = false;
   bool _isSubmittingComment = false;
   bool _hasLoadedComments = false; // Track if comments already loaded
@@ -34,6 +37,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _syncBookmarkState();
     // Load comments once on init
     _loadComments();
   }
@@ -45,16 +49,40 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     super.dispose();
   }
 
+  bool _isImageUrl(String url) {
+    final lower = url.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp') ||
+        lower.endsWith('.bmp');
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak dapat membuka lampiran')),
+        );
+      }
+    }
+  }
+
   Future<void> _loadComments({bool forceRefresh = false}) async {
     if (!widget.announcement.allowComments) return;
-    
+
     // Skip if already loaded and not forcing refresh
     if (_hasLoadedComments && !forceRefresh) return;
 
     setState(() => _isLoadingComments = true);
-    
+
     try {
-      final comments = await _announcementService.getComments(widget.announcement.id);
+      final comments =
+          await _announcementService.getComments(widget.announcement.id);
       setState(() {
         _comments = comments;
         _isLoadingComments = false;
@@ -70,33 +98,61 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     }
   }
 
-  // Note: Backend does not have bookmark endpoint yet
-  // Future<void> _toggleBookmark() async {
-  //   setState(() => _isBookmarked = !_isBookmarked);
-  //   
-  //   final response = await _announcementService.toggleBookmark(widget.announcement.id);
-  //   
-  //   if (mounted) {
-  //     if (response.success) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(_isBookmarked ? 'Pengumuman disimpan' : 'Pengumuman dihapus dari simpanan'),
-  //           backgroundColor: Colors.green,
-  //         ),
-  //       );
-  //     } else {
-  //       setState(() => _isBookmarked = !_isBookmarked); // Revert on failure
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Gagal: ${response.message}')),
-  //       );
-  //     }
-  //   }
-  // }
+  Future<void> _syncBookmarkState() async {
+    try {
+      final bookmarked =
+          await _announcementService.getBookmarkedAnnouncements();
+      if (!mounted) return;
+
+      final isBookmarked =
+          bookmarked.any((item) => item.id == widget.announcement.id);
+      setState(() => _isBookmarked = isBookmarked);
+    } catch (_) {
+      // Ignore bookmark sync failure and keep default local state.
+    }
+  }
+
+  Future<void> _toggleBookmark() async {
+    if (_isBookmarkLoading) return;
+
+    final previous = _isBookmarked;
+    setState(() {
+      _isBookmarkLoading = true;
+      _isBookmarked = !_isBookmarked;
+    });
+
+    final response =
+        await _announcementService.toggleBookmark(widget.announcement.id);
+
+    if (!mounted) return;
+
+    setState(() => _isBookmarkLoading = false);
+
+    if (response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isBookmarked
+                ? 'Pengumuman disimpan'
+                : 'Pengumuman dihapus dari simpanan',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isBookmarked = previous);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Gagal: ${response.message}')),
+    );
+  }
 
   Future<void> _shareAnnouncement() async {
     try {
-      final text = '${widget.announcement.title}\n\n${widget.announcement.content}\n\nDibagikan dari MyPengaduan';
-      
+      final text =
+          '${widget.announcement.title}\n\n${widget.announcement.content}\n\nDibagikan dari MyPengaduan';
+
       try {
         await Share.share(text, subject: widget.announcement.title);
       } catch (e) {
@@ -151,7 +207,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           _commentController.clear();
           // Hide keyboard
           FocusScope.of(context).unfocus();
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Komentar berhasil dikirim!'),
@@ -159,7 +215,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               duration: Duration(seconds: 2),
             ),
           );
-          
+
           // Reload comments to show the new one
           _loadComments(forceRefresh: true);
         } else {
@@ -182,6 +238,35 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         );
       }
     }
+  }
+
+  void _showFullImage(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close, color: Colors.white, size: 32),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -222,19 +307,19 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   children: [
                     // Header Card
                     _buildHeaderCard(),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Content Card
                     _buildContentCard(),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Action Buttons
                     _buildActionButtons(),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Comments Section
                     if (widget.announcement.allowComments) ...[
                       _buildCommentsSection(),
@@ -244,10 +329,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
             ),
           ),
-          
+
           // Comment Input (sticky at bottom)
-          if (widget.announcement.allowComments)
-            _buildCommentInput(),
+          if (widget.announcement.allowComments) _buildCommentInput(),
         ],
       ),
     );
@@ -265,7 +349,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: _getPriorityColor(widget.announcement.priority).withOpacity(0.3),
+            color: _getPriorityColor(widget.announcement.priority)
+                .withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -278,7 +363,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(20),
@@ -321,9 +407,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Title
           Text(
             widget.announcement.title,
@@ -334,9 +420,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Metadata
           Wrap(
             spacing: 16,
@@ -350,11 +436,13 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               _buildMetadataItem(
                 Icons.calendar_today,
                 DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(
-                  widget.announcement.publishedAt ?? widget.announcement.createdAt,
+                  widget.announcement.publishedAt ??
+                      widget.announcement.createdAt,
                 ),
                 Colors.white70,
               ),
-              if (widget.announcement.updatedAt != widget.announcement.createdAt)
+              if (widget.announcement.updatedAt !=
+                  widget.announcement.createdAt)
                 _buildMetadataItem(
                   Icons.update,
                   'Diperbarui ${DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(widget.announcement.updatedAt)}',
@@ -362,9 +450,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Target Audience
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -386,7 +474,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  widget.announcement.targetAudience?.join(', ') ?? 'Semua Warga',
+                  widget.announcement.targetAudience?.join(', ') ??
+                      'Semua Warga',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -439,7 +528,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             ),
             const SizedBox(height: 16),
           ],
-          
+
           // Content
           Text(
             widget.announcement.content,
@@ -449,9 +538,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               height: 1.7,
             ),
           ),
-          
+
           // Attachments if available
-          if (widget.announcement.attachments != null && 
+          if (widget.announcement.attachments != null &&
               widget.announcement.attachments!.isNotEmpty) ...[
             const SizedBox(height: 20),
             const Divider(),
@@ -466,28 +555,106 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             ),
             const SizedBox(height: 8),
             ...widget.announcement.attachments!.map((attachment) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.attachment, size: 20, color: Color(0xFF6366F1)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        attachment,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: const Color(0xFF374151),
+              final url = attachment;
+              final isImage = _isImageUrl(url);
+              // Derive a display name from the URL/path
+              final uri = Uri.tryParse(url);
+              final path = uri?.path ?? url;
+              final fileName =
+                  path.split('/').isNotEmpty ? path.split('/').last : url;
+
+              if (isImage) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        ),
+                        child: GestureDetector(
+                          onTap: () => _showFullImage(url),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: CachedNetworkImage(
+                              imageUrl: url,
+                              fit: BoxFit.cover,
+                              placeholder: (context, _) => Container(
+                                color: const Color(0xFFF3F4F6),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF6366F1)),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, _, __) => Container(
+                                color: const Color(0xFFF3F4F6),
+                                child: const Icon(Icons.broken_image,
+                                    color: Color(0xFF9CA3AF)),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const Icon(Icons.download, size: 20, color: Color(0xFF6B7280)),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.image,
+                                size: 18, color: Color(0xFF6366F1)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                fileName,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: const Color(0xFF374151),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // Non-image files: show as downloadable row
+              return InkWell(
+                onTap: () => _openUrl(url),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.insert_drive_file,
+                          size: 20, color: Color(0xFF6366F1)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          fileName,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFF374151),
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.download,
+                          size: 20, color: Color(0xFF6B7280)),
+                    ],
+                  ),
                 ),
               );
             }).toList(),
@@ -513,7 +680,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       ),
       child: Row(
         children: [
-          // Share Button (Full Width - Bookmark disabled)
+          // Share Button
           Expanded(
             child: ElevatedButton.icon(
               onPressed: _shareAnnouncement,
@@ -533,37 +700,41 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
             ),
           ),
-          
-          // Note: Bookmark button disabled - backend endpoint not available
-          // const SizedBox(width: 12),
-          // 
-          // // Bookmark Button
-          // Expanded(
-          //   child: ElevatedButton.icon(
-          //     onPressed: _toggleBookmark,
-          //     icon: Icon(
-          //       _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-          //       size: 18,
-          //     ),
-          //     label: Text(
-          //       'Simpan',
-          //       style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-          //     ),
-          //     style: ElevatedButton.styleFrom(
-          //       backgroundColor: _isBookmarked 
-          //           ? const Color(0xFF6366F1) 
-          //           : const Color(0xFFF3F4F6),
-          //       foregroundColor: _isBookmarked 
-          //           ? Colors.white 
-          //           : const Color(0xFF374151),
-          //       elevation: 0,
-          //       padding: const EdgeInsets.symmetric(vertical: 12),
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(12),
-          //       ),
-          //     ),
-          //   ),
-          // ),
+
+          const SizedBox(width: 12),
+
+          // Bookmark Button
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _isBookmarkLoading ? null : _toggleBookmark,
+              icon: _isBookmarkLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      size: 18,
+                    ),
+              label: Text(
+                'Simpan',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isBookmarked
+                    ? const Color(0xFF6366F1)
+                    : const Color(0xFFF3F4F6),
+                foregroundColor:
+                    _isBookmarked ? Colors.white : const Color(0xFF374151),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -600,9 +771,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
             ],
           ),
-          
           const SizedBox(height: 16),
-          
           if (_isLoadingComments)
             const Center(
               child: Padding(
@@ -674,9 +843,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             ),
           ),
         ),
-        
+
         const SizedBox(width: 12),
-        
+
         // Comment content
         Expanded(
           child: Column(
@@ -694,7 +863,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(comment.createdAt),
+                    DateFormat('dd MMM yyyy, HH:mm', 'id_ID')
+                        .format(comment.createdAt),
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: const Color(0xFF9CA3AF),
@@ -813,12 +983,12 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         return 'Mendesak';
       case 'high':
         return 'Tinggi';
-      case 'normal':
+      case 'medium':
         return 'Sedang';
       case 'low':
         return 'Rendah';
       default:
-        return 'Normal';
+        return 'Sedang';
     }
   }
 
@@ -828,7 +998,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         return const Color(0xFFDC2626);
       case 'high':
         return const Color(0xFFEA580C);
-      case 'normal':
+      case 'medium':
         return const Color(0xFF2563EB);
       case 'low':
         return const Color(0xFF16A34A);
@@ -843,7 +1013,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         return [const Color(0xFFDC2626), const Color(0xFFB91C1C)];
       case 'high':
         return [const Color(0xFFEA580C), const Color(0xFFC2410C)];
-      case 'normal':
+      case 'medium':
         return [const Color(0xFF2563EB), const Color(0xFF1D4ED8)];
       case 'low':
         return [const Color(0xFF16A34A), const Color(0xFF15803D)];

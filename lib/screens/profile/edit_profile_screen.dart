@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
@@ -20,6 +24,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _rwController = TextEditingController();
 
   bool _isLoading = false;
+  File? _profileImage;
 
   @override
   void initState() {
@@ -50,6 +55,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickProfileImage() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (picked != null) {
+        setState(() {
+          _profileImage = File(picked.path);
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memilih foto profil: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -63,7 +94,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
         address: _addressController.text.trim(),
-        nik: _nikController.text.trim().isEmpty ? null : _nikController.text.trim(),
+        // NIK tidak boleh diubah setelah registrasi, jadi jangan kirim ke backend
+        nik: null,
         rtNumber: _rtController.text.trim().isEmpty ? null : _rtController.text.trim(),
         rwNumber: _rwController.text.trim().isEmpty ? null : _rwController.text.trim(),
       );
@@ -107,6 +139,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profil'),
@@ -118,110 +152,365 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nama Lengkap',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
+            // Header & description
+            Text(
+              'Edit Profil',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Nama tidak boleh kosong';
-                }
-                return null;
-              },
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Nomor Telepon',
-                prefixIcon: Icon(Icons.phone),
-                border: OutlineInputBorder(),
+            const SizedBox(height: 4),
+            Text(
+              'Kelola informasi profil dan pengaturan akun Anda',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: Colors.grey[600],
               ),
-              keyboardType: TextInputType.phone,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Nomor telepon tidak boleh kosong';
-                }
-                if (!RegExp(r'^[0-9+]+$').hasMatch(value)) {
-                  return 'Format nomor telepon tidak valid';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Alamat',
-                prefixIcon: Icon(Icons.location_on),
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Alamat tidak boleh kosong';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Informasi Tambahan (Opsional)',
-              style: TextStyle(
+
+            // Informasi Profil
+            Text(
+              'Informasi Profil',
+              style: GoogleFonts.poppins(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nikController,
-              decoration: const InputDecoration(
-                labelText: 'NIK',
-                prefixIcon: Icon(Icons.credit_card),
-                border: OutlineInputBorder(),
-                hintText: 'Nomor Induk Kependudukan',
+            const SizedBox(height: 4),
+            Text(
+              'Update informasi profil dan alamat email Anda.',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: Colors.grey[600],
               ),
-              keyboardType: TextInputType.number,
-              maxLength: 16,
-              validator: (value) {
-                if (value != null && value.isNotEmpty && value.length != 16) {
-                  return 'NIK harus 16 digit';
-                }
-                return null;
-              },
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _rtController,
-                    decoration: const InputDecoration(
-                      labelText: 'RT',
-                      prefixIcon: Icon(Icons.home),
-                      border: OutlineInputBorder(),
+            const SizedBox(height: 12),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Nama Lengkap *',
+                        prefixIcon: const Icon(Icons.person),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nama tidak boleh kosong';
+                        }
+                        return null;
+                      },
                     ),
-                    keyboardType: TextInputType.number,
-                    maxLength: 3,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _rwController,
-                    decoration: const InputDecoration(
-                      labelText: 'RW',
-                      prefixIcon: Icon(Icons.home),
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      initialValue: user?.email ?? '',
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: const Icon(Icons.email),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        helperText: 'Alamat email tidak dapat diubah dari aplikasi',
+                      ),
                     ),
-                    keyboardType: TextInputType.number,
-                    maxLength: 3,
-                  ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: InputDecoration(
+                        labelText: 'Nomor Telepon',
+                        prefixIcon: const Icon(Icons.phone),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nomor telepon tidak boleh kosong';
+                        }
+                        if (!RegExp(r'^[0-9+]+$').hasMatch(value)) {
+                          return 'Format nomor telepon tidak valid';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Foto Profil (placeholder, belum bisa diubah dari app)
+            Text(
+              'Foto Profil',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor:
+                              Theme.of(context).primaryColor.withOpacity(0.1),
+                          backgroundImage:
+                              _profileImage != null ? FileImage(_profileImage!) : null,
+                          child: _profileImage == null
+                              ? Text(
+                                  (user?.name.isNotEmpty == true
+                                          ? user!.name[0].toUpperCase()
+                                          : 'U')
+                                      .toString(),
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: _pickProfileImage,
+                                icon: const Icon(Icons.upload_file),
+                                label: Text(
+                                  _profileImage == null
+                                      ? 'Pilih Foto Profil'
+                                      : 'Ganti Foto Profil',
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'JPG, JPEG, PNG hingga 2MB',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Catatan: saat ini foto profil hanya disimpan di sisi aplikasi, belum diunggah ke server.',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Informasi Identitas
+            Text(
+              'Informasi Identitas',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _nikController,
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'NIK (Nomor Induk Kependudukan)',
+                        prefixIcon: const Icon(Icons.credit_card),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        helperText: 'NIK tidak dapat diubah setelah registrasi',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (user?.ktpUrl != null && user!.ktpUrl!.isNotEmpty) ...[
+                      Text(
+                        'Foto KTP yang Terdaftar',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () => _showKtpImage(user.ktpUrl!),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Image.network(
+                              user.ktpUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                color: Colors.grey[200],
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.badge, color: Colors.green),
+                        title: Text(
+                          'KTP ${user.name}',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              user.isUserVerified
+                                  ? 'Terverifikasi. KTP Anda telah diverifikasi oleh admin.'
+                                  : 'Belum terverifikasi oleh admin.',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Klik untuk melihat lebih besar',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        onTap: () => _showKtpImage(user.ktpUrl!),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Alamat & RT/RW
+            Text(
+              'Alamat Lengkap',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _rtController,
+                            decoration: InputDecoration(
+                              labelText: 'RT (Rukun Tetangga)',
+                              prefixIcon: const Icon(Icons.home),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            maxLength: 3,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _rwController,
+                            decoration: InputDecoration(
+                              labelText: 'RW (Rukun Warga)',
+                              prefixIcon: const Icon(Icons.home),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            maxLength: 3,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: InputDecoration(
+                        labelText: 'Alamat Lengkap',
+                        prefixIcon: const Icon(Icons.location_on),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      maxLines: 3,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Alamat tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -248,6 +537,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         'Simpan Perubahan',
                         style: TextStyle(fontSize: 16),
                       ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showKtpImage(String url) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: Image.network(url, fit: BoxFit.contain),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
           ],

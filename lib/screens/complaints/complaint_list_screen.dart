@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../theme/app_theme.dart';
 import '../../providers/complaint_provider.dart';
 import '../../models/complaint_model.dart';
 import 'create_complaint_screen.dart';
 import 'complaint_detail_screen.dart';
+import 'edit_complaint_screen.dart';
 
 class ComplaintListScreen extends StatefulWidget {
   const ComplaintListScreen({super.key});
@@ -27,11 +29,27 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    // Load complaints only once when first created
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadComplaintsIfNeeded();
-    });
+    print(
+        '📋 [ComplaintListScreen] Screen initialized - will load after visible');
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load only once when screen becomes visible
+    if (!_hasLoadedOnce) {
+      _hasLoadedOnce = true;
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          print(
+              '📋 [ComplaintListScreen] Screen visible - loading complaints now');
+          _loadComplaintsIfNeeded();
+        }
+      });
+    }
+  }
+
+  bool _hasLoadedOnce = false;
 
   @override
   void dispose() {
@@ -44,12 +62,17 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
     final provider = context.read<ComplaintProvider>();
     // Only load if no complaints loaded yet
     if (provider.complaints.isEmpty) {
-      await provider.loadComplaints();
+      // Load complaints and categories together
+      await Future.wait([
+        provider.loadComplaints(),
+        provider.loadCategories(),
+      ]);
     }
   }
 
   Future<void> _loadComplaints() async {
     final provider = context.read<ComplaintProvider>();
+    // Only reload complaints, categories already loaded
     await provider.loadComplaints();
   }
 
@@ -57,26 +80,27 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
         title: Text(
           'Pengaduan Saya',
           style: GoogleFonts.poppins(
-            color: const Color(0xFF1F2937),
+            color: AppTheme.textPrimary,
             fontWeight: FontWeight.w600,
             fontSize: 20,
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF1F2937)),
+        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(110),
           child: Column(
             children: [
               // Search bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: TextField(
                   controller: _searchController,
                   onChanged: (value) {
@@ -88,17 +112,17 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   decoration: InputDecoration(
                     hintText: 'Cari pengaduan...',
                     hintStyle: GoogleFonts.inter(
-                      color: const Color(0xFF9CA3AF),
+                      color: AppTheme.textSecondary,
                     ),
                     prefixIcon: const Icon(
                       Icons.search,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(
                               Icons.clear,
-                              color: Color(0xFF6B7280),
+                              color: AppTheme.textSecondary,
                             ),
                             onPressed: () {
                               _searchController.clear();
@@ -109,10 +133,10 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                           )
                         : null,
                     filled: true,
-                    fillColor: const Color(0xFFF3F4F6),
+                    fillColor: AppTheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderSide: const BorderSide(color: AppTheme.border),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -121,12 +145,12 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   ),
                 ),
               ),
-              
+
               // Tab bar
               TabBar(
                 controller: _tabController,
-                labelColor: const Color(0xFF6366F1),
-                unselectedLabelColor: const Color(0xFF6B7280),
+                labelColor: AppTheme.primary,
+                unselectedLabelColor: AppTheme.textSecondary,
                 labelStyle: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -135,7 +159,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
-                indicatorColor: const Color(0xFF6366F1),
+                indicatorColor: AppTheme.primary,
                 indicatorWeight: 3,
                 tabs: const [
                   Tab(text: 'Semua'),
@@ -150,29 +174,49 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
       ),
       body: Consumer<ComplaintProvider>(
         builder: (context, provider, _) {
+          final waitingComplaints = provider.complaints
+              .where((c) => c.status == 'waiting_user_confirmation')
+              .toList();
+
           if (provider.isLoading && provider.complaints.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
               ),
             );
           }
 
-          return TabBarView(
-            controller: _tabController,
+          return Column(
             children: [
-              _buildComplaintList(provider.complaints, 'all'),
-              _buildComplaintList(
-                provider.complaints.where((c) => c.status == 'pending').toList(),
-                'pending',
-              ),
-              _buildComplaintList(
-                provider.complaints.where((c) => c.status == 'in_progress').toList(),
-                'in_progress',
-              ),
-              _buildComplaintList(
-                provider.complaints.where((c) => c.status == 'resolved').toList(),
-                'resolved',
+              if (waitingComplaints.isNotEmpty)
+                _buildWaitingConfirmationBanner(waitingComplaints),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildComplaintList(provider.complaints, 'all'),
+                    _buildComplaintList(
+                      provider.complaints
+                          .where((c) => c.status == 'pending')
+                          .toList(),
+                      'pending',
+                    ),
+                    _buildComplaintList(
+                      provider.complaints
+                          .where((c) =>
+                              c.status == 'in_progress' ||
+                              c.status == 'waiting_user_confirmation')
+                          .toList(),
+                      'in_progress',
+                    ),
+                    _buildComplaintList(
+                      provider.complaints
+                          .where((c) => c.status == 'resolved')
+                          .toList(),
+                      'resolved',
+                    ),
+                  ],
+                ),
               ),
             ],
           );
@@ -185,9 +229,14 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
             MaterialPageRoute(
               builder: (_) => const CreateComplaintScreen(),
             ),
-          ).then((_) => _loadComplaints());
+          ).then((result) {
+            // Only reload if complaint was successfully created
+            if (result == true) {
+              _loadComplaints();
+            }
+          });
         },
-        backgroundColor: const Color(0xFF6366F1),
+        backgroundColor: AppTheme.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
           'Buat Pengaduan',
@@ -217,7 +266,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
             Icon(
               Icons.inbox_outlined,
               size: 80,
-              color: const Color(0xFF9CA3AF),
+              color: AppTheme.textSecondary,
             ),
             const SizedBox(height: 16),
             Text(
@@ -226,7 +275,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   : 'Belum ada pengaduan',
               style: GoogleFonts.inter(
                 fontSize: 16,
-                color: const Color(0xFF6B7280),
+                color: AppTheme.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -237,7 +286,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   : 'Buat pengaduan pertama Anda',
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: const Color(0xFF9CA3AF),
+                color: AppTheme.textSecondary,
               ),
             ),
           ],
@@ -247,7 +296,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
 
     return RefreshIndicator(
       onRefresh: _loadComplaints,
-      color: const Color(0xFF6366F1),
+      color: AppTheme.primary,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: filteredComplaints.length,
@@ -255,6 +304,90 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
           final complaint = filteredComplaints[index];
           return _buildComplaintCard(complaint);
         },
+      ),
+    );
+  }
+
+  Widget _buildWaitingConfirmationBanner(List<Complaint> waitingComplaints) {
+    final sortedWaiting = [...waitingComplaints]
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final highlightedComplaint = sortedWaiting.first;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFDBA74), width: 1.2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF97316).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.priority_high_rounded,
+              color: Color(0xFFEA580C),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Perlu Konfirmasi Anda',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF9A3412),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${waitingComplaints.length} pengaduan menunggu konfirmasi selesai',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: const Color(0xFF9A3412),
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          FilledButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ComplaintDetailScreen(
+                    complaint: highlightedComplaint,
+                  ),
+                ),
+              ).then((_) {
+                _loadComplaints();
+              });
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFEA580C),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              visualDensity: VisualDensity.compact,
+            ),
+            child: Text(
+              'Buka',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -282,7 +415,12 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
               MaterialPageRoute(
                 builder: (_) => ComplaintDetailScreen(complaint: complaint),
               ),
-            ).then((_) => _loadComplaints());
+            ).then((result) {
+              // Only reload if there were changes (e.g., status updated)
+              if (result == true) {
+                _loadComplaints();
+              }
+            });
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -299,7 +437,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                       DateFormat('dd/MM/yyyy').format(complaint.reportDate),
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: const Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -312,7 +450,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1F2937),
+                    color: AppTheme.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -324,7 +462,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   complaint.description,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: const Color(0xFF6B7280),
+                    color: AppTheme.textSecondary,
                     height: 1.5,
                   ),
                   maxLines: 2,
@@ -342,7 +480,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1).withOpacity(0.1),
+                          color: AppTheme.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -351,14 +489,14 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                             Icon(
                               Icons.category_outlined,
                               size: 14,
-                              color: const Color(0xFF6366F1),
+                              color: AppTheme.primary,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               complaint.category!.name,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: const Color(0xFF6366F1),
+                                color: AppTheme.primary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -373,7 +511,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                           Icon(
                             Icons.location_on_outlined,
                             size: 14,
-                            color: const Color(0xFF6B7280),
+                            color: AppTheme.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
@@ -381,7 +519,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                               complaint.location,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: const Color(0xFF6B7280),
+                                color: AppTheme.textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -392,6 +530,48 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+
+                // Edit button (only when status is pending)
+                if (complaint.status == 'pending')
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditComplaintScreen(
+                              complaint: complaint,
+                            ),
+                          ),
+                        ).then((result) {
+                          if (result == true) {
+                            _loadComplaints();
+                          }
+                        });
+                      },
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 18,
+                        color: AppTheme.primary,
+                      ),
+                      label: Text(
+                        'Edit Pengaduan',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -418,6 +598,12 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
         textColor = const Color(0xFF2563EB);
         text = 'Diproses';
         icon = Icons.sync;
+        break;
+      case 'waiting_user_confirmation':
+        backgroundColor = const Color(0xFFFFF7ED);
+        textColor = const Color(0xFFEA580C);
+        text = 'Menunggu Konfirmasi';
+        icon = Icons.hourglass_top;
         break;
       case 'resolved':
         backgroundColor = const Color(0xFFD1FAE5);

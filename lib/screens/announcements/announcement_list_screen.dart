@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'announcement_detail_screen.dart';
 import '../../models/announcement_model.dart' as models;
 import '../../services/announcement_service.dart';
+import '../../providers/auth_provider.dart';
+import '../../theme/app_theme.dart';
 
 class AnnouncementListScreen extends StatefulWidget {
   const AnnouncementListScreen({super.key});
@@ -18,8 +21,11 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
   String _selectedPriority = 'Semua Prioritas';
   List<models.Announcement> _announcements = [];
   bool _isLoading = false;
-  bool _hasLoadedData = false; // Track if data already loaded
   String? _errorMessage;
+  
+  // Static variable to track if data has been loaded across all instances
+  static bool _hasLoadedDataGlobally = false;
+  static List<models.Announcement> _cachedAnnouncements = [];
 
   @override
   bool get wantKeepAlive => true; // Keep state alive when navigating away
@@ -27,11 +33,31 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
   @override
   void initState() {
     super.initState();
-    // Only load if not loaded yet
-    if (!_hasLoadedData) {
-      _loadAnnouncements();
+    print('📢 [AnnouncementListScreen] Screen initialized - will load after visible');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Use cached data if available
+    if (_hasLoadedDataGlobally && _cachedAnnouncements.isNotEmpty) {
+      debugPrint('Using cached announcements (${_cachedAnnouncements.length} items)');
+      _announcements = _cachedAnnouncements;
+      setState(() {});
+    } else if (!_hasLoadedOnce) {
+      // Load only once when screen becomes visible
+      _hasLoadedOnce = true;
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted && !_hasLoadedDataGlobally) {
+          print('📢 [AnnouncementListScreen] Screen visible - loading announcements now');
+          _loadAnnouncements();
+        }
+      });
     }
   }
+
+  bool _hasLoadedOnce = false;
 
   @override
   void dispose() {
@@ -40,9 +66,22 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
   }
 
   Future<void> _loadAnnouncements({bool forceRefresh = false}) async {
-    // Skip if already loaded and not forcing refresh
-    if (_hasLoadedData && !forceRefresh) return;
+    // Skip if already loading
+    if (_isLoading) {
+      debugPrint('Already loading, skipping...');
+      return;
+    }
+    
+    // Skip if already loaded globally and not forcing refresh
+    if (_hasLoadedDataGlobally && !forceRefresh) {
+      debugPrint('Announcements already loaded globally, skipping...');
+      return;
+    }
 
+    // Check mounted before setState
+    if (!mounted) return;
+
+    debugPrint('Loading announcements... (forceRefresh: $forceRefresh)');
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -54,16 +93,36 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         perPage: 50,
       );
       
-      setState(() {
-        _announcements = response.data;
-        _isLoading = false;
-        _hasLoadedData = true;
-      });
+      if (mounted) {
+        setState(() {
+          _announcements = response.data;
+          _cachedAnnouncements = response.data; // Update cache
+          _hasLoadedDataGlobally = true; // Mark as loaded globally
+          _isLoading = false;
+        });
+        debugPrint('Announcements loaded: ${_announcements.length} items');
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      debugPrint('Error loading announcements: $e');
+      
+      // Check if it's token expiration error
+      if (e.toString().contains('Token expired') && mounted) {
+        // Auto-logout and redirect to landing page
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.logout();
+        
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/landing', (route) => false);
+        }
+        return;
+      }
+      
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -136,14 +195,14 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
     super.build(context); // Required for AutomaticKeepAliveClientMixin
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
         title: Text(
           'Pengumuman',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF1F2937),
+            color: AppTheme.textPrimary,
           ),
         ),
         backgroundColor: Colors.white,
@@ -151,7 +210,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: const Color(0xFFE5E7EB),
+            color: AppTheme.border,
             height: 1,
           ),
         ),
@@ -171,14 +230,14 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                   decoration: InputDecoration(
                     hintText: 'Cari pengumuman...',
                     hintStyle: GoogleFonts.inter(
-                      color: const Color(0xFF9CA3AF),
+                      color: AppTheme.textSecondary,
                     ),
                     prefixIcon: const Icon(
                       Icons.search,
-                      color: Color(0xFF9CA3AF),
+                      color: AppTheme.textSecondary,
                     ),
                     filled: true,
-                    fillColor: const Color(0xFFF3F4F6),
+                    fillColor: AppTheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -208,7 +267,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1),
+                            color: AppTheme.primary,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -262,14 +321,14 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                             Icon(
                               Icons.error_outline,
                               size: 80,
-                              color: Colors.grey[400],
+                              color: AppTheme.textSecondary,
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'Gagal memuat pengumuman',
                               style: GoogleFonts.inter(
                                 fontSize: 16,
-                                color: const Color(0xFF6B7280),
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -277,7 +336,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                               _errorMessage!,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: const Color(0xFF9CA3AF),
+                                color: AppTheme.textSecondary,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -298,14 +357,14 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                                 Icon(
                                   Icons.campaign_outlined,
                                   size: 80,
-                                  color: Colors.grey[300],
+                                  color: AppTheme.textSecondary,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'Tidak ada pengumuman',
                                   style: GoogleFonts.inter(
                                     fontSize: 16,
-                                    color: const Color(0xFF6B7280),
+                                    color: AppTheme.textSecondary,
                                   ),
                                 ),
                               ],
@@ -345,7 +404,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         priorityBgColor = const Color(0xFFFEF3C7);
         priorityText = 'Tinggi';
         break;
-      case 'normal':
+      case 'medium':
         priorityColor = const Color(0xFF3B82F6);
         priorityBgColor = const Color(0xFFDBEAFE);
         priorityText = 'Sedang';
@@ -358,7 +417,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       default:
         priorityColor = const Color(0xFF6B7280);
         priorityBgColor = const Color(0xFFF3F4F6);
-        priorityText = 'Normal';
+        priorityText = 'Sedang';
     }
 
     return Container(
@@ -424,7 +483,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1F2937),
+                    color: AppTheme.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -437,21 +496,21 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                     Icon(
                       Icons.person_outline,
                       size: 16,
-                      color: const Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'Admin',
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Icon(
                       Icons.access_time,
                       size: 16,
-                      color: const Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -460,7 +519,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                       ),
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -472,7 +531,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                   announcement.content,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: const Color(0xFF4B5563),
+                    color: AppTheme.textSecondary,
                     height: 1.5,
                   ),
                   maxLines: 2,
@@ -487,7 +546,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                       'Target: ',
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                     Container(
@@ -496,7 +555,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.1),
+                        color: AppTheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -504,7 +563,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF6366F1),
+                          color: AppTheme.primary,
                         ),
                       ),
                     ),
@@ -518,14 +577,14 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF6366F1),
+                              color: AppTheme.primary,
                             ),
                           ),
                           const SizedBox(width: 4),
                           const Icon(
                             Icons.arrow_forward,
                             size: 16,
-                            color: Color(0xFF6366F1),
+                            color: AppTheme.primary,
                           ),
                         ],
                       ),

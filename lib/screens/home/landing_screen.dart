@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth/login_screen.dart';
-import '../auth/register_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../routes/app_router.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -50,9 +50,9 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF6366F1), // Indigo
-              const Color(0xFF8B5CF6), // Purple
-              const Color(0xFFA855F7), // Purple accent
+              const Color(0xFF15803D), // Hijau tua
+              const Color(0xFF16A34A), // Hijau utama
+              const Color(0xFF0891B2), // Cyan segar
             ],
           ),
         ),
@@ -290,15 +290,10 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const RegisterScreen()),
-              );
-            },
+            onPressed: () => context.go(AppRouter.register),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF6366F1),
+              foregroundColor: const Color(0xFF16A34A),
               elevation: 8,
               shadowColor: Colors.black.withOpacity(0.3),
               shape: RoundedRectangleBorder(
@@ -328,12 +323,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
           width: double.infinity,
           height: 56,
           child: OutlinedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            },
+            onPressed: () => context.go(AppRouter.login),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
               side: const BorderSide(color: Colors.white, width: 2),
