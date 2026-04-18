@@ -86,7 +86,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
         backgroundColor: Colors.white,
         title: Text(
           'Pengaduan Saya',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             color: AppTheme.textPrimary,
             fontWeight: FontWeight.w600,
             fontSize: 20,
@@ -108,10 +108,10 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                       _searchQuery = value.toLowerCase();
                     });
                   },
-                  style: GoogleFonts.inter(),
+                  style: GoogleFonts.nunito(),
                   decoration: InputDecoration(
                     hintText: 'Cari pengaduan...',
-                    hintStyle: GoogleFonts.inter(
+                    hintStyle: GoogleFonts.nunito(
                       color: AppTheme.textSecondary,
                     ),
                     prefixIcon: const Icon(
@@ -151,16 +151,19 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                 controller: _tabController,
                 labelColor: AppTheme.primary,
                 unselectedLabelColor: AppTheme.textSecondary,
-                labelStyle: GoogleFonts.inter(
+                labelStyle: GoogleFonts.nunito(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
-                unselectedLabelStyle: GoogleFonts.inter(
+                unselectedLabelStyle: GoogleFonts.nunito(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
-                indicatorColor: AppTheme.primary,
-                indicatorWeight: 3,
+                indicator: UnderlineTabIndicator(
+                  borderSide: const BorderSide(color: AppTheme.primary, width: 3),
+                  borderRadius: BorderRadius.circular(3),
+                  insets: const EdgeInsets.symmetric(horizontal: 16),
+                ),
                 tabs: const [
                   Tab(text: 'Semua'),
                   Tab(text: 'Menunggu'),
@@ -240,7 +243,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
           'Buat Pengaduan',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.nunito(
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
@@ -273,7 +276,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
               _searchQuery.isNotEmpty
                   ? 'Tidak ada hasil pencarian'
                   : 'Belum ada pengaduan',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 color: AppTheme.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -284,7 +287,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
               _searchQuery.isNotEmpty
                   ? 'Coba kata kunci lain'
                   : 'Buat pengaduan pertama Anda',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.nunito(
                 fontSize: 14,
                 color: AppTheme.textSecondary,
               ),
@@ -342,7 +345,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
               children: [
                 Text(
                   'Perlu Konfirmasi Anda',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF9A3412),
@@ -351,7 +354,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                 const SizedBox(height: 2),
                 Text(
                   '${waitingComplaints.length} pengaduan menunggu konfirmasi selesai',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 12,
                     color: const Color(0xFF9A3412),
                     height: 1.35,
@@ -382,7 +385,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
             ),
             child: Text(
               'Buka',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.nunito(
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -400,9 +403,9 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -435,7 +438,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                     _buildStatusBadge(complaint.status),
                     Text(
                       DateFormat('dd/MM/yyyy').format(complaint.reportDate),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.nunito(
                         fontSize: 12,
                         color: AppTheme.textSecondary,
                       ),
@@ -447,7 +450,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                 // Title
                 Text(
                   complaint.title,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.nunito(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
@@ -460,7 +463,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                 // Description
                 Text(
                   complaint.description,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 14,
                     color: AppTheme.textSecondary,
                     height: 1.5,
@@ -494,7 +497,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                             const SizedBox(width: 4),
                             Text(
                               complaint.category!.name,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 color: AppTheme.primary,
                                 fontWeight: FontWeight.w500,
@@ -517,7 +520,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                           Expanded(
                             child: Text(
                               complaint.location,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 color: AppTheme.textSecondary,
                               ),
@@ -558,7 +561,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                       ),
                       label: Text(
                         'Edit Pengaduan',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.primary,
@@ -595,7 +598,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
         break;
       case 'in_progress':
         backgroundColor = const Color(0xFFDBEAFE);
-        textColor = const Color(0xFF2563EB);
+        textColor = const Color(0xFF0891B2);
         text = 'Diproses';
         icon = Icons.sync;
         break;
@@ -628,7 +631,8 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: textColor.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -637,7 +641,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
           const SizedBox(width: 4),
           Text(
             text,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.nunito(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: textColor,

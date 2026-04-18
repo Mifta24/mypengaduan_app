@@ -81,7 +81,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         ),
         title: Text(
           'Notifikasi',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             color: AppTheme.textPrimary,
             fontWeight: FontWeight.w600,
             fontSize: 20,
@@ -143,7 +143,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   const SizedBox(height: 16),
                   Text(
                     isAuthError ? 'Sesi Berakhir' : 'Gagal memuat notifikasi',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.nunito(
                       fontSize: 16,
                       color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -154,7 +154,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Text(
                       provider.errorMessage!,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.nunito(
                         fontSize: 14,
                         color: AppTheme.textSecondary,
                       ),
@@ -227,7 +227,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Tidak ada notifikasi',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.nunito(
                       fontSize: 16,
                       color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -236,7 +236,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Notifikasi akan muncul di sini',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.nunito(
                       fontSize: 14,
                       color: AppTheme.textSecondary,
                     ),
@@ -272,110 +272,127 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       decoration: BoxDecoration(
         color: notification.isRead 
             ? Colors.white 
-          : AppTheme.primary.withOpacity(0.08),
+          : AppTheme.primary.withOpacity(0.02),
         borderRadius: BorderRadius.circular(16),
         border: notification.isRead 
-            ? null 
-          : Border.all(color: AppTheme.primary.withOpacity(0.2)),
+            ? Border.all(color: Colors.black.withOpacity(0.05))
+            : Border.all(color: AppTheme.primary.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () async {
-            if (!notification.isRead) {
-              await provider.markAsRead(notification.id);
-            }
-            // TODO: Navigate based on notification type
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _getIconBackgroundColor(notification.type),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getNotificationIcon(notification.type),
-                    color: _getIconColor(notification.type),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () async {
+              if (!notification.isRead) {
+                await provider.markAsRead(notification.id);
+              }
+              // TODO: Navigate based on notification type
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!notification.isRead)
+                    Container(
+                      width: 4,
+                      color: AppTheme.primary,
+                    ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _getIconBackgroundColor(notification.type),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              _getNotificationIcon(notification.type),
+                              color: _getIconColor(notification.type),
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
-                            child: Text(
-                              notification.title,
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: notification.isRead 
-                                    ? FontWeight.w500 
-                                    : FontWeight.w600,
-                                color: AppTheme.textPrimary,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        notification.title,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 15,
+                                          fontWeight: notification.isRead 
+                                              ? FontWeight.w500 
+                                              : FontWeight.w600,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    if (!notification.isRead)
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        margin: const EdgeInsets.only(left: 8),
+                                        decoration: const BoxDecoration(
+                                          color: AppTheme.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  notification.body,
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 14,
+                                    color: AppTheme.textSecondary,
+                                    height: 1.5,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.access_time,
+                                      size: 14,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _formatDateTime(notification.createdAt),
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 12,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          if (!notification.isRead)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              margin: const EdgeInsets.only(left: 8),
-                              decoration: const BoxDecoration(
-                                color: AppTheme.primary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        notification.body,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: AppTheme.textSecondary,
-                          height: 1.5,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: AppTheme.textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatDateTime(notification.createdAt),
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -403,7 +420,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       case 'complaint_update':
         return const Color(0xFFEF4444);
       case 'announcement':
-        return const Color(0xFF6366F1);
+        return const Color(0xFF16A34A);
       case 'system':
         return const Color(0xFF10B981);
       default:

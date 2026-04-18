@@ -199,7 +199,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       appBar: AppBar(
         title: Text(
           'Pengumuman',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
@@ -229,7 +229,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                   onChanged: (value) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: 'Cari pengumuman...',
-                    hintStyle: GoogleFonts.inter(
+                    hintStyle: GoogleFonts.nunito(
                       color: AppTheme.textSecondary,
                     ),
                     prefixIcon: const Icon(
@@ -281,7 +281,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                               const SizedBox(width: 8),
                               Text(
                                 'Filter',
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.nunito(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -326,7 +326,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                             const SizedBox(height: 16),
                             Text(
                               'Gagal memuat pengumuman',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.nunito(
                                 fontSize: 16,
                                 color: AppTheme.textSecondary,
                               ),
@@ -334,7 +334,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                             const SizedBox(height: 8),
                             Text(
                               _errorMessage!,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 color: AppTheme.textSecondary,
                               ),
@@ -362,7 +362,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                                 const SizedBox(height: 16),
                                 Text(
                                   'Tidak ada pengumuman',
-                                  style: GoogleFonts.inter(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 16,
                                     color: AppTheme.textSecondary,
                                   ),
@@ -420,180 +420,196 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         priorityText = 'Sedang';
     }
 
+    // Look for an image attachment
+    String? coverImageUrl;
+    if (announcement.attachments != null && announcement.attachments!.isNotEmpty) {
+      final img = announcement.attachments!.firstWhere(
+        (att) => att.toLowerCase().endsWith('.jpg') || att.toLowerCase().endsWith('.png') || att.toLowerCase().endsWith('.jpeg'),
+        orElse: () => '',
+      );
+      if (img.isNotEmpty) coverImageUrl = img;
+    }
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            _showAnnouncementDetail(announcement);
-          },
+          onTap: () => _showAnnouncementDetail(announcement),
           borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Priority Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: priorityBgColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.bookmark,
-                        size: 16,
-                        color: priorityColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Pengumuman $priorityText',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: priorityColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Title
-                Text(
-                  announcement.title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-
-                // Meta Info
-                Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Image or Gradient
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Stack(
                   children: [
-                    Icon(
-                      Icons.person_outline,
-                      size: 16,
-                      color: AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Admin',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Icon(
-                      Icons.access_time,
-                      size: 16,
-                      color: AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(
-                        announcement.publishedAt ?? announcement.createdAt,
-                      ),
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
+                    if (coverImageUrl != null)
+                      Image.network(
+                        coverImageUrl,
+                        width: double.infinity,
+                        height: 140,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => _buildFallbackHeader(),
+                      )
+                    else
+                      _buildFallbackHeader(),
+                    
+                    // Priority Badge Floating on Image
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: priorityBgColor.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: priorityColor.withOpacity(0.2)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bookmark, size: 14, color: priorityColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              priorityText,
+                              style: GoogleFonts.nunito(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: priorityColor,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-
-                // Content Preview
-                Text(
-                  announcement.content,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppTheme.textSecondary,
-                    height: 1.5,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-
-                // Action
-                Row(
+              ),
+              
+              // Content Area
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Target: ',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        announcement.targetAudience?.join(', ') ?? 'Semua Warga',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primary,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => _showAnnouncementDetail(announcement),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Baca Selengkapnya',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.primary,
-                            ),
+                    // Meta Info
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat('dd MMM yyyy', 'id_ID').format(
+                            announcement.publishedAt ?? announcement.createdAt,
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_forward,
-                            size: 16,
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(Icons.person_outline, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Admin',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Title
+                    Text(
+                      announcement.title,
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Content Preview
+                    Text(
+                      announcement.summary?.isNotEmpty == true ? announcement.summary! : announcement.content,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        color: AppTheme.textSecondary,
+                        height: 1.5,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1, color: AppTheme.border),
+                    const SizedBox(height: 12),
+
+                    // Target Audience
+                    Row(
+                      children: [
+                        Text(
+                          'Target: ',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        Text(
+                          announcement.targetAudience?.join(', ') ?? 'Semua Warga',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
                             color: AppTheme.primary,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackHeader() {
+    return Container(
+      width: double.infinity,
+      height: 80,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primary.withOpacity(0.8), AppTheme.secondary.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.campaign_outlined,
+          size: 40,
+          color: Colors.white.withOpacity(0.3),
         ),
       ),
     );

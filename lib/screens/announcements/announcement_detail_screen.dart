@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../theme/app_theme.dart';
 import '../../models/announcement_model.dart';
 import '../../models/comment_model.dart';
 import '../../services/announcement_service.dart';
@@ -272,11 +273,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
         title: Text(
           'Detail Pengumuman',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF1F2937),
@@ -381,7 +382,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     const SizedBox(width: 4),
                     Text(
                       _getPriorityText(widget.announcement.priority),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.nunito(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -398,7 +399,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   const SizedBox(width: 4),
                   Text(
                     '${widget.announcement.viewsCount} kali dilihat',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.nunito(
                       fontSize: 12,
                       color: Colors.white70,
                     ),
@@ -413,7 +414,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           // Title
           Text(
             widget.announcement.title,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.nunito(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -467,7 +468,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 const SizedBox(width: 6),
                 Text(
                   'Ditujukan untuk:',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 13,
                     color: Colors.white70,
                   ),
@@ -476,7 +477,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 Text(
                   widget.announcement.targetAudience?.join(', ') ??
                       'Semua Warga',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -518,7 +519,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
               child: Text(
                 widget.announcement.summary!,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.nunito(
                   fontSize: 14,
                   fontStyle: FontStyle.italic,
                   color: const Color(0xFF6B7280),
@@ -532,7 +533,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           // Content
           Text(
             widget.announcement.content,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.nunito(
               fontSize: 15,
               color: const Color(0xFF374151),
               height: 1.7,
@@ -547,7 +548,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             const SizedBox(height: 12),
             Text(
               'Lampiran:',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.nunito(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF1F2937),
@@ -590,7 +591,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                                 child: const Center(
                                   child: CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF6366F1)),
+                                        AppTheme.primary),
                                   ),
                                 ),
                               ),
@@ -608,12 +609,12 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                         child: Row(
                           children: [
                             const Icon(Icons.image,
-                                size: 18, color: Color(0xFF6366F1)),
+                                size: 18, color: AppTheme.primary),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 fileName,
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.nunito(
                                   fontSize: 13,
                                   color: const Color(0xFF374151),
                                 ),
@@ -640,12 +641,12 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   child: Row(
                     children: [
                       const Icon(Icons.insert_drive_file,
-                          size: 20, color: Color(0xFF6366F1)),
+                          size: 20, color: AppTheme.primary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           fileName,
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.nunito(
                             fontSize: 13,
                             color: const Color(0xFF374151),
                           ),
@@ -687,10 +688,10 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               icon: const Icon(Icons.share, size: 20),
               label: Text(
                 'Bagikan Pengumuman',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -719,11 +720,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     ),
               label: Text(
                 'Simpan',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isBookmarked
-                    ? const Color(0xFF6366F1)
+                    ? AppTheme.primary
                     : const Color(0xFFF3F4F6),
                 foregroundColor:
                     _isBookmarked ? Colors.white : const Color(0xFF374151),
@@ -759,11 +760,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.comment, size: 20, color: Color(0xFF6366F1)),
+              Icon(Icons.comment, size: 20, color: AppTheme.primary),
               const SizedBox(width: 8),
               Text(
                 'Komentar',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.nunito(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF1F2937),
@@ -793,7 +794,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Belum ada komentar',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.nunito(
                         fontSize: 14,
                         color: const Color(0xFF9CA3AF),
                       ),
@@ -801,7 +802,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Jadilah yang pertama berkomentar!',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.nunito(
                         fontSize: 12,
                         color: const Color(0xFF9CA3AF),
                       ),
@@ -833,10 +834,10 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         // Avatar
         CircleAvatar(
           radius: 20,
-          backgroundColor: const Color(0xFF6366F1),
+          backgroundColor: AppTheme.primary,
           child: Text(
             comment.userName.substring(0, 1).toUpperCase(),
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.nunito(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.white,
@@ -855,7 +856,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 children: [
                   Text(
                     comment.userName,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.nunito(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF1F2937),
@@ -865,7 +866,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   Text(
                     DateFormat('dd MMM yyyy, HH:mm', 'id_ID')
                         .format(comment.createdAt),
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.nunito(
                       fontSize: 12,
                       color: const Color(0xFF9CA3AF),
                     ),
@@ -875,7 +876,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               const SizedBox(height: 6),
               Text(
                 comment.content,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.nunito(
                   fontSize: 14,
                   color: const Color(0xFF374151),
                   height: 1.5,
@@ -916,7 +917,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               textInputAction: TextInputAction.newline,
               decoration: InputDecoration(
                 hintText: 'Tulis komentar...',
-                hintStyle: GoogleFonts.inter(
+                hintStyle: GoogleFonts.nunito(
                   color: const Color(0xFF9CA3AF),
                 ),
                 filled: true,
@@ -930,7 +931,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   vertical: 12,
                 ),
               ),
-              style: GoogleFonts.inter(
+              style: GoogleFonts.nunito(
                 fontSize: 14,
                 color: const Color(0xFF374151),
               ),
@@ -947,7 +948,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   )
                 : const Icon(Icons.send),
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.all(12),
               shape: RoundedRectangleBorder(
@@ -968,7 +969,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         const SizedBox(width: 4),
         Text(
           text,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.nunito(
             fontSize: 12,
             color: color,
           ),
@@ -999,11 +1000,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       case 'high':
         return const Color(0xFFEA580C);
       case 'medium':
-        return const Color(0xFF2563EB);
+        return const Color(0xFF0891B2);
       case 'low':
-        return const Color(0xFF16A34A);
+        return AppTheme.primary;
       default:
-        return const Color(0xFF6366F1);
+        return AppTheme.primary;
     }
   }
 
@@ -1014,11 +1015,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       case 'high':
         return [const Color(0xFFEA580C), const Color(0xFFC2410C)];
       case 'medium':
-        return [const Color(0xFF2563EB), const Color(0xFF1D4ED8)];
+        return [const Color(0xFF0891B2), const Color(0xFF15803D)];
       case 'low':
-        return [const Color(0xFF16A34A), const Color(0xFF15803D)];
+        return [AppTheme.primary, const Color(0xFF15803D)];
       default:
-        return [const Color(0xFF6366F1), const Color(0xFF4F46E5)];
+        return [AppTheme.primary, AppTheme.secondary];
     }
   }
 }

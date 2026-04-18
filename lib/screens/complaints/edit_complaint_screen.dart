@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
+import '../../theme/app_theme.dart';
 import '../../models/complaint_model.dart';
 import '../../providers/complaint_provider.dart';
 
@@ -126,7 +126,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
               const SizedBox(height: 20),
               Text(
                 'Pilih Sumber Gambar',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.nunito(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -136,17 +136,17 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    color: AppTheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.camera_alt,
-                    color: Color(0xFF6366F1),
+                    color: AppTheme.primary,
                   ),
                 ),
                 title: Text(
                   'Kamera',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -160,17 +160,17 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    color: AppTheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.photo_library,
-                    color: Color(0xFF6366F1),
+                    color: AppTheme.primary,
                   ),
                 ),
                 title: Text(
                   'Galeri',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.nunito(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -198,7 +198,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF6366F1),
+              primary: AppTheme.primary,
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Color(0xFF1F2937),
@@ -308,7 +308,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -318,7 +318,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
         ),
         title: Text(
           'Edit Pengaduan',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.nunito(
             color: const Color(0xFF1F2937),
             fontWeight: FontWeight.w600,
             fontSize: 20,
@@ -350,12 +350,12 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                   hintText: _categories.isEmpty
                       ? 'Tidak ada kategori tersedia'
                       : 'Pilih kategori pengaduan',
-                  hintStyle: GoogleFonts.inter(
+                  hintStyle: GoogleFonts.nunito(
                     color: const Color(0xFF9CA3AF),
                   ),
                   prefixIcon: const Icon(
                     Icons.category_outlined,
-                    color: Color(0xFF6366F1),
+                    color: AppTheme.primary,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -376,7 +376,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                               value: category.id,
                               child: Text(
                                 category.name,
-                                style: GoogleFonts.inter(),
+                                style: GoogleFonts.nunito(),
                               ),
                             ))
                         .toList(),
@@ -468,7 +468,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                     children: [
                       const Icon(
                         Icons.calendar_today,
-                        color: Color(0xFF6366F1),
+                        color: AppTheme.primary,
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -476,7 +476,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                         _selectedDate == null
                             ? 'Pilih tanggal'
                             : DateFormat('dd/MM/yyyy').format(_selectedDate!),
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.nunito(
                           color: _selectedDate == null
                               ? const Color(0xFF9CA3AF)
                               : const Color(0xFF1F2937),
@@ -574,13 +574,13 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                         children: [
                           const Icon(
                             Icons.add_photo_alternate,
-                            color: Color(0xFF6366F1),
+                            color: AppTheme.primary,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Tambah Foto Baru',
-                            style: GoogleFonts.inter(
-                              color: const Color(0xFF6366F1),
+                            style: GoogleFonts.nunito(
+                              color: AppTheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -598,14 +598,14 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
+                  backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   disabledBackgroundColor:
-                      const Color(0xFF6366F1).withOpacity(0.5),
+                      AppTheme.primary.withOpacity(0.5),
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -619,7 +619,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                       )
                     : Text(
                         'Simpan Perubahan',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.nunito(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -636,7 +636,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.poppins(
+      style: GoogleFonts.nunito(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: const Color(0xFF1F2937),
@@ -666,15 +666,15 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
       child: TextFormField(
         controller: controller,
         maxLines: maxLines,
-        style: GoogleFonts.inter(),
+        style: GoogleFonts.nunito(),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: GoogleFonts.inter(
+          hintStyle: GoogleFonts.nunito(
             color: const Color(0xFF9CA3AF),
           ),
           prefixIcon: Icon(
             prefixIcon,
-            color: const Color(0xFF6366F1),
+            color: AppTheme.primary,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
