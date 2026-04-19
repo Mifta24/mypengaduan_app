@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypengaduan_app/widgets/admin/admin_status_badge.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/admin/admin_filter_panel.dart';
@@ -8,6 +9,7 @@ import '../../../widgets/admin/admin_section_header.dart';
 import '../../../widgets/skeleton_loader.dart';
 import 'category_detail_screen.dart';
 import 'edit_category_screen.dart';
+
 
 class AdminCategoriesTab extends StatefulWidget {
   const AdminCategoriesTab({super.key});
@@ -448,6 +450,11 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab> with AutomaticK
       ],
     );
   }
+
+  Widget _buildCategoryCard(dynamic category) {
+    final isActive = category['is_active'] == true || category['is_active'] == 1;
+    final isSelected = _selectedCategoryIds.contains(_toInt(category['id']));
+    final complaintsCount = category['complaints_count'] ?? 0;
 
     return AdminInfoCard(
       margin: const EdgeInsets.only(bottom: 12),
