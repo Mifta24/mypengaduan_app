@@ -294,26 +294,32 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppTheme.surface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppTheme.border),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 40,
-                                    height: 40,
+                                    width: 48,
+                                    height: 48,
                                     decoration: BoxDecoration(
                                       color: _getStatusColor(status).withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       _getStatusIcon(status),
                                       color: _getStatusColor(status),
-                                      size: 20,
+                                      size: 24,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,30 +327,30 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                         Text(
                                           complaint['title'] ?? 'No Title',
                                           style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 15,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                        const SizedBox(height: 4),
+                                        const SizedBox(height: 6),
                                         Row(
                                           children: [
                                             Container(
                                               padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 2,
+                                                horizontal: 10,
+                                                vertical: 4,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: _getStatusColor(status),
-                                                borderRadius: BorderRadius.circular(4),
+                                                color: _getStatusColor(status).withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(20),
                                               ),
                                               child: Text(
                                                 _getStatusLabel(status),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
+                                                style: TextStyle(
+                                                  color: _getStatusColor(status),
                                                   fontSize: 11,
-                                                  fontWeight: FontWeight.w500,
+                                                  fontWeight: FontWeight.w700,
                                                 ),
                                               ),
                                             ),
@@ -355,7 +361,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                                   ? _formatRelativeTime(createdAt)
                                                   : '-',
                                                 style: TextStyle(
-                                                  color: Colors.grey[600],
+                                                  color: Colors.grey[500],
                                                   fontSize: 12,
                                                 ),
                                               ),
@@ -367,7 +373,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                   ),
                                   Icon(
                                     Icons.chevron_right,
-                                    color: Colors.grey[400],
+                                    color: Colors.grey[300],
                                   ),
                                 ],
                               ),
@@ -392,43 +398,82 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
     IconData icon,
     Color color,
   ) {
-    return AdminInfoCard(
-      borderColor: AppTheme.border,
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.8),
+            color,
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 28),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+          // Decorative background icon
+          Positioned(
+            right: -10,
+            bottom: -10,
+            child: Icon(
+              icon,
+              size: 80,
+              color: Colors.white.withValues(alpha: 0.2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: Colors.white, size: 20),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: color, size: 14),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.grey[600],
-              fontSize: 12,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

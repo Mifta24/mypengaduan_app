@@ -61,11 +61,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textPrimary,
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
+        shadowColor: Colors.black.withOpacity(0.05),
+        elevation: 1,
         actions: [
           // Notification button with badge
           Stack(
@@ -279,6 +280,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               : null,
       bottomNavigationBar: NavigationBar(
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.black.withOpacity(0.05),
+        elevation: 8,
         indicatorColor: AppTheme.primary.withValues(alpha: 0.12),
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
