@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mypengaduan_app/widgets/admin/admin_info_card.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/complaint_model.dart';
@@ -1037,7 +1038,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
       ),
     );
   }
-
   Widget _complaintReportCard(Map<String, dynamic> complaint) {
     final title = complaint['title']?.toString() ?? complaint['description']?.toString() ?? '-';
     final status = _statusText(_normalizeComplaintStatus(complaint['status']?.toString() ?? ''));
@@ -1049,51 +1049,114 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     final created = _parseDate(complaint['created_at']);
     final selected = _reportsProvider.isComplaintSelected(complaint);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
+    return AdminInfoCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      borderColor: selected ? AppTheme.primary.withValues(alpha: 0.5) : Colors.grey.withValues(alpha: 0.1),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Checkbox(
                 value: selected,
                 onChanged: (_) => _reportsProvider.toggleComplaintSelection(complaint),
+                activeColor: AppTheme.primary,
               ),
+              const SizedBox(width: 4),
               Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            status,
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.person, size: 14, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(userName, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                        const SizedBox(width: 12),
+                        Icon(Icons.category, size: 14, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(category, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            location,
+                            style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
+                        const SizedBox(width: 4),
+                        Text(
+                          created == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(created),
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Prioritas: $priority',
+                            style: TextStyle(color: Colors.blue[700], fontSize: 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(userName),
-          Text(category),
-          Text(location, maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 4),
-          Text(created == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(created)),
-          Text(priority),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton(
+            child: OutlinedButton(
               onPressed: () async {
                 try {
                   final model = Complaint.fromJson(complaint);
@@ -1109,7 +1172,11 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                   }
                 }
               },
-              child: const Text('Lihat Detail'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                minimumSize: const Size(0, 36),
+              ),
+              child: const Text('Lihat Detail', style: TextStyle(fontSize: 13)),
             ),
           ),
         ],
@@ -1130,60 +1197,165 @@ class _AdminReportsTabState extends State<AdminReportsTab>
 
     final initials = _initials(name);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
+    return AdminInfoCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      borderColor: Colors.grey.withValues(alpha: 0.1),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.blue.shade100,
-                child: Text(initials, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                radius: 20,
+                backgroundColor: Colors.blue.withValues(alpha: 0.15),
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.blue,
+                  ),
+                ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    Text(isActive ? 'Aktif' : 'Tidak Aktif', style: TextStyle(color: isActive ? Colors.green : Colors.red, fontSize: 12)),
+                    Text(
+                      name,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      email,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isActive ? 'Aktif' : 'Tidak Aktif',
+                  style: TextStyle(
+                    color: isActive ? Colors.green : Colors.red,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(email),
-          if (phone.isNotEmpty) Text(phone),
-          Text('Bergabung: ${created == null ? '-' : DateFormat('dd/MM/yyyy').format(created)}'),
-          Text('$complaintsCount keluhan'),
-          Text(lastLogin == null ? 'Belum pernah login' : 'Login terakhir: ${DateFormat('dd/MM/yyyy HH:mm').format(lastLogin)}'),
-          Text(emailVerified ? 'Email terverifikasi' : 'Email belum terverifikasi'),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
+          if (phone.isNotEmpty) ...[
+            Row(
+              children: [
+                Icon(Icons.phone, size: 14, color: Colors.grey[600]),
+                const SizedBox(width: 6),
+                Text(phone, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+              ],
+            ),
+            const SizedBox(height: 4),
+          ],
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
+              const SizedBox(width: 6),
+              Text(
+                'Bergabung: ${created == null ? '-' : DateFormat('dd/MM/yyyy').format(created)}',
+                style: TextStyle(color: Colors.grey[700], fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(emailVerified ? Icons.verified : Icons.warning_amber,
+                  size: 14, color: emailVerified ? Colors.blue : Colors.orange),
+              const SizedBox(width: 6),
+              Text(
+                emailVerified ? 'Email terverifikasi' : 'Email belum terverifikasi',
+                style: TextStyle(
+                  color: emailVerified ? Colors.blue[700] : Colors.orange[700],
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.description, size: 14, color: Colors.grey[700]),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$complaintsCount keluhan',
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Text(
+                lastLogin == null ? 'Belum pernah login' : 'Login: ${DateFormat('dd/MM/yy HH:mm').format(lastLogin)}',
+                style: TextStyle(color: Colors.grey[500], fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Align(
             alignment: Alignment.centerRight,
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                TextButton(
+                OutlinedButton(
                   onPressed: () => _showUserDetailInline(user),
-                  child: const Text('Lihat Detail'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
+                  child: const Text('Detail', style: TextStyle(fontSize: 12)),
                 ),
-                OutlinedButton(
+                OutlinedButton.icon(
                   onPressed: userId > 0 ? () => _exportComplaintsByUser(user, 'pdf') : null,
-                  child: const Text('Keluhan User PDF'),
+                  icon: const Icon(Icons.picture_as_pdf, size: 14),
+                  label: const Text('PDF', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
                 ),
-                OutlinedButton(
+                OutlinedButton.icon(
                   onPressed: userId > 0 ? () => _exportComplaintsByUser(user, 'excel') : null,
-                  child: const Text('Keluhan User Excel'),
+                  icon: const Icon(Icons.table_chart, size: 14),
+                  label: const Text('Excel', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
                 ),
               ],
             ),

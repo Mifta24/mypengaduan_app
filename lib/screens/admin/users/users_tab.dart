@@ -660,18 +660,19 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         _showUserDetailDialog(user);
       },
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Hero(
             tag: 'user_${user['id']}',
             child: CircleAvatar(
-              radius: 30,
-              backgroundColor: roleColor,
+              radius: 28,
+              backgroundColor: roleColor.withValues(alpha: 0.15),
               child: Text(
                 user['name']?.toString().substring(0, 1).toUpperCase() ?? 'U',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: roleColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 24,
+                  fontSize: 22,
                 ),
               ),
             ),
@@ -682,140 +683,153 @@ class _AdminUsersTabState extends State<AdminUsersTab>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        user['name'] ?? 'No Name',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  user['name'] ?? 'No Name',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (isVerified)
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 4),
+                                  child: Icon(Icons.verified_user,
+                                      size: 16, color: Colors.green),
+                                ),
+                              if (isEmailVerified)
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 4),
+                                  child:
+                                      Icon(Icons.verified, size: 16, color: Colors.blue),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user['email'] ?? '',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
-                    if (isVerified)
-                      const Padding(
-                        padding: EdgeInsets.only(left: 4),
-                        child: Icon(Icons.verified_user,
-                            size: 16, color: Colors.green),
-                      ),
-                    if (isEmailVerified)
-                      const Padding(
-                        padding: EdgeInsets.only(left: 4),
-                        child:
-                            Icon(Icons.verified, size: 16, color: Colors.blue),
-                      ),
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'verify':
+                            _verifyUser(user['id']);
+                            break;
+                          case 'make_admin':
+                            _changeRole(user['id'], 'admin');
+                            break;
+                          case 'make_user':
+                            _changeRole(user['id'], 'user');
+                            break;
+                          case 'view':
+                            _showUserDetailDialog(user);
+                            break;
+                          case 'reset_password':
+                            _resetUserPassword(_toInt(user['id']),
+                                userName: user['name']?.toString());
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        if (!isVerified)
+                          const PopupMenuItem(
+                            value: 'verify',
+                            child: Row(
+                              children: [
+                                Icon(Icons.verified_user, size: 18, color: Colors.green),
+                                SizedBox(width: 8),
+                                Text('Verifikasi User'),
+                              ],
+                            ),
+                          ),
+                        if (role != 'admin')
+                          const PopupMenuItem(
+                            value: 'make_admin',
+                            child: Row(
+                              children: [
+                                Icon(Icons.admin_panel_settings,
+                                    size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Jadikan Admin'),
+                              ],
+                            ),
+                          ),
+                        if (role == 'admin')
+                          const PopupMenuItem(
+                            value: 'make_user',
+                            child: Row(
+                              children: [
+                                Icon(Icons.person, size: 18, color: Colors.blue),
+                                SizedBox(width: 8),
+                                Text('Jadikan User'),
+                              ],
+                            ),
+                          ),
+                        const PopupMenuItem(
+                          value: 'view',
+                          child: Row(
+                            children: [
+                              Icon(Icons.visibility, size: 18),
+                              SizedBox(width: 8),
+                              Text('Lihat Detail'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'reset_password',
+                          child: Row(
+                            children: [
+                              Icon(Icons.lock_reset, size: 18, color: Colors.orange),
+                              SizedBox(width: 8),
+                              Text('Reset Password'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: const Icon(Icons.more_vert, color: Colors.grey),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  user['email'] ?? '',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: roleColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    color: roleColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     role.toUpperCase(),
                     style: TextStyle(
                       color: roleColor,
                       fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'verify':
-                  _verifyUser(user['id']);
-                  break;
-                case 'make_admin':
-                  _changeRole(user['id'], 'admin');
-                  break;
-                case 'make_user':
-                  _changeRole(user['id'], 'user');
-                  break;
-                case 'view':
-                  _showUserDetailDialog(user);
-                  break;
-                case 'reset_password':
-                  _resetUserPassword(_toInt(user['id']),
-                      userName: user['name']?.toString());
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              if (!isVerified)
-                const PopupMenuItem(
-                  value: 'verify',
-                  child: Row(
-                    children: [
-                      Icon(Icons.verified_user, size: 18, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text('Verifikasi User'),
-                    ],
-                  ),
-                ),
-              if (role != 'admin')
-                const PopupMenuItem(
-                  value: 'make_admin',
-                  child: Row(
-                    children: [
-                      Icon(Icons.admin_panel_settings,
-                          size: 18, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Jadikan Admin'),
-                    ],
-                  ),
-                ),
-              if (role == 'admin')
-                const PopupMenuItem(
-                  value: 'make_user',
-                  child: Row(
-                    children: [
-                      Icon(Icons.person, size: 18, color: Colors.blue),
-                      SizedBox(width: 8),
-                      Text('Jadikan User'),
-                    ],
-                  ),
-                ),
-              const PopupMenuItem(
-                value: 'view',
-                child: Row(
-                  children: [
-                    Icon(Icons.visibility, size: 18),
-                    SizedBox(width: 8),
-                    Text('Lihat Detail'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'reset_password',
-                child: Row(
-                  children: [
-                    Icon(Icons.lock_reset, size: 18),
-                    SizedBox(width: 8),
-                    Text('Reset Password'),
-                  ],
-                ),
-              ),
-            ],
-            child: const Icon(Icons.more_vert),
           ),
         ],
       ),

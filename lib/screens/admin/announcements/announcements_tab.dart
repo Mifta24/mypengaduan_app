@@ -290,141 +290,157 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with Auto
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (isSticky)
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.push_pin, color: Colors.red, size: 20),
+                    child: const Icon(Icons.push_pin, color: Colors.red, size: 24),
                   )
                 else
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: priorityColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(Icons.announcement, color: priorityColor, size: 20),
+                    child: Icon(Icons.announcement, color: priorityColor, size: 24),
                   ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        announcement['title'] ?? 'No Title',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (isSticky)
-                        const Text(
-                          'Disematkan',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  announcement['title'] ?? 'No Title',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (isSticky) ...[
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'Disematkan',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        ),
+                          PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            onSelected: (value) async {
+                              switch (value) {
+                                case 'view':
+                                  _showAnnouncementDetailDialog(announcement);
+                                  break;
+                                case 'edit':
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EditAnnouncementScreen(announcement: announcement),
+                                    ),
+                                  );
+                                  if (result == true) _loadAnnouncements();
+                                  break;
+                                case 'toggle_status':
+                                  _toggleStatus(announcement['id']);
+                                  break;
+                                case 'publish':
+                                  _publishAnnouncement(announcement['id']);
+                                  break;
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'view',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.visibility, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Detail'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Ubah'),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'toggle_status',
+                                child: Row(
+                                  children: [
+                                    Icon(isActive ? Icons.visibility_off : Icons.visibility, size: 18),
+                                    SizedBox(width: 8),
+                                    Text(isActive ? 'Nonaktifkan' : 'Aktifkan'),
+                                  ],
+                                ),
+                              ),
+                              if (!isActive)
+                                const PopupMenuItem(
+                                  value: 'publish',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.publish, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Terbitkan'),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                            child: const Icon(Icons.more_vert, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        announcement['summary'] ?? announcement['content'] ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey[600], height: 1.4),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          AdminStatusBadge(
+                            label: _priorityLabel(priority),
+                            color: priorityColor,
+                            icon: priorityIcon,
+                          ),
+                          const SizedBox(width: 8),
+                          AdminStatusBadge(
+                            label: isActive ? 'Aktif' : 'Nonaktif',
+                            color: isActive ? Colors.green : Colors.grey,
+                            icon: isActive ? Icons.visibility : Icons.visibility_off,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    switch (value) {
-                      case 'view':
-                        _showAnnouncementDetailDialog(announcement);
-                        break;
-                      case 'edit':
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => EditAnnouncementScreen(announcement: announcement),
-                          ),
-                        );
-                        if (result == true) _loadAnnouncements();
-                        break;
-                      case 'toggle_status':
-                        _toggleStatus(announcement['id']);
-                        break;
-                      case 'publish':
-                        _publishAnnouncement(announcement['id']);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'view',
-                      child: Row(
-                        children: [
-                          Icon(Icons.visibility, size: 18),
-                          SizedBox(width: 8),
-                          Text('Detail'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 18),
-                          SizedBox(width: 8),
-                          Text('Ubah'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'toggle_status',
-                      child: Row(
-                        children: [
-                          Icon(isActive ? Icons.visibility_off : Icons.visibility, size: 18),
-                          SizedBox(width: 8),
-                          Text(isActive ? 'Nonaktifkan' : 'Aktifkan'),
-                        ],
-                      ),
-                    ),
-                    if (!isActive)
-                      const PopupMenuItem(
-                        value: 'publish',
-                        child: Row(
-                          children: [
-                            Icon(Icons.publish, size: 18),
-                            SizedBox(width: 8),
-                            Text('Terbitkan'),
-                          ],
-                        ),
-                      ),
-                  ],
-                  child: const Icon(Icons.more_vert),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              announcement['summary'] ?? announcement['content'] ?? '',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey[700]),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                AdminStatusBadge(
-                  label: _priorityLabel(priority),
-                  color: priorityColor,
-                  icon: priorityIcon,
-                ),
-                const SizedBox(width: 8),
-                AdminStatusBadge(
-                  label: isActive ? 'Aktif' : 'Nonaktif',
-                  color: isActive ? Colors.green : Colors.grey,
-                  icon: isActive ? Icons.visibility : Icons.visibility_off,
                 ),
               ],
             ),

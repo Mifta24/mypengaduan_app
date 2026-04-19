@@ -429,139 +429,154 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(statusIcon, color: statusColor, size: 20),
+                child: Icon(statusIcon, color: statusColor, size: 24),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      complaint['title'] ?? 'No Title',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                complaint['title'] ?? 'No Title',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'ID: ${complaint['id']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          onSelected: (value) async {
+                            if (value == 'delete') {
+                              _deleteComplaintToTrash(_toInt(complaint['id']));
+                              return;
+                            }
+
+                            if (value == 'delete_attachment') {
+                              _showAttachmentDeleteDialog(complaint);
+                              return;
+                            }
+
+                            if (value == 'resolved') {
+                              // Show resolve screen with form
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ResolveComplaintScreen(complaint: complaint),
+                                ),
+                              );
+                              if (result == true) {
+                                await _loadComplaints(forceRefresh: true);
+                              }
+                            } else {
+                              _updateStatus(complaint['id'], value);
+                            }
+                          },
+                          itemBuilder: (context) {
+                            return [
+                              const PopupMenuItem(
+                                value: 'in_progress',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.autorenew, size: 18, color: Colors.blue),
+                                    SizedBox(width: 8),
+                                    Text('Tandai Dalam Proses'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'resolved',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.check_circle,
+                                        size: 18, color: Colors.green),
+                                    SizedBox(width: 8),
+                                    Text('Tandai Selesai'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'rejected',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.cancel, size: 18, color: Colors.red),
+                                    SizedBox(width: 8),
+                                    Text('Tolak'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete_attachment',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.attachment, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Hapus Attachment'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete, size: 18, color: Colors.red),
+                                    SizedBox(width: 8),
+                                    Text('Pindah ke Trash'),
+                                  ],
+                                ),
+                              ),
+                            ];
+                          },
+                          child: const Icon(Icons.more_vert, color: Colors.grey),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     Text(
-                      'ID: ${complaint['id']}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      complaint['description'] ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Colors.grey[600], height: 1.4),
+                    ),
+                    const SizedBox(height: 12),
+                    AdminStatusBadge(
+                      label: _statusLabel(status),
+                      color: statusColor,
+                      icon: statusIcon,
                     ),
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
-                onSelected: (value) async {
-                  if (value == 'delete') {
-                    _deleteComplaintToTrash(_toInt(complaint['id']));
-                    return;
-                  }
-
-                  if (value == 'delete_attachment') {
-                    _showAttachmentDeleteDialog(complaint);
-                    return;
-                  }
-
-                  if (value == 'resolved') {
-                    // Show resolve screen with form
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ResolveComplaintScreen(complaint: complaint),
-                      ),
-                    );
-                    if (result == true) {
-                      await _loadComplaints(forceRefresh: true);
-                    }
-                  } else {
-                    _updateStatus(complaint['id'], value);
-                  }
-                },
-                itemBuilder: (context) {
-                  return [
-                    const PopupMenuItem(
-                      value: 'in_progress',
-                      child: Row(
-                        children: [
-                          Icon(Icons.autorenew, size: 18, color: Colors.blue),
-                          SizedBox(width: 8),
-                          Text('Tandai Dalam Proses'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'resolved',
-                      child: Row(
-                        children: [
-                          Icon(Icons.check_circle,
-                              size: 18, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text('Tandai Selesai'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'rejected',
-                      child: Row(
-                        children: [
-                          Icon(Icons.cancel, size: 18, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Tolak'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete_attachment',
-                      child: Row(
-                        children: [
-                          Icon(Icons.attachment, size: 18),
-                          SizedBox(width: 8),
-                          Text('Hapus Attachment'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 18, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Pindah ke Trash'),
-                        ],
-                      ),
-                    ),
-                  ];
-                },
-                child: const Icon(Icons.more_vert),
-              ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            complaint['description'] ?? '',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.grey[700]),
-          ),
-          const SizedBox(height: 12),
-          AdminStatusBadge(
-            label: _statusLabel(status),
-            color: statusColor,
-            icon: statusIcon,
           ),
         ],
       ),

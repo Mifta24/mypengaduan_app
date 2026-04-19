@@ -420,18 +420,13 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab> with AutomaticK
           ),
         
         // Categories Grid
+        // Categories List
         Expanded(
           child: !_hasLoadedData
-              ? GridView.builder(
+              ? ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.85,
-                  ),
                   itemCount: 6,
-                  itemBuilder: (context, index) => const StatCardSkeleton(),
+                  itemBuilder: (context, index) => const ListItemSkeleton(),
                 )
               : _categories.isEmpty
                   ? const AdminEmptyState(
@@ -440,14 +435,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab> with AutomaticK
                     )
                   : RefreshIndicator(
                       onRefresh: () => _loadCategories(forceRefresh: true),
-                      child: GridView.builder(
+                      child: ListView.builder(
                         padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.75,
-                        ),
                         itemCount: _categories.length,
                         itemBuilder: (context, index) {
                           final category = _categories[index];
@@ -460,19 +449,12 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab> with AutomaticK
     );
   }
 
-  Widget _buildCategoryCard(dynamic category) {
-    final isActive = category['is_active'] == true || category['is_active'] == 1;
-    final isSelected = _selectedCategoryIds.contains(_toInt(category['id']));
-    final complaintsCount = category['complaints_count'] ?? 0;
-    final createdAt = category['created_at'] != null 
-        ? DateTime.tryParse(category['created_at'].toString()) 
-        : null;
-
     return AdminInfoCard(
+      margin: const EdgeInsets.only(bottom: 12),
       borderColor: isSelected
           ? AppTheme.primary.withValues(alpha: 0.7)
           : (isActive ? Colors.blue.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3)),
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.all(12),
       onTap: () async {
         final changed = await Navigator.push(
           context,
@@ -487,166 +469,138 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab> with AutomaticK
           _loadCategories(forceRefresh: true);
         }
       },
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with status badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: isActive ? Colors.blue.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(
-              children: [
-                Checkbox(
-                  value: isSelected,
-                  onChanged: (_) => _toggleSelectCategory(category),
-                ),
-                Expanded(
-                  child: Text(
-                    category['name'] ?? 'No Name',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isActive ? Colors.green.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    isActive ? 'Aktif' : 'Nonaktif',
-                    style: TextStyle(
-                      color: isActive ? Colors.green : Colors.grey,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          Checkbox(
+            value: isSelected,
+            onChanged: (_) => _toggleSelectCategory(category),
+            activeColor: AppTheme.primary,
           ),
-          
-          // Content
+          const SizedBox(width: 4),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      category['description'] ?? 'Tidak ada deskripsi',
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 12,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Stats
-                  Row(
-                    children: [
-                      Icon(Icons.description, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          '$complaintsCount keluhan',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category['name'] ?? 'No Name',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            category['description'] ?? 'Tidak ada deskripsi',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  if (createdAt != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      '${createdAt.day} ${_getMonthName(createdAt.month)} ${createdAt.year}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[500],
+                    ),
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      onSelected: (value) async {
+                        switch (value) {
+                          case 'edit':
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditCategoryScreen(category: category),
+                              ),
+                            );
+                            if (result == true) _loadCategories();
+                            break;
+                          case 'toggle_status':
+                            _toggleStatus(category['id']);
+                            break;
+                          case 'delete':
+                            _deleteCategory(category['id']);
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 18),
+                              SizedBox(width: 8),
+                              Text('Ubah'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'toggle_status',
+                          child: Row(
+                            children: [
+                              Icon(isActive ? Icons.toggle_off : Icons.toggle_on, size: 18),
+                              SizedBox(width: 8),
+                              Text(isActive ? 'Nonaktifkan' : 'Aktifkan'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, size: 18, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Hapus', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: const Icon(Icons.more_vert, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    AdminStatusBadge(
+                      label: isActive ? 'Aktif' : 'Nonaktif',
+                      color: isActive ? Colors.green : Colors.grey,
+                      icon: isActive ? Icons.check_circle : Icons.cancel,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.description, size: 14, color: Colors.blue[700]),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$complaintsCount keluhan',
+                            style: TextStyle(
+                              color: Colors.blue[700],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ],
-              ),
-            ),
-          ),
-          
-          // Actions
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: Colors.grey.shade200),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => EditCategoryScreen(category: category),
-                        ),
-                      );
-                      if (result == true) _loadCategories();
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                      minimumSize: const Size(0, 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                      child: const Text('Ubah', style: TextStyle(fontSize: 11)),
-                  ),
-                ),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => _toggleStatus(category['id']),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                      minimumSize: const Size(0, 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Icon(
-                      isActive ? Icons.toggle_on : Icons.toggle_off,
-                      size: 20,
-                      color: isActive ? Colors.orange : Colors.green,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => _deleteCategory(category['id']),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                      minimumSize: const Size(0, 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      'Hapus',
-                      style: TextStyle(fontSize: 11, color: Colors.red),
-                    ),
-                  ),
                 ),
               ],
             ),
