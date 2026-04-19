@@ -21,30 +21,38 @@ class AdminInfoCard extends StatelessWidget {
     this.borderColor,
     this.borderWidth = 1,
     this.elevation = 0,
-    this.borderRadius = 12,
+    this.borderRadius = 16,
     this.backgroundColor,
     this.margin = EdgeInsets.zero,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: margin,
-      elevation: elevation,
-      color: backgroundColor ?? Colors.white,
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: backgroundColor ?? Colors.white,
         borderRadius: BorderRadius.circular(borderRadius),
-        side: BorderSide(
-          color: borderColor ?? AppTheme.border,
-          width: borderWidth,
-        ),
+        border: borderColor != null 
+          ? Border.all(color: borderColor!, width: borderWidth)
+          : null, // Removed default border
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04), // 4% soft shadow
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(borderRadius),
-        onTap: onTap,
-        child: Padding(
-          padding: padding ?? const EdgeInsets.all(12),
-          child: child,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(borderRadius),
+          onTap: onTap,
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(16), // Increased default padding
+            child: child,
+          ),
         ),
       ),
     );
