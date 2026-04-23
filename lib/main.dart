@@ -16,6 +16,12 @@ import 'services/notification_service.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
 
+/// Navigator key global — digunakan FCMService untuk navigate tanpa context
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+/// FCM Service global — bisa dipanggil setelah login untuk check unread notif
+FCMService? fcmService;
+
 // Top-level function for background FCM messages
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -71,11 +77,25 @@ class _MyAppState extends State<MyApp> {
         final authService = AuthService();
         final notificationService = NotificationService(authService);
         _fcmService = FCMService(notificationService);
+        fcmService = _fcmService; // expose global
         
         // Initialize FCM
         await _fcmService!.initialize();
         
         debugPrint('FCM Service initialized successfully');
+
+        // Listen ke perubahan auth — saat login berhasil, cek unread notif
+        if (mounted) {
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          authProvider.addListener(() {
+            if (authProvider.isAuthenticated) {
+              // Delay sedikit agar token backend sudah terdaftar
+              Future.delayed(const Duration(seconds: 2), () {
+                _fcmService?.checkUnreadAndNotify();
+              });
+            }
+          });
+        }
       }
     } catch (e) {
       debugPrint('FCM initialization error: $e');

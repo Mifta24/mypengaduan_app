@@ -132,9 +132,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   Future<void> _loadData() async {
     final complaintProvider =
         Provider.of<ComplaintProvider>(context, listen: false);
+    final notificationProvider =
+        Provider.of<NotificationProvider>(context, listen: false);
 
-    // Only load statistics, DON'T load notifications (too heavy)
+    // Load statistics
     await complaintProvider.loadStatistics();
+    
+    // Load notifications for unread badge
+    await notificationProvider.loadNotifications(refresh: true);
   }
 
   @override
