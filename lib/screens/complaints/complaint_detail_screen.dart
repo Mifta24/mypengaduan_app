@@ -1,12 +1,15 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
 import '../../models/complaint_model.dart';
 import '../../config/app_config.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/complaint_provider.dart';
 import '../../services/admin_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/complaint_service.dart';
@@ -336,6 +339,75 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     }
   }
 
+  Future<void> _exportComplaintPdf() async {
+    if (_complaint == null) return;
+
+    final pdf = pw.Document();
+    final generatedAt = DateTime.now();
+
+    String statusText;
+    switch (_complaint!.status) {
+      case 'pending': statusText = 'Menunggu'; break;
+      case 'in_progress': statusText = 'Dalam Proses'; break;
+      case 'waiting_user_confirmation': statusText = 'Menunggu Konfirmasi'; break;
+      case 'resolved': statusText = 'Selesai'; break;
+      case 'rejected': statusText = 'Ditolak'; break;
+      default: statusText = _complaint!.status;
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) => [
+          pw.Text(
+            'Laporan Pengaduan',
+            style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'Dibuat: ${DateFormat('dd/MM/yyyy HH:mm').format(generatedAt)}',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+          pw.Divider(height: 24),
+          pw.TableHelper.fromTextArray(
+            headers: ['Field', 'Detail'],
+            data: [
+              ['Judul', _complaint!.title],
+              ['Status', statusText],
+              ['Kategori', _complaint!.category?.name ?? '-'],
+              ['Lokasi', _complaint!.location],
+              ['Tanggal Kejadian', DateFormat('dd/MM/yyyy').format(_complaint!.reportDate)],
+              ['Tanggal Dibuat', DateFormat('dd/MM/yyyy HH:mm').format(_complaint!.createdAt)],
+              ['Deskripsi', _complaint!.description],
+            ],
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+            cellStyle: const pw.TextStyle(fontSize: 9),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+            cellAlignment: pw.Alignment.topLeft,
+            columnWidths: {0: const pw.FixedColumnWidth(110)},
+          ),
+        ],
+      ),
+    );
+
+    final bytes = Uint8List.fromList(await pdf.save());
+    final fileName =
+        'pengaduan_${_complaint!.id}_${DateFormat('yyyyMMdd_HHmmss').format(generatedAt)}.pdf';
+
+    await Share.shareXFiles(
+      [
+        XFile.fromData(
+          bytes,
+          name: fileName,
+          mimeType: 'application/pdf',
+        ),
+      ],
+      text: 'Laporan Pengaduan: ${_complaint!.title}',
+      subject: fileName,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _complaint == null) {
@@ -397,6 +469,13 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                ),
+              // Export PDF button for regular users
+              if (!_isAdminSession)
+                IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_outlined, color: Colors.white),
+                  tooltip: 'Export PDF',
+                  onPressed: _isLoading ? null : _exportComplaintPdf,
                 ),
               if (_isAdminSession)
                 PopupMenuButton<String>(

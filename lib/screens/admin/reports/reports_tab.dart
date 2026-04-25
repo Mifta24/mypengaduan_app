@@ -65,7 +65,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
     debugPrint('📊 [AdminReportsTab] Screen initialized - will load after visible');
   }
@@ -151,21 +151,43 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     return Column(
       children: [
         _buildHeader(),
-        Expanded(
-          child: !_hasLoadedData
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
+        if (!_hasLoadedData)
+          const Expanded(child: Center(child: CircularProgressIndicator()))
+        else ...[
+          Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppTheme.primary,
+              unselectedLabelColor: Colors.grey.shade600,
+              indicatorColor: AppTheme.primary,
+              tabs: const [
+                Tab(text: 'Ringkasan'),
+                Tab(text: 'Keluhan'),
+                Tab(text: 'Pengguna'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                RefreshIndicator(
                   onRefresh: () => _loadReports(forceRefresh: true),
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildOverviewSection(),
-                      const SizedBox(height: 16),
-                      _buildReportsContainer(),
-                    ],
-                  ),
+                  child: _buildOverviewSection(),
                 ),
-        ),
+                RefreshIndicator(
+                  onRefresh: () => _loadReports(forceRefresh: true),
+                  child: _buildComplaintReportPage(),
+                ),
+                RefreshIndicator(
+                  onRefresh: () => _loadReports(forceRefresh: true),
+                  child: _buildUserReportPage(),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -223,8 +245,10 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           ((_overview?['data'] as Map<String, dynamic>?)?['comments_this_month']),
     );
 
-    return Column(
-      children: [
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
         _summarySectionCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,48 +430,11 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           ),
         ),
       ],
+    ),
     );
   }
 
-  Widget _buildReportsContainer() {
-    final viewportHeight = MediaQuery.of(context).size.height;
-    final contentHeight = (viewportHeight - 250).clamp(620.0, 1000.0);
 
-    return SizedBox(
-      height: contentHeight,
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            Container(
-              color: Colors.grey.shade50,
-              child: TabBar(
-                controller: _tabController,
-                labelColor: AppTheme.primary,
-                unselectedLabelColor: Colors.grey.shade600,
-                indicatorColor: AppTheme.primary,
-                tabs: const [
-                  Tab(text: 'Laporan Keluhan'),
-                  Tab(text: 'Laporan Pengguna'),
-                ],
-              ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildComplaintReportPage(),
-                  _buildUserReportPage(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildComplaintReportPage() {
     final total = _filteredComplaintItems.length;
@@ -464,56 +451,77 @@ class _AdminReportsTabState extends State<AdminReportsTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Laporan Keluhan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          const Text('Laporan detail dan analisis keluhan pengguna'),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              OutlinedButton.icon(
-                onPressed: () => _exportReport('complaints', 'pdf'),
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Export PDF'),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Laporan Keluhan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text('Laporan detail dan analisis keluhan pengguna', style: TextStyle(color: Colors.grey.shade600)),
+                  ],
+                ),
               ),
-              OutlinedButton.icon(
-                onPressed: () => _exportReport('complaints', 'excel'),
-                icon: const Icon(Icons.table_chart),
-                label: const Text('Export Excel'),
-              ),
-              OutlinedButton.icon(
-                onPressed: _reportsProvider.hasSelectedComplaints
-                    ? () => _exportSelectedComplaints('pdf')
-                    : null,
-                icon: const Icon(Icons.check_box),
-                label: Text('Export Dipilih PDF (${_reportsProvider.selectedComplaintCount})'),
-              ),
-              OutlinedButton.icon(
-                onPressed: _reportsProvider.hasSelectedComplaints
-                    ? () => _exportSelectedComplaints('excel')
-                    : null,
-                icon: const Icon(Icons.checklist),
-                label: Text('Export Dipilih Excel (${_reportsProvider.selectedComplaintCount})'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton(
-                onPressed: _filteredComplaintItems.isEmpty
-                    ? null
-                    : () => _reportsProvider.selectAllFilteredComplaints(),
-                child: const Text('Pilih Semua (Filter Saat Ini)'),
-              ),
-              OutlinedButton(
-                onPressed: _reportsProvider.hasSelectedComplaints
-                    ? () => _reportsProvider.clearSelectedComplaints()
-                    : null,
-                child: const Text('Hapus Pilihan'),
+              PopupMenuButton<String>(
+                tooltip: 'Opsi Laporan',
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.more_vert, color: AppTheme.primary),
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'export_pdf':
+                      _exportReport('complaints', 'pdf');
+                      break;
+                    case 'export_excel':
+                      _exportReport('complaints', 'excel');
+                      break;
+                    case 'export_selected_pdf':
+                      _exportSelectedComplaints('pdf');
+                      break;
+                    case 'export_selected_excel':
+                      _exportSelectedComplaints('excel');
+                      break;
+                    case 'select_all':
+                      _reportsProvider.selectAllFilteredComplaints();
+                      break;
+                    case 'clear_selection':
+                      _reportsProvider.clearSelectedComplaints();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'export_pdf', child: Text('Export Semua (PDF)')),
+                  const PopupMenuItem(value: 'export_excel', child: Text('Export Semua (Excel)')),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'select_all',
+                    enabled: _filteredComplaintItems.isNotEmpty,
+                    child: const Text('Pilih Semua (Filter Saat Ini)'),
+                  ),
+                  PopupMenuItem(
+                    value: 'clear_selection',
+                    enabled: _reportsProvider.hasSelectedComplaints,
+                    child: const Text('Hapus Pilihan'),
+                  ),
+                  if (_reportsProvider.hasSelectedComplaints) ...[
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'export_selected_pdf',
+                      child: Text('Export Dipilih (${_reportsProvider.selectedComplaintCount}) - PDF'),
+                    ),
+                    PopupMenuItem(
+                      value: 'export_selected_excel',
+                      child: Text('Export Dipilih (${_reportsProvider.selectedComplaintCount}) - Excel'),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -700,23 +708,43 @@ class _AdminReportsTabState extends State<AdminReportsTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Laporan Pengguna', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          const Text('Laporan detail dan analisis pengguna sistem'),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              OutlinedButton.icon(
-                onPressed: () => _exportReport('users', 'pdf'),
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Export PDF'),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Laporan Pengguna', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text('Laporan detail dan analisis pengguna sistem', style: TextStyle(color: Colors.grey.shade600)),
+                  ],
+                ),
               ),
-              OutlinedButton.icon(
-                onPressed: () => _exportReport('users', 'excel'),
-                icon: const Icon(Icons.table_chart),
-                label: const Text('Export Excel'),
+              PopupMenuButton<String>(
+                tooltip: 'Opsi Laporan',
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.more_vert, color: AppTheme.primary),
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'export_pdf':
+                      _exportReport('users', 'pdf');
+                      break;
+                    case 'export_excel':
+                      _exportReport('users', 'excel');
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'export_pdf', child: Text('Export PDF')),
+                  const PopupMenuItem(value: 'export_excel', child: Text('Export Excel')),
+                ],
               ),
             ],
           ),
@@ -916,22 +944,25 @@ class _AdminReportsTabState extends State<AdminReportsTab>
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: child,
     );
   }
 
   Widget _summarySectionCard({required Widget child}) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: child,
-      ),
+    return AdminInfoCard(
+      padding: const EdgeInsets.all(16),
+      child: child,
     );
   }
 
@@ -939,8 +970,9 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -975,9 +1007,9 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
       ),
       child: Column(
         children: [
@@ -993,8 +1025,9 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     final widget = Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

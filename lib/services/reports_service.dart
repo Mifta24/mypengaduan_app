@@ -104,7 +104,10 @@ class ReportsService {
 
       final list = (response['data'] as List?) ?? const [];
       rows.addAll(
-        list.whereType<Map>().map((item) => Map<String, dynamic>.from(item)),
+        list
+            .whereType<Map>()
+            .where((item) => item['deleted_at'] == null) // skip trashed
+            .map((item) => Map<String, dynamic>.from(item)),
       );
 
       final currentPageRaw = response['current_page'] ?? response['meta']?['current_page'];

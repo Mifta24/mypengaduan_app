@@ -294,21 +294,25 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with Auto
               children: [
                 if (isSticky)
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.red.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(Icons.push_pin, color: Colors.red, size: 24),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.push_pin, color: Colors.red, size: 28),
                   )
                 else
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
-                      color: priorityColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: priorityColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(Icons.announcement, color: priorityColor, size: 24),
+                    alignment: Alignment.center,
+                    child: Icon(Icons.announcement, color: priorityColor, size: 28),
                   ),
                 const SizedBox(width: 16),
                 Expanded(

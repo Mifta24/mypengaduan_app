@@ -22,7 +22,14 @@ class AdminEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: AppTheme.textSecondary.withValues(alpha: 0.6)),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 48, color: AppTheme.primary.withOpacity(0.6)),
+            ),
             const SizedBox(height: 10),
             Text(
               title,

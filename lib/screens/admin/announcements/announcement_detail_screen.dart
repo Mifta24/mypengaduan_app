@@ -121,120 +121,227 @@ class _AdminAnnouncementDetailScreenState extends State<AdminAnnouncementDetailS
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context, _hasChanges),
         ),
+        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _detail['title']?.toString() ?? '-',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      _chip(isActive ? 'Aktif' : 'Nonaktif', isActive ? Colors.green : Colors.grey, isActive ? Icons.check_circle : Icons.cancel),
-                      _chip(_capitalize(priority), _priorityColor(priority), Icons.low_priority),
+                      Container(
+                        height: 140,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: priority == 'urgent' 
+                                ? [Colors.red.shade400, Colors.red.shade800]
+                                : priority == 'high'
+                                    ? [Colors.orange.shade400, Colors.orange.shade800]
+                                    : priority == 'medium'
+                                        ? [Colors.blue.shade400, Colors.blue.shade800]
+                                        : [Colors.green.shade400, Colors.green.shade800],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: -40,
+                        left: 20,
+                        child: Container(
+                          width: 86,
+                          height: 86,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              )
+                            ]
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            priority == 'urgent' ? Icons.priority_high : Icons.announcement,
+                            color: _priorityColor(priority),
+                            size: 40,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 12,
+                        right: 20,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(alpha: 0.9),
+                            foregroundColor: _priorityColor(priority),
+                            side: const BorderSide(color: Colors.transparent),
+                          ),
+                          onPressed: _editAnnouncement,
+                          icon: const Icon(Icons.edit, size: 18),
+                          label: const Text('Edit'),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Text('Oleh $author'),
-                  Text(publishDate),
-                  Text('$viewsCount views'),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: _editAnnouncement,
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Edit'),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, _hasChanges),
-                        child: const Text('Kembali'),
-                      ),
-                    ],
+                  const SizedBox(height: 50),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _detail['title']?.toString() ?? '-',
+                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _chip(isActive ? 'Aktif' : 'Nonaktif', isActive ? Colors.green : Colors.grey, isActive ? Icons.check_circle : Icons.cancel),
+                            _chip(_capitalize(priority), _priorityColor(priority), Icons.low_priority),
+                            _chip('$viewsCount views', Colors.blueGrey, Icons.visibility),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.person, size: 16, color: Colors.grey),
+                                        const SizedBox(width: 8),
+                                        Expanded(child: Text('Oleh $author', style: const TextStyle(fontWeight: FontWeight.w600))),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text('Tanggal Publish', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    publishDate,
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth;
-                      final crossAxisCount = width < 640 ? 1 : 3;
-                      final itemWidth = (width - (10 * (crossAxisCount - 1))) / crossAxisCount;
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final width = constraints.maxWidth;
+                            final crossAxisCount = width < 640 ? 1 : 3;
+                            final itemWidth = (width - (10 * (crossAxisCount - 1))) / crossAxisCount;
 
-                      return Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          SizedBox(
-                            width: itemWidth,
-                            child: _statCard('Total Views', '$viewsCount', Icons.visibility),
-                          ),
-                          SizedBox(
-                            width: itemWidth,
-                            child: _statCard('Status', isActive ? 'Aktif' : 'Nonaktif', Icons.toggle_on),
-                          ),
-                          SizedBox(
-                            width: itemWidth,
-                            child: _statCard('Prioritas', _capitalize(priority), Icons.flag),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 18),
-                  _sectionTitle('Konten Pengumuman'),
-                  const SizedBox(height: 8),
-                  _contentBlock(
-                    title: 'Ringkasan',
-                    content: _firstString(_detail, ['summary', 'excerpt'], fallback: '-'),
-                  ),
-                  const SizedBox(height: 8),
-                  _contentBlock(
-                    title: '',
-                    content: _detail['content']?.toString() ?? '-',
-                  ),
-                  const SizedBox(height: 18),
-                  _sectionTitle('Lampiran & Foto'),
-                  const SizedBox(height: 8),
-                  _mediaSection('Foto (${photos.length})', photos, isImageSection: true),
-                  const SizedBox(height: 8),
-                  _mediaSection('Lampiran (${attachments.length})', attachments, isImageSection: false),
-                  const SizedBox(height: 18),
-                  _sectionTitle('Detail Pengumuman'),
-                  const SizedBox(height: 8),
-                  _detailRow('Slug', _detail['slug']?.toString() ?? '-'),
-                  _detailRow('Penulis', author),
-                  _detailRow('Tanggal Publish', _formatDateTime(_detail['published_at'] ?? _detail['publish_date'])),
-                  _detailRow('Prioritas', _capitalize(priority)),
-                  _detailRow('Target Audience', _firstString(_detail, ['target_audience', 'audience', 'target'], fallback: 'All')),
-                  _detailRow('Komentar', _toBool(_detail['allow_comments'] ?? _detail['comments_enabled']) ? 'Diizinkan' : 'Tidak Diizinkan'),
-                  _detailRow('Dibuat', _formatDateTime(_detail['created_at'])),
-                  _detailRow('Terakhir Update', _formatDateTime(_detail['updated_at'])),
-                  const SizedBox(height: 18),
-                  _sectionTitle('Aksi'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _editAnnouncement,
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Edit Pengumuman'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _deleteAnnouncement,
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        label: const Text('Hapus Pengumuman', style: TextStyle(color: Colors.red)),
-                      ),
-                    ],
+                            return Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                SizedBox(
+                                  width: itemWidth,
+                                  child: _statCard('Total Views', '$viewsCount', Icons.visibility),
+                                ),
+                                SizedBox(
+                                  width: itemWidth,
+                                  child: _statCard('Status', isActive ? 'Aktif' : 'Nonaktif', Icons.toggle_on),
+                                ),
+                                SizedBox(
+                                  width: itemWidth,
+                                  child: _statCard('Prioritas', _capitalize(priority), Icons.flag),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                        _sectionTitle('Konten Pengumuman'),
+                        const SizedBox(height: 8),
+                        _contentBlock(
+                          title: 'Ringkasan',
+                          content: _firstString(_detail, ['summary', 'excerpt'], fallback: '-'),
+                        ),
+                        const SizedBox(height: 8),
+                        _contentBlock(
+                          title: '',
+                          content: _detail['content']?.toString() ?? '-',
+                        ),
+                        const SizedBox(height: 18),
+                        _sectionTitle('Lampiran & Foto'),
+                        const SizedBox(height: 8),
+                        _mediaSection('Foto (${photos.length})', photos, isImageSection: true),
+                        const SizedBox(height: 8),
+                        _mediaSection('Lampiran (${attachments.length})', attachments, isImageSection: false),
+                        const SizedBox(height: 18),
+                        _sectionTitle('Detail Pengumuman'),
+                        const SizedBox(height: 8),
+                        _detailRow('Slug', _detail['slug']?.toString() ?? '-'),
+                        _detailRow('Penulis', author),
+                        _detailRow('Tanggal Publish', _formatDateTime(_detail['published_at'] ?? _detail['publish_date'])),
+                        _detailRow('Prioritas', _capitalize(priority)),
+                        _detailRow('Target Audience', _firstString(_detail, ['target_audience', 'audience', 'target'], fallback: 'All')),
+                        _detailRow('Komentar', _toBool(_detail['allow_comments'] ?? _detail['comments_enabled']) ? 'Diizinkan' : 'Tidak Diizinkan'),
+                        _detailRow('Dibuat', _formatDateTime(_detail['created_at'])),
+                        _detailRow('Terakhir Update', _formatDateTime(_detail['updated_at'])),
+                        const SizedBox(height: 18),
+                        _sectionTitle('Aksi'),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _editAnnouncement,
+                              icon: const Icon(Icons.edit),
+                              label: const Text('Edit Pengumuman'),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _deleteAnnouncement,
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              label: const Text('Hapus Pengumuman', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

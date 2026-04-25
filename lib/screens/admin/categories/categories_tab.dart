@@ -332,36 +332,70 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab> with AutomaticK
                   ],
                 ),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    FilterChip(
-                      selected: allVisibleSelected,
-                      onSelected: _categories.isEmpty ? null : _setSelectAllVisible,
-                      label: Text('Pilih Semua Visible ($selectedVisibleCount/${visibleIds.length})'),
-                    ),
-                    OutlinedButton(
-                      onPressed: _categories.isEmpty ? null : _selectAllCurrent,
-                      child: const Text('Pilih Semua'),
-                    ),
-                    OutlinedButton(
-                      onPressed: _selectedCategoryIds.isEmpty ? null : _clearSelection,
-                      child: const Text('Hapus Pilihan'),
-                    ),
-                    OutlinedButton(
-                      onPressed: _selectedCategoryIds.isEmpty ? null : () => _bulkAction('activate'),
-                      child: Text('Aktifkan Dipilih (${_selectedCategoryIds.length})'),
-                    ),
-                    OutlinedButton(
-                      onPressed: _selectedCategoryIds.isEmpty ? null : () => _bulkAction('deactivate'),
-                      child: Text('Nonaktifkan Dipilih (${_selectedCategoryIds.length})'),
-                    ),
-                    OutlinedButton(
-                      onPressed: _selectedCategoryIds.isEmpty ? null : () => _bulkAction('delete'),
-                      child: Text('Hapus Dipilih (${_selectedCategoryIds.length})'),
-                    ),
-                  ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      FilterChip(
+                        selected: allVisibleSelected,
+                        onSelected: _categories.isEmpty ? null : _setSelectAllVisible,
+                        label: Text('Pilih Semua ($selectedVisibleCount/${visibleIds.length})'),
+                        backgroundColor: Colors.grey.shade100,
+                        selectedColor: AppTheme.primary.withValues(alpha: 0.2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        side: BorderSide.none,
+                      ),
+                      const SizedBox(width: 8),
+                      if (_selectedCategoryIds.isNotEmpty) ...[
+                        OutlinedButton.icon(
+                          onPressed: _clearSelection,
+                          icon: const Icon(Icons.clear, size: 16),
+                          label: const Text('Batal'),
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            side: BorderSide(color: Colors.grey.shade300),
+                            foregroundColor: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: () => _bulkAction('activate'),
+                          icon: const Icon(Icons.check_circle_outline, size: 16),
+                          label: Text('Aktifkan (${_selectedCategoryIds.length})'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green.shade50,
+                            foregroundColor: Colors.green.shade700,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: () => _bulkAction('deactivate'),
+                          icon: const Icon(Icons.highlight_off, size: 16),
+                          label: Text('Nonaktifkan (${_selectedCategoryIds.length})'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange.shade50,
+                            foregroundColor: Colors.orange.shade700,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: () => _bulkAction('delete'),
+                          icon: const Icon(Icons.delete_outline, size: 16),
+                          label: Text('Hapus (${_selectedCategoryIds.length})'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red.shade50,
+                            foregroundColor: Colors.red.shade700,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 if (_selectedStatus != null)
                   Padding(
@@ -483,8 +517,23 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab> with AutomaticK
             value: isSelected,
             onChanged: (_) => _toggleSelectCategory(category),
             activeColor: AppTheme.primary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              category['icon']?.toString() ?? '📝',
+              style: const TextStyle(fontSize: 22),
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

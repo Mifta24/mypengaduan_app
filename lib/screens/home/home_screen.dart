@@ -602,7 +602,44 @@ class _DashboardScreenState extends State<DashboardScreen>
         'subtitle': 'Sampaikan keluhan Anda',
         'color': AppTheme.primary,
         'onTap': () {
-          // Navigate to create complaint screen
+          // Check KTP verification before navigating
+          final user = Provider.of<AuthProvider>(context, listen: false).user;
+          if (user != null && !user.isUserVerified) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                title: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        color: Color(0xFFEA580C)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Akun Belum Terverifikasi',
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+                content: Text(
+                  'KTP Anda sedang menunggu verifikasi dari admin. Anda baru dapat membuat pengaduan setelah akun diverifikasi.',
+                  style: GoogleFonts.nunito(height: 1.5),
+                ),
+                actions: [
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                    ),
+                    child: Text('Mengerti',
+                        style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+            );
+            return;
+          }
           context.push(AppRouter.createComplaint);
         },
       },

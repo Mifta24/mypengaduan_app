@@ -184,61 +184,116 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context, _hasChanges),
         ),
+        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(iconEmoji, style: const TextStyle(fontSize: 34)),
-                  const SizedBox(height: 8),
-                  Text(
-                    categoryName,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      _chip(isActive ? 'Aktif' : 'Nonaktif', isActive ? Colors.green : Colors.grey, isActive ? Icons.check_circle : Icons.cancel),
-                      _chip(colorName, Colors.purple, Icons.palette),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(description),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: _editCategory,
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Edit'),
+                      Container(
+                        height: 140,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.purple.shade400, Colors.purple.shade800],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, _hasChanges),
-                        child: const Text('Kembali'),
+                      Positioned(
+                        bottom: -40,
+                        left: 20,
+                        child: Container(
+                          width: 86,
+                          height: 86,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              )
+                            ]
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            iconEmoji,
+                            style: const TextStyle(fontSize: 40),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 12,
+                        right: 20,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.9),
+                            foregroundColor: Colors.purple.shade700,
+                            side: const BorderSide(color: Colors.transparent),
+                          ),
+                          onPressed: _editCategory,
+                          icon: const Icon(Icons.edit, size: 18),
+                          label: const Text('Edit'),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    childAspectRatio: 2.8,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    children: [
-                      _statCard('Total Keluhan', '$totalComplaints', Icons.report_problem_outlined),
-                      _statCard('Pending', '$_pendingCount', Icons.pending_actions),
-                      _statCard('Dalam Proses', '$_inProgressCount', Icons.autorenew),
-                      _statCard('Selesai', '$_resolvedCount', Icons.task_alt),
-                    ],
+                  const SizedBox(height: 50),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          categoryName,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _chip(isActive ? 'Aktif' : 'Nonaktif', isActive ? Colors.green : Colors.grey, isActive ? Icons.check_circle : Icons.cancel),
+                            _chip(colorName, Colors.purple, Icons.palette),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          description,
+                          style: TextStyle(color: Colors.grey.shade700, height: 1.5),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          childAspectRatio: 2.8,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          children: [
+                            _statCard('Total Keluhan', '$totalComplaints', Icons.report_problem_outlined, Colors.purple),
+                            _statCard('Pending', '$_pendingCount', Icons.pending_actions, Colors.orange),
+                            _statCard('Dalam Proses', '$_inProgressCount', Icons.autorenew, Colors.blue),
+                            _statCard('Selesai', '$_resolvedCount', Icons.task_alt, Colors.green),
+                          ],
+                        ),
                   const SizedBox(height: 18),
                   _sectionHeader(
                     'Keluhan Terbaru',
@@ -293,6 +348,9 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -315,25 +373,26 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
     );
   }
 
-  Widget _statCard(String title, String value, IconData icon) {
+  Widget _statCard(String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blueGrey),
+          Icon(icon, color: color),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(title, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                Text(title, style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color.withValues(alpha: 0.9))),
               ],
             ),
           ),

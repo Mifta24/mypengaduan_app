@@ -49,7 +49,34 @@ void main() async {
     // Continue without Firebase for web testing
   }
   
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ComplaintProvider(AuthService()),
+          lazy: true, // Load only when needed
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(AuthService()),
+          lazy: true, // Load only when needed
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AnnouncementProvider(AuthService()),
+          lazy: true, // Load only when needed
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CategoryProvider(AuthService()),
+          lazy: true, // Load only when needed
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ReportsProvider(),
+          lazy: true,
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -105,41 +132,12 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(
-          create: (_) => ComplaintProvider(AuthService()),
-          lazy: true, // Load only when needed
-        ),
-        ChangeNotifierProvider(
-          create: (_) => NotificationProvider(AuthService()),
-          lazy: true, // Load only when needed
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AnnouncementProvider(AuthService()),
-          lazy: true, // Load only when needed
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CategoryProvider(AuthService()),
-          lazy: true, // Load only when needed
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ReportsProvider(),
-          lazy: true,
-        ),
-      ],
-      child: Builder(
-        builder: (context) {
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
-          return MaterialApp.router(
-            title: 'MyPengaduan',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            routerConfig: AppRouter.createRouter(authProvider),
-          );
-        },
-      ),
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    return MaterialApp.router(
+      title: 'MyPengaduan',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      routerConfig: AppRouter.createRouter(authProvider),
     );
   }
 }

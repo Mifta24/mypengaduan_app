@@ -28,6 +28,7 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _selectedIndex = 0;
+  late List<bool> _initializedTabs;
 
   final List<Widget> _pages = [
     const AdminHomeTab(),
@@ -41,12 +42,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _initializedTabs = List.generate(_pages.length, (index) => index == 0);
     // Load notifications when dashboard opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         if (authProvider.isAuthenticated) {
-          final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+          final notificationProvider =
+              Provider.of<NotificationProvider>(context, listen: false);
           notificationProvider.loadNotifications(refresh: true);
         }
       }
@@ -61,7 +64,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
+        title: const Text('Admin Dashboard',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textPrimary,
         surfaceTintColor: Colors.transparent,
@@ -150,7 +154,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ],
                   ),
                 );
-                
+
                 if (result == true && context.mounted) {
                   // Clear all provider states before logout
                   try {
@@ -168,7 +172,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   } catch (e) {
                     debugPrint('AnnouncementProvider not available: $e');
                   }
-                  
+
                   await authProvider.logout();
                   if (context.mounted) {
                     context.go(AppRouter.landing);
@@ -214,16 +218,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 children: [
                   CircleAvatar(
                     radius: 16,
-                      backgroundColor: AppTheme.primary.withValues(alpha: 0.14),
+                    backgroundColor: AppTheme.primary.withValues(alpha: 0.14),
                     child: Text(
                       user?.name.substring(0, 1).toUpperCase() ?? 'A',
-                        style: const TextStyle(fontSize: 14, color: AppTheme.primary, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.w700),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     user?.name ?? 'Admin',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const Icon(Icons.arrow_drop_down),
                 ],
@@ -235,7 +243,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       backgroundColor: AppTheme.surface,
       body: IndexedStack(
         index: _selectedIndex,
-        children: _pages,
+        children: List.generate(_pages.length, (index) {
+          return _initializedTabs[index]
+              ? _pages[index]
+              : const SizedBox.shrink();
+        }),
       ),
       floatingActionButton: _selectedIndex == 3
           ? FloatingActionButton.extended(
@@ -278,44 +290,58 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   foregroundColor: Colors.white,
                 )
               : null,
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withOpacity(0.05),
-        elevation: 8,
-        indicatorColor: AppTheme.primary.withValues(alpha: 0.12),
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.report_problem),
-            label: 'Aduan',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people),
-            label: 'User',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.announcement),
-            label: 'Info',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.category),
-            label: 'Kategori',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.assessment),
-            label: 'Laporan',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.5)),
+        ),
+        child: NavigationBar(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          height: 65,
+          indicatorColor: AppTheme.primary.withValues(alpha: 0.15),
+          selectedIndex: _selectedIndex,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          onDestinationSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+              _initializedTabs[index] = true;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined, size: 22),
+              selectedIcon: Icon(Icons.dashboard, size: 24, color: AppTheme.primary),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.report_problem_outlined, size: 22),
+              selectedIcon: Icon(Icons.report_problem, size: 24, color: AppTheme.primary),
+              label: 'Aduan',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.people_outline, size: 22),
+              selectedIcon: Icon(Icons.people, size: 24, color: AppTheme.primary),
+              label: 'User',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.announcement_outlined, size: 22),
+              selectedIcon: Icon(Icons.announcement, size: 24, color: AppTheme.primary),
+              label: 'Info',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.category_outlined, size: 22),
+              selectedIcon: Icon(Icons.category, size: 24, color: AppTheme.primary),
+              label: 'Kategori',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.assessment_outlined, size: 22),
+              selectedIcon: Icon(Icons.assessment, size: 24, color: AppTheme.primary),
+              label: 'Laporan',
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -17,9 +17,10 @@ class AdminHomeTab extends StatefulWidget {
   State<AdminHomeTab> createState() => _AdminHomeTabState();
 }
 
-class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClientMixin {
+class _AdminHomeTabState extends State<AdminHomeTab>
+    with AutomaticKeepAliveClientMixin {
   final AdminService _adminService = AdminService();
-  
+
   int totalComplaints = 0;
   int pendingComplaints = 0;
   int processingComplaints = 0;
@@ -36,7 +37,8 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
-    debugPrint('🏠 [AdminHomeTab] Screen initialized - will load after visible');
+    debugPrint(
+        '🏠 [AdminHomeTab] Screen initialized - will load after visible');
   }
 
   bool _hasLoadedOnce = false;
@@ -51,7 +53,8 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
         if (mounted) {
           debugPrint('🏠 [AdminHomeTab] Screen visible - loading data now');
           // Check if user is still authenticated before loading
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          final authProvider =
+              Provider.of<AuthProvider>(context, listen: false);
           if (authProvider.isAuthenticated && !_hasLoadedData) {
             _loadStatistics();
           }
@@ -62,66 +65,69 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
 
   Future<void> _loadStatistics({bool forceRefresh = false}) async {
     if (!mounted) return;
-    
+
     // Check authentication state before proceeding
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (!authProvider.isAuthenticated) {
       debugPrint('⚠️ User not authenticated, skipping statistics load');
       return;
     }
-    
+
     // Only show loading on force refresh (pull to refresh)
     if (forceRefresh) {
       setState(() => isLoading = true);
     }
-    
+
     try {
       // Load dashboard data (includes stats and recent complaints)
       final dashboard = await _adminService.getDashboard();
-      
+
       if (mounted) {
         setState(() {
           final data = dashboard['data'] ?? dashboard;
-          
+
           // Parse statistics - API returns objects with 'count' field
           final totalComplaintsObj = data['total_complaints'];
           final totalUsersObj = data['total_users'];
           final complaintsData = data['complaints'] ?? {};
           final announcementsData = data['announcements'] ?? {};
-          
-          totalComplaints = totalComplaintsObj is Map ? (totalComplaintsObj['count'] ?? 0) : 0;
+
+          totalComplaints = totalComplaintsObj is Map
+              ? (totalComplaintsObj['count'] ?? 0)
+              : 0;
           totalUsers = totalUsersObj is Map ? (totalUsersObj['count'] ?? 0) : 0;
-          
+
           // Parse complaint statuses from complaints object
           pendingComplaints = complaintsData['pending'] ?? 0;
           processingComplaints = complaintsData['in_progress'] ?? 0;
           completedComplaints = complaintsData['resolved'] ?? 0;
-          
+
           // Parse active announcements from announcements object
           activeAnnouncements = announcementsData['active'] ?? 0;
-          
+
           // Parse recent complaints (if exists)
           recentComplaints = data['recent_complaints'] ?? [];
-          
+
           isLoading = false;
           _hasLoadedData = true;
         });
       }
     } catch (e) {
       debugPrint('Error loading statistics: $e');
-      
+
       // Check if it's token expiration error
       if (e.toString().contains('Token expired') && mounted) {
         // Auto-logout and redirect to landing page
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         await authProvider.logout();
-        
+
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/landing', (route) => false);
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/landing', (route) => false);
         }
         return;
       }
-      
+
       if (mounted) {
         setState(() => isLoading = false);
         if (forceRefresh) {
@@ -149,11 +155,12 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
           children: [
             const AdminSectionHeader(
               title: 'Dashboard Admin',
-              subtitle: 'Pantau ringkasan kinerja sistem dan aktivitas terbaru.',
+              subtitle:
+                  'Pantau ringkasan kinerja sistem dan aktivitas terbaru.',
               icon: Icons.dashboard,
             ),
             const SizedBox(height: 16),
-            
+
             // Show skeleton loading only on first load
             if (!_hasLoadedData)
               GridView.count(
@@ -220,7 +227,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                 ],
               ),
             const SizedBox(height: 24),
-            
+
             // Recent Complaints Section
             Card(
               elevation: 0,
@@ -239,20 +246,23 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                       children: [
                         Text(
                           'Pengaduan Terbaru',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ],
                     ),
                     const Divider(),
-                    
+
                     // Show loading state
                     if (!_hasLoadedData)
-                      ...List.generate(3, (_) => const Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: ListItemSkeleton(),
-                      ))
+                      ...List.generate(
+                          3,
+                          (_) => const Padding(
+                                padding: EdgeInsets.only(bottom: 12),
+                                child: ListItemSkeleton(),
+                              ))
                     // Show empty state
                     else if (recentComplaints.isEmpty)
                       const AdminEmptyState(
@@ -263,8 +273,9 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                     else
                       ...recentComplaints.take(5).map((complaint) {
                         final status = complaint['status'] ?? 'pending';
-                        final createdAt = DateTime.tryParse(complaint['created_at'] ?? '');
-                        
+                        final createdAt =
+                            DateTime.tryParse(complaint['created_at'] ?? '');
+
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: InkWell(
@@ -276,14 +287,16 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                 await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => ComplaintDetailScreen(complaint: complaintModel),
+                                    builder: (_) => ComplaintDetailScreen(
+                                        complaint: complaintModel),
                                   ),
                                 );
                               } catch (_) {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Detail pengaduan tidak tersedia'),
+                                      content: Text(
+                                          'Detail pengaduan tidak tersedia'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -295,12 +308,13 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.03),
+                                    color: Colors.black.withOpacity(0.02),
                                     blurRadius: 10,
-                                    offset: const Offset(0, 2),
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
@@ -310,7 +324,8 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: _getStatusColor(status).withValues(alpha: 0.1),
+                                      color: _getStatusColor(status)
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
@@ -322,7 +337,8 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           complaint['title'] ?? 'No Title',
@@ -337,18 +353,22 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                         Row(
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
                                                 horizontal: 10,
                                                 vertical: 4,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: _getStatusColor(status).withValues(alpha: 0.1),
-                                                borderRadius: BorderRadius.circular(20),
+                                                color: _getStatusColor(status)
+                                                    .withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
                                               ),
                                               child: Text(
                                                 _getStatusLabel(status),
                                                 style: TextStyle(
-                                                  color: _getStatusColor(status),
+                                                  color:
+                                                      _getStatusColor(status),
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w700,
                                                 ),
@@ -357,9 +377,10 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
-                                                createdAt != null 
-                                                  ? _formatRelativeTime(createdAt)
-                                                  : '-',
+                                                createdAt != null
+                                                    ? _formatRelativeTime(
+                                                        createdAt)
+                                                    : '-',
                                                 style: TextStyle(
                                                   color: Colors.grey[500],
                                                   fontSize: 12,
@@ -400,33 +421,47 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
   ) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.withValues(alpha: 0.8),
             color,
+            color.withOpacity(0.75),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: color.withOpacity(0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Decorative background icon
+          // Decorative glass circle top right
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.15),
+              ),
+            ),
+          ),
+          // Decorative background icon bottom right
           Positioned(
             right: -10,
-            bottom: -10,
+            bottom: -15,
             child: Icon(
               icon,
-              size: 80,
-              color: Colors.white.withValues(alpha: 0.2),
+              size: 70,
+              color: Colors.white.withOpacity(0.2),
             ),
           ),
           Padding(
@@ -441,10 +476,10 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(icon, color: Colors.white, size: 20),
+                      child: Icon(icon, color: Colors.white, size: 22),
                     ),
                   ],
                 ),
@@ -454,19 +489,20 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
                     Text(
                       value,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            fontSize: 26,
+                            letterSpacing: -0.5,
+                          ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       title,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -549,4 +585,3 @@ class _AdminHomeTabState extends State<AdminHomeTab> with AutomaticKeepAliveClie
     }
   }
 }
-

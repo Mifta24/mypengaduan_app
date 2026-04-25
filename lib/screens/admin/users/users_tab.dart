@@ -650,7 +650,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         user['is_user_verified'] == true || user['is_user_verified'] == 1;
     final isEmailVerified =
         user['is_email_verified'] == true || user['is_email_verified'] == 1;
-    final roleColor = role == 'admin' ? Colors.red : Colors.blue;
+    final roleColor = role == 'admin' ? Colors.indigo : Colors.teal;
 
     return AdminInfoCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -664,9 +664,14 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         children: [
           Hero(
             tag: 'user_${user['id']}',
-            child: CircleAvatar(
-              radius: 28,
-              backgroundColor: roleColor.withValues(alpha: 0.15),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: roleColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              alignment: Alignment.center,
               child: Text(
                 user['name']?.toString().substring(0, 1).toUpperCase() ?? 'U',
                 style: TextStyle(
@@ -689,32 +694,14 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  user['name'] ?? 'No Name',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (isVerified)
-                                const Padding(
-                                  padding: EdgeInsets.only(left: 4),
-                                  child: Icon(Icons.verified_user,
-                                      size: 16, color: Colors.green),
-                                ),
-                              if (isEmailVerified)
-                                const Padding(
-                                  padding: EdgeInsets.only(left: 4),
-                                  child:
-                                      Icon(Icons.verified, size: 16, color: Colors.blue),
-                                ),
-                            ],
+                          Text(
+                            user['name'] ?? 'No Name',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -726,6 +713,48 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          if (isVerified || isEmailVerified) ...[
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 6,
+                              children: [
+                                if (isVerified)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: Colors.green.withOpacity(0.2)),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.verified_user, size: 12, color: Colors.green),
+                                        SizedBox(width: 4),
+                                        Text('User', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
+                                if (isEmailVerified)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.mark_email_read, size: 12, color: Colors.blue),
+                                        SizedBox(width: 4),
+                                        Text('Email', style: TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -876,7 +905,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                   snapshot.data ?? Map<String, dynamic>.from(user as Map);
               final id = _toInt(detail['id']);
               final role = detail['role']?.toString() ?? 'user';
-              final roleColor = role == 'admin' ? Colors.red : Colors.blue;
+              final roleColor = role == 'admin' ? Colors.indigo : Colors.teal;
               final isVerified = _toBool(detail['is_user_verified']) ||
                   _toBool(detail['is_verified']);
               final isEmailVerified = _toBool(detail['is_email_verified']) ||
@@ -953,95 +982,176 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                   ]);
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        CircleAvatar(
-                          radius: 34,
-                          backgroundColor: roleColor,
-                          child: Text(
-                            (detail['name']?.toString().isNotEmpty ?? false)
-                                ? detail['name']
-                                    .toString()
-                                    .substring(0, 1)
-                                    .toUpperCase()
-                                : 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 28,
+                        Container(
+                          height: 140,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: role == 'admin' 
+                                  ? [Colors.indigo.shade400, Colors.indigo.shade800]
+                                  : [Colors.teal.shade400, Colors.teal.shade800],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        Positioned(
+                          bottom: -40,
+                          left: 20,
+                          child: Container(
+                            width: 86,
+                            height: 86,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white, width: 4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                )
+                              ]
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              (detail['name']?.toString().isNotEmpty ?? false)
+                                  ? detail['name'].toString().substring(0, 1).toUpperCase()
+                                  : 'U',
+                              style: TextStyle(
+                                color: roleColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 34,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 12,
+                          right: 20,
+                          child: Row(
                             children: [
-                              Text(
-                                detail['name']?.toString() ?? '-',
-                                style: const TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
+                              OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(0.9),
+                                  foregroundColor: roleColor,
+                                  side: const BorderSide(color: Colors.transparent),
+                                ),
+                                onPressed: () => _showEditUserDialog(detail),
+                                child: const Text('Ubah Profil'),
                               ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  _buildStatusChip(
-                                    isActive ? 'Aktif' : 'Nonaktif',
-                                    isActive ? Colors.green : Colors.red,
-                                    isActive ? Icons.check_circle : Icons.block,
-                                  ),
-                                  _buildStatusChip(
-                                    role == 'admin' ? 'Admin' : 'User',
-                                    role == 'admin' ? Colors.red : Colors.blue,
-                                    role == 'admin'
-                                        ? Icons.admin_panel_settings
-                                        : Icons.person,
-                                  ),
-                                  _buildStatusChip(
-                                    isEmailVerified
-                                        ? 'Email Verified'
-                                        : '! Email Belum Verified',
-                                    isEmailVerified
-                                        ? Colors.green
-                                        : Colors.orange,
-                                    isEmailVerified
-                                        ? Icons.verified
-                                        : Icons.warning,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(detail['email']?.toString() ?? '-'),
-                              Text(detail['phone']?.toString() ?? '-'),
-                              Text(
-                                  'Bergabung ${_formatDate(detail['created_at'])}'),
                             ],
                           ),
                         ),
-                        Column(
-                          children: [
-                            OutlinedButton(
-                              onPressed: () => _showEditUserDialog(detail),
-                              child: const Text('Ubah'),
-                            ),
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () => Navigator.pop(routeContext),
-                              child: const Text('Kembali'),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    LayoutBuilder(
+                    const SizedBox(height: 50),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  detail['name']?.toString() ?? '-',
+                                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => Navigator.pop(routeContext),
+                                icon: const Icon(Icons.arrow_back),
+                                label: const Text('Kembali'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildStatusChip(
+                                isActive ? 'Aktif' : 'Nonaktif',
+                                isActive ? Colors.green : Colors.red,
+                                isActive ? Icons.check_circle : Icons.block,
+                              ),
+                              _buildStatusChip(
+                                role == 'admin' ? 'Admin' : 'User',
+                                roleColor,
+                                role == 'admin' ? Icons.admin_panel_settings : Icons.person,
+                              ),
+                              if (isEmailVerified)
+                                _buildStatusChip(
+                                  'Email Verified',
+                                  Colors.blue,
+                                  Icons.verified,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withOpacity(0.04),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.email, size: 16, color: Colors.grey),
+                                          const SizedBox(width: 8),
+                                          Expanded(child: Text(detail['email']?.toString() ?? '-')),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.phone, size: 16, color: Colors.grey),
+                                          const SizedBox(width: 8),
+                                          Text(detail['phone']?.toString() ?? '-'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    const Text('Bergabung Sejak', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatDate(detail['created_at']),
+                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LayoutBuilder(
                       builder: (context, constraints) {
                         final width = constraints.maxWidth;
                         final crossAxisCount = width < 620 ? 1 : 2;
@@ -1253,7 +1363,10 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                     ),
                   ],
                 ),
-              );
+              ),
+            ],
+          ),
+        );
             },
           ),
         ),

@@ -19,7 +19,7 @@ class AdminInfoCard extends StatelessWidget {
     this.onTap,
     this.padding,
     this.borderColor,
-    this.borderWidth = 1,
+    this.borderWidth = 1.5, // Slightly thicker border for SaaS feel
     this.elevation = 0,
     this.borderRadius = 16,
     this.backgroundColor,
@@ -33,13 +33,14 @@ class AdminInfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.white,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: borderColor != null 
-          ? Border.all(color: borderColor!, width: borderWidth)
-          : null, // Removed default border
+        border: Border.all(
+          color: borderColor ?? AppTheme.primary.withOpacity(0.08), 
+          width: borderWidth,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04), // 4% soft shadow
-            blurRadius: 12,
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
@@ -50,7 +51,7 @@ class AdminInfoCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           onTap: onTap,
           child: Padding(
-            padding: padding ?? const EdgeInsets.all(16), // Increased default padding
+            padding: padding ?? const EdgeInsets.all(16),
             child: child,
           ),
         ),

@@ -110,10 +110,11 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             // Title Section
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -150,8 +151,15 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Judul Pengumuman *',
                         hintText: 'Masukkan judul pengumuman',
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
                         ),
                         prefixIcon: const Icon(Icons.article),
                       ),
@@ -169,8 +177,15 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Ringkasan',
                         hintText: 'Ringkasan singkat pengumuman (opsional)',
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
                         ),
                         prefixIcon: const Icon(Icons.short_text),
                       ),
@@ -184,10 +199,11 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
             const SizedBox(height: 16),
 
             // Content Section
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -224,8 +240,15 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Konten *',
                         hintText: 'Tulis konten pengumuman lengkap di sini',
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.green.shade300, width: 2),
                         ),
                         alignLabelWithHint: true,
                       ),
@@ -244,10 +267,11 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
             const SizedBox(height: 16),
 
             // Image Section
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -311,14 +335,26 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                       ),
                       const SizedBox(height: 12),
                     ],
-                    OutlinedButton.icon(
-                      onPressed: _pickImage,
-                      icon: const Icon(Icons.add_photo_alternate),
-                      label: Text(_imagePath == null ? 'Pilih Gambar' : 'Ganti Gambar'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    InkWell(
+                      onTap: _pickImage,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.purple.shade200, style: BorderStyle.solid),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(Icons.add_photo_alternate, size: 32, color: Colors.purple.shade400),
+                            const SizedBox(height: 8),
+                            Text(
+                              _imagePath == null ? 'Pilih Gambar' : 'Ganti Gambar',
+                              style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -329,10 +365,11 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
             const SizedBox(height: 16),
 
             // Settings Section
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -370,8 +407,15 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                       value: _priority,
                       decoration: InputDecoration(
                         labelText: 'Prioritas',
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.orange.shade300, width: 2),
                         ),
                         prefixIcon: const Icon(Icons.priority_high),
                       ),

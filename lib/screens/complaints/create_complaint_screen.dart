@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/complaint_provider.dart';
 import '../../models/complaint_model.dart';
 import '../../theme/app_theme.dart';
@@ -197,7 +198,21 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
 
   Future<void> _submitComplaint() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
+    // Guard: user must be verified by admin
+    final authProvider = context.read<AuthProvider>();
+    if (authProvider.user?.isUserVerified == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Akun Anda belum diverifikasi oleh admin. Harap tunggu verifikasi KTP terlebih dahulu.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -265,6 +280,9 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final isVerified = authProvider.user?.isUserVerified ?? true;
+
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
@@ -288,6 +306,50 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // Verification warning banner
+            if (!isVerified) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFDBA74), width: 1.2),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        color: Color(0xFFEA580C), size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Akun Belum Terverifikasi',
+                            style: GoogleFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF9A3412),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'KTP Anda sedang menunggu verifikasi dari admin. Anda tidak dapat mengirim pengaduan sampai akun terverifikasi.',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              color: const Color(0xFF9A3412),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             // Category Dropdown
             _buildSectionTitle('Kategori'),
             const SizedBox(height: 8),
@@ -562,7 +624,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
             SizedBox(
               height: 54,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _submitComplaint,
+                onPressed: (_isLoading || !isVerified) ? null : _submitComplaint,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
@@ -582,7 +644,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
                         ),
                       )
                     : Text(
-                        'Kirim Pengaduan',
+                        !isVerified ? 'Akun Belum Terverifikasi' : 'Kirim Pengaduan',
                         style: GoogleFonts.nunito(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

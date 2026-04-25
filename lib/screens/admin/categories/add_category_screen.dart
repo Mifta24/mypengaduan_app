@@ -131,22 +131,24 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
           padding: const EdgeInsets.all(16.0),
           children: [
             // Info Card
-            Card(
-              color: Colors.blue.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.blue.shade700),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Kategori digunakan untuk mengelompokkan keluhan berdasarkan jenisnya.',
-                        style: TextStyle(color: Colors.blue.shade900, fontSize: 13),
-                      ),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Kategori digunakan untuk mengelompokkan keluhan berdasarkan jenisnya.',
+                      style: TextStyle(color: Colors.blue.shade900, fontSize: 13),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -157,8 +159,15 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               decoration: InputDecoration(
                 labelText: 'Nama Kategori *',
                 hintText: 'Contoh: Fasilitas Umum',
+                filled: true,
+                fillColor: Colors.grey.shade50,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
                 ),
                 prefixIcon: const Icon(Icons.category),
               ),
@@ -182,8 +191,15 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               decoration: InputDecoration(
                 labelText: 'Slug (opsional)',
                 hintText: 'Akan digenerate otomatis dari nama',
+                filled: true,
+                fillColor: Colors.grey.shade50,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
                 ),
                 prefixIcon: const Icon(Icons.link),
                 suffixIcon: IconButton(
@@ -201,8 +217,15 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               decoration: InputDecoration(
                 labelText: 'Deskripsi (opsional)',
                 hintText: 'Jelaskan kategori ini...',
+                filled: true,
+                fillColor: Colors.grey.shade50,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
                 ),
                 prefixIcon: const Icon(Icons.description),
                 alignLabelWithHint: true,
@@ -212,7 +235,12 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             const SizedBox(height: 24),
 
             // Status Toggle
-            Card(
+            Container(
+              decoration: BoxDecoration(
+                color: _isActive ? Colors.green.shade50 : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _isActive ? Colors.green.withValues(alpha: 0.3) : Colors.grey.shade200),
+              ),
               child: SwitchListTile(
                 title: const Text('Status Kategori'),
                 subtitle: Text(_isActive ? 'Aktif' : 'Nonaktif'),

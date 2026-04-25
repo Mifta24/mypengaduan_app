@@ -92,7 +92,10 @@ class ReportsProvider extends ChangeNotifier {
 
       complaintsReport = response;
       _cachedComplaintsReport = response;
-      complaintItems = _reportsService.extractItems(response);
+      complaintItems = _reportsService
+          .extractItems(response)
+          .where((item) => item['deleted_at'] == null)
+          .toList();
     } catch (_) {
       // Fallback to existing in-memory data when remote filtering fails.
     }
@@ -338,7 +341,11 @@ class ReportsProvider extends ChangeNotifier {
   }
 
   void _hydrateReportLists() {
-    complaintItems = _reportsService.extractItems(complaintsReport);
+    // Filter out soft-deleted (trashed) complaints
+    complaintItems = _reportsService
+        .extractItems(complaintsReport)
+        .where((item) => item['deleted_at'] == null)
+        .toList();
     userItems = _reportsService.extractItems(usersReport);
 
     filteredComplaintItems = [];
