@@ -586,10 +586,31 @@ class AdminService {
   }
 
   /// Create announcement
-  Future<ApiResponse> createAnnouncement(Map<String, dynamic> data) async {
+  Future<ApiResponse> createAnnouncement(Map<String, dynamic> data, {String? imagePath}) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.post('admin/announcements', data: data);
+      
+      dynamic requestData = data;
+      Options? options;
+
+      if (imagePath != null && imagePath.isNotEmpty) {
+        final formData = FormData.fromMap(data);
+        final normalizedPath = imagePath.replaceAll('\\\\', '/');
+        final fileName = normalizedPath.split('/').last;
+        formData.files.add(
+          MapEntry(
+            'image', 
+            await MultipartFile.fromFile(imagePath, filename: fileName),
+          ),
+        );
+        requestData = formData;
+        options = Options(
+          headers: {'Accept': 'application/json'},
+          contentType: 'multipart/form-data',
+        );
+      }
+
+      final response = await _dio.post('admin/announcements', data: requestData, options: options);
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -597,11 +618,40 @@ class AdminService {
   }
 
   /// Update announcement
-  Future<ApiResponse> updateAnnouncement(int id, Map<String, dynamic> data) async {
+  Future<ApiResponse> updateAnnouncement(int id, Map<String, dynamic> data, {String? imagePath}) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.put('admin/announcements/$id', data: data);
-      return ApiResponse.fromJson(response.data, null);
+      
+      dynamic requestData = data;
+      Options? options;
+
+      if (imagePath != null && imagePath.isNotEmpty) {
+        // Laravel requires POST with _method=PUT for multipart form data updates
+        final formDataMap = Map<String, dynamic>.from(data);
+        formDataMap['_method'] = 'PUT';
+        final formData = FormData.fromMap(formDataMap);
+        
+        final normalizedPath = imagePath.replaceAll('\\\\', '/');
+        final fileName = normalizedPath.split('/').last;
+        formData.files.add(
+          MapEntry(
+            'image', 
+            await MultipartFile.fromFile(imagePath, filename: fileName),
+          ),
+        );
+        
+        requestData = formData;
+        options = Options(
+          headers: {'Accept': 'application/json'},
+          contentType: 'multipart/form-data',
+        );
+        
+        final response = await _dio.post('admin/announcements/$id', data: requestData, options: options);
+        return ApiResponse.fromJson(response.data, null);
+      } else {
+        final response = await _dio.put('admin/announcements/$id', data: requestData);
+        return ApiResponse.fromJson(response.data, null);
+      }
     } catch (e) {
       rethrow;
     }
