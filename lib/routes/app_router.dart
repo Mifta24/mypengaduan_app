@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../theme/app_theme.dart';
 import '../screens/home/landing_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -294,14 +295,13 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  // Dark Forest Green palette — sesuai desain panel 4
-  static const Color _bgDeep    = Color(0xFF071A0F);
-  static const Color _bgDark    = Color(0xFF0D2B1A);
-  static const Color _bgMid     = Color(0xFF0F3D23);
-  static const Color _logoGreen = Color(0xFF1E6B3A);
-  static const Color _leafBadge = Color(0xFF4CAF50);
-  static const Color _accent    = Color(0xFF66BB6A);
-  static const Color _leafDecor = Color(0xFF1A4D2E);
+  static const Color _bgDeep    = AppTheme.bgDeep;
+  static const Color _bgDark    = AppTheme.bgDark;
+  static const Color _bgMid     = AppTheme.bgMid;
+  static const Color _logoGreen = AppTheme.secondary;
+  static const Color _leafBadge = AppTheme.primaryLight;
+  static const Color _accent    = AppTheme.accent;
+  static const Color _leafDecor = AppTheme.primaryDark;
 
   late AnimationController _ctrl;
   late Animation<double> _scale;

@@ -4,31 +4,35 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._();
 
-  // ─── Green Gov Color Palette ───────────────────────────────────────────────
-  static const Color primary     = Color(0xFF16A34A); // Hijau utama
-  static const Color primaryDark = Color(0xFF15803D); // Hijau gelap
-  static const Color primaryLight= Color(0xFF22C55E); // Hijau terang
-  static const Color secondary   = Color(0xFF0891B2); // Cyan
-  static const Color accent      = Color(0xFFCACA15); // Kuning aksen
+  // ─── Dark Forest Green Palette (sesuai desain) ────────────────────────────
+  // Warna utama UI (digunakan di komponen, button, icon, dsb.)
+  static const Color primary      = Color(0xFF2E7D32); // Hijau medium — logo & button
+  static const Color primaryDark  = Color(0xFF1B5E20); // Hijau gelap
+  static const Color primaryLight = Color(0xFF4CAF50); // Hijau terang — badge & aksen
+  static const Color accent       = Color(0xFF66BB6A); // Lime hijau — subtitle & highlight
+  static const Color secondary    = Color(0xFF1E6B3A); // Hijau forest — logo circle
+
+  // Background splash/landing (dark forest green)
+  static const Color bgDeep  = Color(0xFF071A0F); // Paling gelap
+  static const Color bgDark  = Color(0xFF0D2B1A); // Gelap
+  static const Color bgMid   = Color(0xFF0F3D23); // Sedang
 
   // Status Colors
-  static const Color success = Color(0xFF16A34A); // Selesai
+  static const Color success = Color(0xFF4CAF50); // Selesai
   static const Color warning = Color(0xFFD97706); // Pending
   static const Color danger  = Color(0xFFDC2626); // Ditolak
-  static const Color info    = Color(0xFF0891B2); // Info
+  static const Color info    = Color(0xFF1E6B3A); // Info
 
-  // Neutral Colors
-  static const Color surface      = Color(0xFFF0FDF4); // Hijau sangat pucat
-  static const Color card         = Colors.white;
-  static const Color border       = Color(0xFFBBF7D0); // Hijau border lembut
-  static const Color textPrimary  = Color(0xFF14532D); // Hijau tua
-  static const Color textSecondary= Color(0xFF4B7A5C); // Hijau abu
+  // Neutral Colors (untuk layar terang — home, form, dsb.)
+  static const Color surface       = Color(0xFFF1FDF4); // Hijau sangat pucat
+  static const Color card          = Colors.white;
+  static const Color border        = Color(0xFFA5D6A7); // Hijau border lembut
+  static const Color textPrimary   = Color(0xFF1B5E20); // Hijau tua
+  static const Color textSecondary = Color(0xFF4B7A5C); // Hijau abu
 
-  // Gradient helper
-  static const List<Color> primaryGradient = [
-    Color(0xFF16A34A),
-    Color(0xFF0891B2),
-  ];
+  // Gradient helpers
+  static const List<Color> splashGradient = [bgDeep, bgDark, bgMid];
+  static const List<Color> primaryGradient = [primary, primaryDark];
 
   // ─── Light Theme ───────────────────────────────────────────────────────────
   static ThemeData get light {
@@ -38,8 +42,9 @@ class AppTheme {
         seedColor: primary,
         brightness: Brightness.light,
         primary: primary,
-        secondary: secondary,
+        secondary: accent,
         surface: surface,
+        tertiary: primaryLight,
       ),
       scaffoldBackgroundColor: surface,
     );
