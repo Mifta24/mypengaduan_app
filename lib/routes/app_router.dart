@@ -284,7 +284,7 @@ class AppRouter {
   }
 }
 
-// Custom Splash Screen for router
+// ─── Splash Screen ────────────────────────────────────────────────────────────
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -292,167 +292,258 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  // Dark Forest Green palette — sesuai desain panel 4
+  static const Color _bgDeep    = Color(0xFF071A0F);
+  static const Color _bgDark    = Color(0xFF0D2B1A);
+  static const Color _bgMid     = Color(0xFF0F3D23);
+  static const Color _logoGreen = Color(0xFF1E6B3A);
+  static const Color _leafBadge = Color(0xFF4CAF50);
+  static const Color _accent    = Color(0xFF66BB6A);
+  static const Color _leafDecor = Color(0xFF1A4D2E);
+
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+  late Animation<double> _fade;
 
   @override
   void initState() {
     super.initState();
-    
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+    _ctrl = AnimationController(
+      duration: const Duration(milliseconds: 1600),
       vsync: this,
     );
-
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    _scale = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
     );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    _fade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.6, curve: Curves.easeIn)),
     );
-
-    _animationController.forward();
+    _ctrl.forward();
     _initializeApp();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   Future<void> _initializeApp() async {
     try {
       await Future.delayed(const Duration(seconds: 2));
-      
       if (!mounted) return;
-      
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       debugPrint('Before checkAuthStatus - isAuthenticated: ${authProvider.isAuthenticated}');
-      
       await authProvider.checkAuthStatus();
-
       if (!mounted) return;
-      
+
       debugPrint('After checkAuthStatus - isAuthenticated: ${authProvider.isAuthenticated}, user: ${authProvider.user?.name}, role: ${authProvider.user?.role}');
-      
-      // Wait a bit to ensure state is fully updated
       await Future.delayed(const Duration(milliseconds: 200));
-      
-      // Navigate based on auth state
+
       if (authProvider.isAuthenticated) {
         final user = authProvider.user;
-        
         if (user?.role == 'admin') {
           debugPrint('Navigating to ADMIN DASHBOARD');
-          if (mounted) {
-            context.go(AppRouter.adminDashboard);
-          }
+          if (mounted) context.go(AppRouter.adminDashboard);
         } else {
           debugPrint('Navigating to HOME');
-          if (mounted) {
-            context.go(AppRouter.home);
-          }
+          if (mounted) context.go(AppRouter.home);
         }
       } else {
         debugPrint('User not authenticated, navigating to LANDING');
-        if (mounted) {
-          context.go(AppRouter.landing);
-        }
+        if (mounted) context.go(AppRouter.landing);
       }
     } catch (e) {
       debugPrint('Initialization error: $e');
-      if (mounted) {
-        context.go(AppRouter.landing);
-      }
+      if (mounted) context.go(AppRouter.landing);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF16A34A),
-              Color(0xFF0891B2),
-              Color(0xFF22C55E),
-            ],
-          ),
-        ),
-        child: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(30),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.report_problem_outlined,
-                      size: 80,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'MyPengaduan',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Sistem Pengaduan Masyarakat',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // ── Background ──────────────────────────────────────
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [_bgDeep, _bgDark, _bgMid],
               ),
             ),
           ),
-        ),
+
+          // ── Leaf decorations ────────────────────────────────
+          _leaf(top: 70,  right: 20, size: 60, rot: 0.3),
+          _leaf(top: 130, left: 10,  size: 38, rot: -0.5),
+          _leaf(top: 250, right: 40, size: 26, rot: 0.9),
+          _leaf(top: 400, left: 5,   size: 20, rot: -0.7),
+          _leaf(bottom: 220, left: 18,  size: 46, rot: -0.3),
+          _leaf(bottom: 150, right: 14, size: 32, rot: 0.6),
+
+          // ── Bottom wave ─────────────────────────────────────
+          Positioned(
+            bottom: 0, left: 0, right: 0,
+            child: CustomPaint(
+              size: const Size(double.infinity, 160),
+              painter: _SplashWavePainter(),
+            ),
+          ),
+
+          // ── Main content ────────────────────────────────────
+          Center(
+            child: FadeTransition(
+              opacity: _fade,
+              child: ScaleTransition(
+                scale: _scale,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildLogo(),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'MyPengaduan',
+                      style: TextStyle(
+                        fontSize: 38,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Suara Anda, Perubahan Nyata',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: _accent,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 52),
+                    SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Untuk Indonesia yang Lebih Baik',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.45),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _buildLogo() {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        // Glow ring
+        Container(
+          width: 148,
+          height: 148,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: _logoGreen.withValues(alpha: 0.4),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _logoGreen.withValues(alpha: 0.4),
+                blurRadius: 40,
+                spreadRadius: 8,
+              ),
+            ],
+          ),
+        ),
+        // Main circle + megaphone
+        Container(
+          width: 128,
+          height: 128,
+          decoration: const BoxDecoration(
+            color: _logoGreen,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.campaign_rounded, size: 72, color: Colors.white),
+        ),
+        // Leaf badge kanan atas
+        Positioned(
+          top: 4, right: 8,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _leafBadge,
+              shape: BoxShape.circle,
+              border: Border.all(color: _bgDark, width: 3),
+            ),
+            child: const Icon(Icons.eco_rounded, color: Colors.white, size: 22),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _leaf({
+    double? top, double? bottom, double? left, double? right,
+    required double size, required double rot,
+  }) {
+    return Positioned(
+      top: top, bottom: bottom, left: left, right: right,
+      child: Transform.rotate(
+        angle: rot,
+        child: Icon(Icons.eco_rounded, size: size,
+            color: _leafDecor.withValues(alpha: 0.45)),
+      ),
+    );
+  }
+}
+
+class _SplashWavePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    void draw(Color color, double y0, double y1, double y2) {
+      final p = Paint()..color = color..style = PaintingStyle.fill;
+      final path = Path()
+        ..moveTo(0, y0 * size.height)
+        ..quadraticBezierTo(size.width * 0.25, y1 * size.height,
+            size.width * 0.5, y0 * size.height)
+        ..quadraticBezierTo(size.width * 0.75, y2 * size.height,
+            size.width, y0 * size.height)
+        ..lineTo(size.width, size.height)
+        ..lineTo(0, size.height)
+        ..close();
+      canvas.drawPath(path, p);
+    }
+
+    draw(const Color(0xFF1B5E35).withValues(alpha: 0.25), 0.55, 0.35, 0.75);
+    draw(const Color(0xFF1B5E35).withValues(alpha: 0.18), 0.72, 0.52, 0.88);
+    draw(const Color(0xFF0D2B1A).withValues(alpha: 0.60), 0.85, 0.70, 0.95);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }
