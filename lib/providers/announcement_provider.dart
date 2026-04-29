@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import '../models/announcement_model.dart';
 import '../models/api_response.dart';
 import '../services/admin_service.dart';
+import '../services/announcement_service.dart';
 import '../services/auth_service.dart';
 
 class AnnouncementProvider extends ChangeNotifier {
   final AdminService _adminService;
+  final AnnouncementService _announcementService;
   final AuthService _authService;
 
-  AnnouncementProvider(this._authService) 
-      : _adminService = AdminService();
+  AnnouncementProvider(this._authService)
+      : _adminService = AdminService(),
+        _announcementService = AnnouncementService();
 
   List<dynamic> _announcements = [];
+  List<dynamic> _homeAnnouncements = [];
   Map<String, dynamic>? _selectedAnnouncement;
   
   bool _isLoading = false;
@@ -21,10 +25,39 @@ class AnnouncementProvider extends ChangeNotifier {
   bool _hasMorePages = false;
 
   List<dynamic> get announcements => _announcements;
+  List<dynamic> get homeAnnouncements => _homeAnnouncements;
   Map<String, dynamic>? get selectedAnnouncement => _selectedAnnouncement;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get hasMorePages => _hasMorePages;
+
+  // Load announcements for home screen using the USER endpoint (not admin)
+  Future<void> loadPublicAnnouncements() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await _announcementService.getAnnouncements(
+        page: 1,
+        perPage: 5,
+      );
+      _homeAnnouncements = result.data
+          .map((a) => {
+                'id': a.id,
+                'title': a.title,
+                'summary': a.summary,
+                'content': a.content,
+              })
+          .toList();
+    } catch (e) {
+      // Silently fail – home should not block on this
+      print('⚠️ [AnnouncementProvider] loadPublicAnnouncements error: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   // Load all announcements (for admin)
   Future<void> loadAnnouncements({
