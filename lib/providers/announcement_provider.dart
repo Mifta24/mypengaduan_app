@@ -15,17 +15,17 @@ class AnnouncementProvider extends ChangeNotifier {
         _announcementService = AnnouncementService();
 
   List<dynamic> _announcements = [];
-  List<dynamic> _homeAnnouncements = [];
+  List<Announcement> _homeAnnouncements = [];
   Map<String, dynamic>? _selectedAnnouncement;
-  
+
   bool _isLoading = false;
   String? _errorMessage;
-  
+
   int _currentPage = 1;
   bool _hasMorePages = false;
 
   List<dynamic> get announcements => _announcements;
-  List<dynamic> get homeAnnouncements => _homeAnnouncements;
+  List<Announcement> get homeAnnouncements => _homeAnnouncements;
   Map<String, dynamic>? get selectedAnnouncement => _selectedAnnouncement;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -42,14 +42,7 @@ class AnnouncementProvider extends ChangeNotifier {
         page: 1,
         perPage: 5,
       );
-      _homeAnnouncements = result.data
-          .map((a) => {
-                'id': a.id,
-                'title': a.title,
-                'summary': a.summary,
-                'content': a.content,
-              })
-          .toList();
+      _homeAnnouncements = result.data;
     } catch (e) {
       // Silently fail – home should not block on this
       print('⚠️ [AnnouncementProvider] loadPublicAnnouncements error: $e');
