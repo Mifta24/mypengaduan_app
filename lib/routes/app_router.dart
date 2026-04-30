@@ -15,6 +15,8 @@ import '../screens/profile/edit_profile_screen.dart';
 import '../screens/complaints/complaint_list_screen.dart';
 import '../screens/notifications/notification_list_screen.dart';
 import '../screens/announcements/announcement_list_screen.dart';
+import '../screens/faq/faq_screen.dart';
+import '../screens/contact/contact_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -30,6 +32,8 @@ class AppRouter {
   static const String myComplaints = '/my-complaints';
   static const String notifications = '/notifications';
   static const String announcementsList = '/announcements/list';
+  static const String faq = '/faq';
+  static const String contact = '/contact';
 
   static GoRouter createRouter(AuthProvider authProvider) {
     return GoRouter(
@@ -254,6 +258,36 @@ class AppRouter {
               const end = Offset.zero;
               const curve = Curves.easeInOut;
               var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(position: animation.drive(tween), child: child);
+            },
+          ),
+        ),
+        GoRoute(
+          path: faq,
+          name: 'faq',
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const FaqScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: Curves.easeOutCubic));
+              return SlideTransition(position: animation.drive(tween), child: child);
+            },
+          ),
+        ),
+        GoRoute(
+          path: contact,
+          name: 'contact',
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const ContactScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: Curves.easeOutCubic));
               return SlideTransition(position: animation.drive(tween), child: child);
             },
           ),
