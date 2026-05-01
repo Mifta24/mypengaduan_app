@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -6,11 +7,6 @@ import '../../../models/complaint_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../../widgets/admin/admin_filter_panel.dart';
-import '../../../widgets/admin/admin_empty_state.dart';
-import '../../../widgets/admin/admin_info_card.dart';
-import '../../../widgets/admin/admin_section_header.dart';
-import '../../../widgets/skeleton_loader.dart';
 import '../../complaints/complaint_detail_screen.dart';
 
 class AdminUsersTab extends StatefulWidget {
@@ -544,99 +540,88 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final filtered = _users.where((u) {
+      final name  = u['name']?.toString().toLowerCase()  ?? '';
+      final email = u['email']?.toString().toLowerCase() ?? '';
+      final q = _searchQuery.toLowerCase();
+      return q.isEmpty || name.contains(q) || email.contains(q);
+    }).toList();
 
     return Column(
       children: [
-        // Search and Filter Bar
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: AdminFilterPanel(
-            child: Column(
-              children: [
-                const AdminSectionHeader(
-                  title: 'Manajemen Pengguna',
-                  subtitle:
-                      'Kelola data pengguna, peran, dan status verifikasi.',
-                  icon: Icons.people,
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: 'Cari pengguna...',
-                          prefixIcon: Icon(Icons.search),
-                        ),
-                        onSubmitted: (value) {
-                          setState(() => _searchQuery = value);
-                          _loadUsers();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.filter_list),
-                      onSelected: (value) {
-                        setState(() =>
-                            _selectedRole = value == 'all' ? null : value);
-                        _loadUsers();
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                            value: 'all', child: Text('Semua Role')),
-                        const PopupMenuItem(
-                            value: 'admin', child: Text('Admin')),
-                        const PopupMenuItem(value: 'user', child: Text('User')),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: _showCreateUserDialog,
-                      icon: const Icon(Icons.person_add),
-                      label: const Text('Tambah User'),
-                    ),
-                  ],
-                ),
-                if (_selectedRole != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Chip(
-                      label: Text('Filter: $_selectedRole'),
-                      onDeleted: () {
-                        setState(() => _selectedRole = null);
-                        _loadUsers();
-                      },
-                    ),
+        // ── Search + Tambah ─────────────────────────────────
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  style: GoogleFonts.nunito(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'Cari nama atau email pengguna...',
+                    hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            })
+                        : null,
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
                   ),
-              ],
-            ),
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  onSubmitted: (_) => _loadUsers(forceRefresh: true),
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton.icon(
+                onPressed: _showCreateUserDialog,
+                icon: const Icon(Icons.person_add, size: 16),
+                label: Text('Tambah', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 13)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                ),
+              ),
+            ],
           ),
         ),
+        Divider(height: 1, color: AppTheme.border),
 
-        // Users List
+        // ── Users list ───────────────────────────────────────
         Expanded(
-          child: !_hasLoadedData
-              ? ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: 5,
-                  itemBuilder: (context, index) => const ListItemSkeleton(),
-                )
-              : _users.isEmpty
-                  ? const AdminEmptyState(
-                      icon: Icons.people_outline,
-                      title: 'Tidak ada pengguna',
+          child: !_hasLoadedData && _users.isEmpty
+              ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+              : filtered.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.people_outline, size: 56, color: Colors.grey.shade300),
+                          const SizedBox(height: 12),
+                          Text('Tidak ada pengguna', style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
+                        ],
+                      ),
                     )
                   : RefreshIndicator(
                       onRefresh: () => _loadUsers(forceRefresh: true),
+                      color: AppTheme.primary,
                       child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _users.length,
-                        itemBuilder: (context, index) {
-                          final user = _users[index];
-                          return _buildUserCard(user);
-                        },
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) => _buildUserCard(filtered[i]),
                       ),
                     ),
         ),
@@ -648,222 +633,123 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     final role = user['role']?.toString() ?? 'user';
     final isVerified =
         user['is_user_verified'] == true || user['is_user_verified'] == 1;
-    final isEmailVerified =
-        user['is_email_verified'] == true || user['is_email_verified'] == 1;
-    final roleColor = role == 'admin' ? Colors.indigo : Colors.teal;
+    final name  = user['name']?.toString()  ?? 'Pengguna';
+    final email = user['email']?.toString() ?? '';
+    final initials = name.trim().split(' ').take(2).map((w) => w.isEmpty ? '' : w[0].toUpperCase()).join();
+    final avatarColor = isVerified ? AppTheme.primary : const Color(0xFFD97706);
 
-    return AdminInfoCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      borderColor: roleColor.withValues(alpha: 0.3),
-      padding: const EdgeInsets.all(16),
-      onTap: () {
-        _showUserDetailDialog(user);
-      },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Hero(
-            tag: 'user_${user['id']}',
-            child: Container(
-              width: 56,
-              height: 56,
+    return GestureDetector(
+      onTap: () => _showUserDetailDialog(user),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 42, height: 42,
               decoration: BoxDecoration(
-                color: roleColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+                color: avatarColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
               ),
-              alignment: Alignment.center,
-              child: Text(
-                user['name']?.toString().substring(0, 1).toUpperCase() ?? 'U',
-                style: TextStyle(
-                  color: roleColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
+              child: Center(
+                child: Text(initials,
+                    style: GoogleFonts.nunito(
+                        fontSize: 15, fontWeight: FontWeight.w800, color: avatarColor)),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(width: 12),
+            // Name + email
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name,
+                      style: GoogleFonts.nunito(
+                          fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(email,
+                      style: GoogleFonts.nunito(
+                          fontSize: 12, color: AppTheme.textSecondary),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Role + verification badges
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user['name'] ?? 'No Name',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user['email'] ?? '',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (isVerified || isEmailVerified) ...[
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 6,
-                              children: [
-                                if (isVerified)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: Colors.green.withOpacity(0.2)),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.verified_user, size: 12, color: Colors.green),
-                                        SizedBox(width: 4),
-                                        Text('User', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                  ),
-                                if (isEmailVerified)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: Colors.blue.withOpacity(0.2)),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.mark_email_read, size: 12, color: Colors.blue),
-                                        SizedBox(width: 4),
-                                        Text('Email', style: TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    PopupMenuButton<String>(
-                      padding: EdgeInsets.zero,
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'verify':
-                            _verifyUser(user['id']);
-                            break;
-                          case 'make_admin':
-                            _changeRole(user['id'], 'admin');
-                            break;
-                          case 'make_user':
-                            _changeRole(user['id'], 'user');
-                            break;
-                          case 'view':
-                            _showUserDetailDialog(user);
-                            break;
-                          case 'reset_password':
-                            _resetUserPassword(_toInt(user['id']),
-                                userName: user['name']?.toString());
-                            break;
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        if (!isVerified)
-                          const PopupMenuItem(
-                            value: 'verify',
-                            child: Row(
-                              children: [
-                                Icon(Icons.verified_user, size: 18, color: Colors.green),
-                                SizedBox(width: 8),
-                                Text('Verifikasi User'),
-                              ],
-                            ),
-                          ),
-                        if (role != 'admin')
-                          const PopupMenuItem(
-                            value: 'make_admin',
-                            child: Row(
-                              children: [
-                                Icon(Icons.admin_panel_settings,
-                                    size: 18, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Jadikan Admin'),
-                              ],
-                            ),
-                          ),
-                        if (role == 'admin')
-                          const PopupMenuItem(
-                            value: 'make_user',
-                            child: Row(
-                              children: [
-                                Icon(Icons.person, size: 18, color: Colors.blue),
-                                SizedBox(width: 8),
-                                Text('Jadikan User'),
-                              ],
-                            ),
-                          ),
-                        const PopupMenuItem(
-                          value: 'view',
-                          child: Row(
-                            children: [
-                              Icon(Icons.visibility, size: 18),
-                              SizedBox(width: 8),
-                              Text('Lihat Detail'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'reset_password',
-                          child: Row(
-                            children: [
-                              Icon(Icons.lock_reset, size: 18, color: Colors.orange),
-                              SizedBox(width: 8),
-                              Text('Reset Password'),
-                            ],
-                          ),
-                        ),
-                      ],
-                      child: const Icon(Icons.more_vert, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: roleColor.withValues(alpha: 0.1),
+                    color: (role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primary).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    role.toUpperCase(),
-                    style: TextStyle(
-                      color: roleColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    role == 'admin' ? 'Admin' : 'Warga',
+                    style: GoogleFonts.nunito(
+                        fontSize: 10, fontWeight: FontWeight.w700,
+                        color: role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primary),
                   ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isVerified ? Icons.verified_rounded : Icons.cancel_rounded,
+                      size: 13,
+                      color: isVerified ? AppTheme.primary : const Color(0xFFD97706),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      isVerified ? 'Terverifikasi' : 'Belum',
+                      style: GoogleFonts.nunito(
+                          fontSize: 10, fontWeight: FontWeight.w600,
+                          color: isVerified ? AppTheme.primary : const Color(0xFFD97706)),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            // More actions
+            PopupMenuButton<String>(
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
+              onSelected: (value) {
+                switch (value) {
+                  case 'verify':     _verifyUser(_toInt(user['id']));
+                  case 'make_admin': _changeRole(_toInt(user['id']), 'admin');
+                  case 'make_user':  _changeRole(_toInt(user['id']), 'user');
+                  case 'view':       _showUserDetailDialog(user);
+                  case 'reset_password':
+                    _resetUserPassword(_toInt(user['id']), userName: name);
+                }
+              },
+              itemBuilder: (_) => [
+                if (!isVerified)
+                  const PopupMenuItem(value: 'verify', child: Row(children: [Icon(Icons.verified_user, size: 16, color: Colors.green), SizedBox(width: 8), Text('Verifikasi')])),
+                if (role != 'admin')
+                  const PopupMenuItem(value: 'make_admin', child: Row(children: [Icon(Icons.admin_panel_settings, size: 16, color: Colors.indigo), SizedBox(width: 8), Text('Jadikan Admin')])),
+                if (role == 'admin')
+                  const PopupMenuItem(value: 'make_user', child: Row(children: [Icon(Icons.person, size: 16, color: Colors.blue), SizedBox(width: 8), Text('Jadikan User')])),
+                const PopupMenuItem(value: 'view', child: Row(children: [Icon(Icons.visibility, size: 16), SizedBox(width: 8), Text('Lihat Detail')])),
+                const PopupMenuItem(value: 'reset_password', child: Row(children: [Icon(Icons.lock_reset, size: 16, color: Colors.orange), SizedBox(width: 8), Text('Reset Password')])),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+
 
   Future<Map<String, dynamic>> _fetchUserDetail(dynamic user) async {
     final summary = Map<String, dynamic>.from(user as Map);

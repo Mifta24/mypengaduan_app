@@ -1,14 +1,15 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../../models/complaint_model.dart';
-import '../../../services/admin_service.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../../widgets/admin/admin_empty_state.dart';
-import '../../../widgets/admin/admin_info_card.dart';
-import '../../../widgets/admin/admin_section_header.dart';
-import '../../../widgets/skeleton_loader.dart';
 import '../../complaints/complaint_detail_screen.dart';
+import '../announcements/add_announcement_screen.dart';
+import '../categories/categories_tab.dart';
+import '../reports/reports_tab.dart';
+import '../users/users_tab.dart';
 
 class AdminHomeTab extends StatefulWidget {
   const AdminHomeTab({super.key});
@@ -21,390 +22,407 @@ class _AdminHomeTabState extends State<AdminHomeTab>
     with AutomaticKeepAliveClientMixin {
   final AdminService _adminService = AdminService();
 
-  int totalComplaints = 0;
-  int pendingComplaints = 0;
-  int processingComplaints = 0;
-  int completedComplaints = 0;
-  int totalUsers = 0;
-  int activeAnnouncements = 0;
-  List<dynamic> recentComplaints = [];
-  bool isLoading = false;
-  bool _hasLoadedData = false;
+  int _total = 0;
+  int _pending = 0;
+  int _processing = 0;
+  int _resolved = 0;
+  List<dynamic> _recent = [];
+  List<int> _chartData = List.filled(7, 0);
+  bool _isLoading = false;
+  bool _hasLoaded = false;
 
   @override
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    debugPrint(
-        '🏠 [AdminHomeTab] Screen initialized - will load after visible');
-  }
-
-  bool _hasLoadedOnce = false;
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Load only once when screen becomes visible
-    if (!_hasLoadedOnce) {
-      _hasLoadedOnce = true;
+    if (!_hasLoaded) {
+      _hasLoaded = true;
       Future.delayed(const Duration(milliseconds: 150), () {
-        if (mounted) {
-          debugPrint('🏠 [AdminHomeTab] Screen visible - loading data now');
-          // Check if user is still authenticated before loading
-          final authProvider =
-              Provider.of<AuthProvider>(context, listen: false);
-          if (authProvider.isAuthenticated && !_hasLoadedData) {
-            _loadStatistics();
-          }
-        }
+        if (mounted) _load();
       });
     }
   }
 
-  Future<void> _loadStatistics({bool forceRefresh = false}) async {
-    if (!mounted) return;
+  Future<void> _load({bool force = false}) async {
+    if (_isLoading) return;
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (!auth.isAuthenticated) return;
 
-    // Check authentication state before proceeding
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    if (!authProvider.isAuthenticated) {
-      debugPrint('⚠️ User not authenticated, skipping statistics load');
-      return;
-    }
-
-    // Only show loading on force refresh (pull to refresh)
-    if (forceRefresh) {
-      setState(() => isLoading = true);
-    }
-
+    setState(() => _isLoading = true);
     try {
-      // Load dashboard data (includes stats and recent complaints)
-      final dashboard = await _adminService.getDashboard();
+      final data = await _adminService.getDashboard();
+      final d = data['data'] ?? data;
+      final complaintsData = d['complaints'] ?? {};
+      final recentList = d['recent_complaints'] ?? [];
 
       if (mounted) {
         setState(() {
-          final data = dashboard['data'] ?? dashboard;
+          final totalObj = d['total_complaints'];
+          _total = totalObj is Map ? (totalObj['count'] ?? 0) : 0;
+          _pending = complaintsData['pending'] ?? 0;
+          _processing = complaintsData['in_progress'] ?? 0;
+          _resolved = complaintsData['resolved'] ?? 0;
+          _recent = recentList is List ? recentList.take(5).toList() : [];
 
-          // Parse statistics - API returns objects with 'count' field
-          final totalComplaintsObj = data['total_complaints'];
-          final totalUsersObj = data['total_users'];
-          final complaintsData = data['complaints'] ?? {};
-          final announcementsData = data['announcements'] ?? {};
-
-          totalComplaints = totalComplaintsObj is Map
-              ? (totalComplaintsObj['count'] ?? 0)
-              : 0;
-          totalUsers = totalUsersObj is Map ? (totalUsersObj['count'] ?? 0) : 0;
-
-          // Parse complaint statuses from complaints object
-          pendingComplaints = complaintsData['pending'] ?? 0;
-          processingComplaints = complaintsData['in_progress'] ?? 0;
-          completedComplaints = complaintsData['resolved'] ?? 0;
-
-          // Parse active announcements from announcements object
-          activeAnnouncements = announcementsData['active'] ?? 0;
-
-          // Parse recent complaints (if exists)
-          recentComplaints = data['recent_complaints'] ?? [];
-
-          isLoading = false;
-          _hasLoadedData = true;
+          // Build chart from recent complaints (count per day last 7 days)
+          final counts = List.filled(7, 0);
+          final now = DateTime.now();
+          for (final item in (recentList is List ? recentList : [])) {
+            if (item is Map && item['created_at'] != null) {
+              final dt = DateTime.tryParse(item['created_at'].toString());
+              if (dt != null) {
+                final diff = now.difference(dt).inDays;
+                if (diff >= 0 && diff < 7) counts[6 - diff]++;
+              }
+            }
+          }
+          _chartData = counts;
+          _isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint('Error loading statistics: $e');
-
-      // Check if it's token expiration error
-      if (e.toString().contains('Token expired') && mounted) {
-        // Auto-logout and redirect to landing page
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        await authProvider.logout();
-
-        if (mounted) {
-          Navigator.of(context)
-              .pushNamedAndRemoveUntil('/landing', (route) => false);
-        }
-        return;
-      }
-
-      if (mounted) {
-        setState(() => isLoading = false);
-        if (forceRefresh) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal memuat statistik: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return RefreshIndicator(
-      onRefresh: () => _loadStatistics(forceRefresh: true),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const AdminSectionHeader(
-              title: 'Dashboard Admin',
-              subtitle:
-                  'Pantau ringkasan kinerja sistem dan aktivitas terbaru.',
-              icon: Icons.dashboard,
-            ),
-            const SizedBox(height: 16),
+    final auth = Provider.of<AuthProvider>(context);
+    final user = auth.user;
 
-            // Show skeleton loading only on first load
-            if (!_hasLoadedData)
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.5,
-                children: List.generate(6, (_) => const StatCardSkeleton()),
-              )
-            else
-              // Statistics Cards
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.5,
+    return RefreshIndicator(
+      onRefresh: () => _load(force: true),
+      color: AppTheme.primary,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          // ── Admin info card ──────────────────────────────────
+          _buildAdminCard(user?.name ?? 'Admin', user?.role ?? 'Super Admin'),
+          const SizedBox(height: 20),
+
+          // ── Stats cards ──────────────────────────────────────
+          Text('Ringkasan Hari Ini',
+              style: GoogleFonts.nunito(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.6,
+            children: [
+              _statCard('Total Pengaduan', _total, Icons.assignment_rounded,
+                  AppTheme.primary, '+12 dari kemarin'),
+              _statCard('Menunggu', _pending, Icons.schedule_rounded,
+                  const Color(0xFFD97706), '+5 dari kemarin'),
+              _statCard('Diproses', _processing, Icons.sync_rounded,
+                  const Color(0xFF0891B2), '+8 dari kemarin'),
+              _statCard('Selesai', _resolved, Icons.check_circle_rounded,
+                  AppTheme.primaryLight, '+15 dari kemarin'),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ── Bar chart ────────────────────────────────────────
+          _buildBarChart(),
+          const SizedBox(height: 24),
+
+          // ── Recent complaints ─────────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Pengaduan Terbaru',
+                  style: GoogleFonts.nunito(
+                      fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                child: Text('Lihat Semua',
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _isLoading && _recent.isEmpty
+              ? const Center(child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(color: AppTheme.primary)))
+              : _recent.isEmpty
+                  ? _emptyState('Belum ada pengaduan')
+                  : Column(
+                      children: _recent.map((item) => _recentCard(item)).toList()),
+          const SizedBox(height: 24),
+
+          // ── Quick actions ─────────────────────────────────────
+          Text('Aksi Cepat',
+              style: GoogleFonts.nunito(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          _buildQuickActions(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminCard(String name, String role) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppTheme.bgDark, AppTheme.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48, height: 48,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryLight,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Center(
+              child: Text(name[0].toUpperCase(),
+                  style: GoogleFonts.nunito(
+                      fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: GoogleFonts.nunito(
+                        fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(role,
+                    style: GoogleFonts.nunito(
+                        fontSize: 12, color: Colors.white.withValues(alpha: 0.75))),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryLight.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text('Super Admin',
+                style: GoogleFonts.nunito(
+                    fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statCard(String label, int value, IconData icon, Color color, String sub) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 18, color: color),
+              ),
+              const Spacer(),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('$value',
+                  style: GoogleFonts.nunito(
+                      fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              Text(label,
+                  style: GoogleFonts.nunito(
+                      fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+              Text(sub,
+                  style: GoogleFonts.nunito(
+                      fontSize: 10, color: color)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBarChart() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Pengaduan 7 Hari Terakhir',
+                  style: GoogleFonts.nunito(
+                      fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Text('7 Hari Terakhir',
+                    style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 120,
+            child: CustomPaint(
+              size: const Size(double.infinity, 120),
+              painter: _BarChartPainter(data: _chartData),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // X-axis labels (last 7 days)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(7, (i) {
+              final date = DateTime.now().subtract(Duration(days: 6 - i));
+              return Text('${date.day} ${_monthShort(date.month)}',
+                  style: GoogleFonts.nunito(fontSize: 10, color: AppTheme.textSecondary));
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _monthShort(int m) {
+    const names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return names[m];
+  }
+
+  Widget _recentCard(dynamic item) {
+    final title = item['title']?.toString() ?? 'Pengaduan';
+    final status = item['status']?.toString() ?? 'pending';
+    final category = item['category'] is Map
+        ? item['category']['name']?.toString() ?? ''
+        : '';
+    final location = item['location']?.toString() ?? '';
+    final createdAt = item['created_at'] != null
+        ? DateTime.tryParse(item['created_at'].toString())
+        : null;
+    final userName = item['user'] is Map
+        ? item['user']['name']?.toString() ?? 'Pengguna'
+        : 'Pengguna';
+
+    final statusColor = _statusColor(status);
+    final statusLabel = _statusLabel(status);
+
+    return GestureDetector(
+      onTap: () {
+        final id = item['id'];
+        if (id != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ComplaintDetailScreen(
+                  complaintId: id is int ? id : int.tryParse(id.toString())),
+            ),
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Row(
+          children: [
+            // Colored avatar
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                    style: GoogleFonts.nunito(
+                        fontSize: 16, fontWeight: FontWeight.w700, color: statusColor)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildStatCard(
-                    context,
-                    'Total Pengaduan',
-                    totalComplaints.toString(),
-                    Icons.report_problem,
-                    Colors.blue,
-                  ),
-                  _buildStatCard(
-                    context,
-                    'Pending',
-                    pendingComplaints.toString(),
-                    Icons.pending,
-                    Colors.orange,
-                  ),
-                  _buildStatCard(
-                    context,
-                    'Diproses',
-                    processingComplaints.toString(),
-                    Icons.sync,
-                    Colors.purple,
-                  ),
-                  _buildStatCard(
-                    context,
-                    'Selesai',
-                    completedComplaints.toString(),
-                    Icons.check_circle,
-                    Colors.green,
-                  ),
-                  _buildStatCard(
-                    context,
-                    'Total Pengguna',
-                    totalUsers.toString(),
-                    Icons.people,
-                    Colors.teal,
-                  ),
-                  _buildStatCard(
-                    context,
-                    'Pengumuman Aktif',
-                    activeAnnouncements.toString(),
-                    Icons.announcement,
-                    Colors.red,
+                  Text(title,
+                      style: GoogleFonts.nunito(
+                          fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 3),
+                  if (category.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(category,
+                          style: GoogleFonts.nunito(
+                              fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                    ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${location.isNotEmpty ? location : '-'}  •  ${createdAt != null ? '${createdAt.day} ${_monthShort(createdAt.month)}, ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}' : '-'}',
+                    style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary),
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            const SizedBox(height: 24),
-
-            // Recent Complaints Section
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: AppTheme.border),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
               ),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Pengaduan Terbaru',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                      ],
-                    ),
-                    const Divider(),
-
-                    // Show loading state
-                    if (!_hasLoadedData)
-                      ...List.generate(
-                          3,
-                          (_) => const Padding(
-                                padding: EdgeInsets.only(bottom: 12),
-                                child: ListItemSkeleton(),
-                              ))
-                    // Show empty state
-                    else if (recentComplaints.isEmpty)
-                      const AdminEmptyState(
-                        icon: Icons.inbox,
-                        title: 'Belum ada pengaduan',
-                      )
-                    // Show recent complaints
-                    else
-                      ...recentComplaints.take(5).map((complaint) {
-                        final status = complaint['status'] ?? 'pending';
-                        final createdAt =
-                            DateTime.tryParse(complaint['created_at'] ?? '');
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: InkWell(
-                            onTap: () async {
-                              try {
-                                final complaintModel = Complaint.fromJson(
-                                  Map<String, dynamic>.from(complaint as Map),
-                                );
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ComplaintDetailScreen(
-                                        complaint: complaintModel),
-                                  ),
-                                );
-                              } catch (_) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Detail pengaduan tidak tersedia'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.02),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(status)
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      _getStatusIcon(status),
-                                      color: _getStatusColor(status),
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          complaint['title'] ?? 'No Title',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 15,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: _getStatusColor(status)
-                                                    .withValues(alpha: 0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                _getStatusLabel(status),
-                                                style: TextStyle(
-                                                  color:
-                                                      _getStatusColor(status),
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                createdAt != null
-                                                    ? _formatRelativeTime(
-                                                        createdAt)
-                                                    : '-',
-                                                style: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.chevron_right,
-                                    color: Colors.grey[300],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                  ],
-                ),
-              ),
+              child: Text(statusLabel,
+                  style: GoogleFonts.nunito(
+                      fontSize: 11, fontWeight: FontWeight.w700, color: statusColor)),
             ),
           ],
         ),
@@ -412,176 +430,167 @@ class _AdminHomeTabState extends State<AdminHomeTab>
     );
   }
 
-  Widget _buildStatCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color,
-            color.withOpacity(0.75),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          // Decorative glass circle top right
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.15),
-              ),
+  Widget _buildQuickActions(BuildContext context) {
+    final actions = [
+      (Icons.verified_user_rounded, 'Verifikasi\nPending', const Color(0xFFEA580C), () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_) => Scaffold(
+            backgroundColor: AppTheme.surface,
+            appBar: AppBar(
+              backgroundColor: AppTheme.bgDark,
+              title: Text('Manajemen Pengguna',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white)),
+              iconTheme: const IconThemeData(color: Colors.white),
             ),
+            body: const AdminUsersTab(),
           ),
-          // Decorative background icon bottom right
-          Positioned(
-            right: -10,
-            bottom: -15,
-            child: Icon(
-              icon,
-              size: 70,
-              color: Colors.white.withOpacity(0.2),
+        ));
+      }),
+      (Icons.add_box_rounded, 'Tambah\nPengumuman', AppTheme.primary, () async {
+        await Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const AddAnnouncementScreen()));
+      }),
+      (Icons.category_rounded, 'Kelola\nKategori', const Color(0xFF6366F1), () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_) => Scaffold(
+            backgroundColor: AppTheme.surface,
+            appBar: AppBar(
+              backgroundColor: AppTheme.bgDark,
+              title: Text('Kelola Kategori',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white)),
+              iconTheme: const IconThemeData(color: Colors.white),
             ),
+            body: const AdminCategoriesTab(),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ));
+      }),
+      (Icons.bar_chart_rounded, 'Laporan &\nStatistik', AppTheme.secondary, () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_) => Scaffold(
+            backgroundColor: AppTheme.surface,
+            appBar: AppBar(
+              backgroundColor: AppTheme.bgDark,
+              title: Text('Laporan & Statistik',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white)),
+              iconTheme: const IconThemeData(color: Colors.white),
+            ),
+            body: const AdminReportsTab(),
+          ),
+        ));
+      }),
+    ];
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 2.2,
+      children: actions.map((a) {
+        return GestureDetector(
+          onTap: a.$4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(icon, color: Colors.white, size: 22),
-                    ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: a.$3.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(a.$1, size: 22, color: a.$3),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      value,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            fontSize: 26,
-                            letterSpacing: -0.5,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(a.$2,
+                      style: GoogleFonts.nunito(
+                          fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, height: 1.3)),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      }).toList(),
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Colors.orange;
-      case 'in_progress':
-      case 'inprogress':
-      case 'processing':
-        return Colors.blue;
-      case 'resolved':
-      case 'completed':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return Colors.grey;
+  Widget _emptyState(String msg) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      alignment: Alignment.center,
+      child: Text(msg, style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
+    );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'pending': return const Color(0xFFD97706);
+      case 'in_progress': return const Color(0xFF0891B2);
+      case 'resolved': return AppTheme.primary;
+      case 'rejected': return const Color(0xFFDC2626);
+      case 'waiting_user_confirmation': return const Color(0xFFEA580C);
+      default: return Colors.grey;
     }
   }
 
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Icons.pending;
-      case 'in_progress':
-      case 'inprogress':
-      case 'processing':
-        return Icons.refresh;
-      case 'resolved':
-      case 'completed':
-        return Icons.check_circle;
-      case 'rejected':
-        return Icons.cancel;
-      default:
-        return Icons.help_outline;
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending': return 'Menunggu';
+      case 'in_progress': return 'Diproses';
+      case 'resolved': return 'Selesai';
+      case 'rejected': return 'Ditolak';
+      case 'waiting_user_confirmation': return 'Konfirmasi';
+      default: return status;
+    }
+  }
+}
+
+// ─── Bar Chart Painter ────────────────────────────────────────────────────────
+class _BarChartPainter extends CustomPainter {
+  final List<int> data;
+  const _BarChartPainter({required this.data});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.isEmpty) return;
+    final maxVal = data.reduce(math.max).toDouble();
+    if (maxVal == 0) return;
+
+    final barW = (size.width - (data.length - 1) * 8) / data.length;
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Y-axis guide lines
+    final guidePaint = Paint()
+      ..color = Colors.grey.shade100
+      ..strokeWidth = 1;
+    for (int i = 0; i <= 4; i++) {
+      final y = size.height * (1 - i / 4);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), guidePaint);
+    }
+
+    for (int i = 0; i < data.length; i++) {
+      final barH = (data[i] / maxVal) * size.height;
+      final x = i * (barW + 8);
+      final y = size.height - barH;
+
+      final rect = RRect.fromRectAndCorners(
+        Rect.fromLTWH(x, y, barW, barH),
+        topLeft: const Radius.circular(4),
+        topRight: const Radius.circular(4),
+      );
+
+      paint.color = AppTheme.primary.withValues(alpha: 0.85);
+      canvas.drawRRect(rect, paint);
     }
   }
 
-  String _getStatusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'Pending';
-      case 'in_progress':
-      case 'inprogress':
-      case 'processing':
-        return 'Diproses';
-      case 'resolved':
-      case 'completed':
-        return 'Selesai';
-      case 'rejected':
-        return 'Ditolak';
-      default:
-        return status;
-    }
-  }
-
-  String _formatRelativeTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} hari lalu';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} jam lalu';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} menit lalu';
-    } else {
-      return 'Baru saja';
-    }
-  }
+  @override
+  bool shouldRepaint(covariant _BarChartPainter old) => old.data != data;
 }

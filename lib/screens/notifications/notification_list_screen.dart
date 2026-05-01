@@ -17,55 +17,25 @@ class NotificationListScreen extends StatefulWidget {
 }
 
 class _NotificationListScreenState extends State<NotificationListScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Don't load immediately - load only after screen is visible
-    print('📱 [NotificationScreen] Screen initialized - will load after frame');
-  }
+  bool _hasLoadedOnce = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Load only once when screen becomes visible
     if (!_hasLoadedOnce) {
       _hasLoadedOnce = true;
       Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          // Check if data already loaded by dashboard
-          final provider = context.read<NotificationProvider>();
-          if (provider.notifications.isEmpty && !provider.isLoading) {
-            print('📱 [NotificationScreen] No data yet - loading notifications now');
-            _loadNotifications();
-          } else {
-            print('📱 [NotificationScreen] Data already loaded (${provider.notifications.length} items) - skipping load');
-          }
+        if (!mounted) return;
+        final provider = context.read<NotificationProvider>();
+        if (provider.notifications.isEmpty && !provider.isLoading) {
+          _load();
         }
       });
     }
   }
 
-  bool _hasLoadedOnce = false;
-
-  Future<void> _loadNotifications() async {
-    // Debug: Show current user info
-    try {
-      final authProvider = context.read<AuthProvider>();
-      if (authProvider.user != null) {
-        print('🧑 [NotificationScreen] Current logged in user:');
-        print('   ID: ${authProvider.user!.id}');
-        print('   Name: ${authProvider.user!.name}');
-        print('   Email: ${authProvider.user!.email}');
-        print('   Role: ${authProvider.user!.role}');
-        print('📊 Database has notifications for user_id = 2');
-        print('⚠️ If user ID ≠ 2, that\'s why notifications are empty!');
-      }
-    } catch (e) {
-      print('Could not get auth provider: $e');
-    }
-    
-    final provider = context.read<NotificationProvider>();
-    await provider.loadNotifications(refresh: true);
+  Future<void> _load() async {
+    await context.read<NotificationProvider>().loadNotifications(refresh: true);
   }
 
   @override
@@ -75,187 +45,113 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          color: AppTheme.textPrimary,
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Notifikasi',
-          style: GoogleFonts.nunito(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
+        title: Text('Notifikasi',
+            style: GoogleFonts.nunito(
+                color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 18)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(height: 1, color: AppTheme.border),
         ),
         actions: [
           Consumer<NotificationProvider>(
-            builder: (context, provider, _) {
-              if (provider.unreadCount > 0) {
-                return TextButton.icon(
-                  onPressed: () async {
-                    final success = await provider.markAllAsRead();
-                    if (success && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Semua notifikasi ditandai sudah dibaca'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.done_all, size: 18),
-                  label: const Text('Tandai Semua'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.primary,
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
+            builder: (_, provider, __) {
+              if (provider.unreadCount == 0) return const SizedBox.shrink();
+              return TextButton(
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final ok = await provider.markAllAsRead();
+                  if (ok && mounted) {
+                    messenger.showSnackBar(SnackBar(
+                      content: Text('Semua notifikasi sudah dibaca',
+                          style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+                      backgroundColor: AppTheme.primary,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ));
+                  }
+                },
+                child: Text('Baca Semua',
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+              );
             },
           ),
         ],
       ),
       body: Consumer<NotificationProvider>(
-        builder: (context, provider, _) {
+        builder: (_, provider, __) {
+          // Loading
           if (provider.isLoading && provider.notifications.isEmpty) {
             return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-              ),
+              child: CircularProgressIndicator(color: AppTheme.primary),
             );
           }
 
-          // Show error message if exists
+          // Error
           if (provider.errorMessage != null) {
-            // Check if it's authentication error
-            final isAuthError = provider.errorMessage!.contains('Sesi Anda telah berakhir') ||
-                                provider.errorMessage!.contains('Token expired');
-            
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isAuthError ? Icons.lock_outline : Icons.error_outline,
-                    size: 80,
-                    color: isAuthError ? Colors.orange[300] : Colors.red[300],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    isAuthError ? 'Sesi Berakhir' : 'Gagal memuat notifikasi',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      provider.errorMessage!,
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
-                        color: AppTheme.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (isAuthError)
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        // Clear all provider states before logout
-                        try {
-                          context.read<ComplaintProvider>().clear();
-                        } catch (e) {
-                          print('ComplaintProvider not available: $e');
-                        }
-                        try {
-                          context.read<NotificationProvider>().clear();
-                        } catch (e) {
-                          print('NotificationProvider not available: $e');
-                        }
-                        try {
-                          context.read<AnnouncementProvider>().clear();
-                        } catch (e) {
-                          print('AnnouncementProvider not available: $e');
-                        }
-                        
-                        // Logout and redirect to login
-                        final authProvider = context.read<AuthProvider>();
-                        await authProvider.logout();
-                        if (mounted) {
-                          Navigator.of(context).pushNamedAndRemoveUntil(
-                            '/login',
-                            (route) => false,
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Login Ulang'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                      ),
-                    )
-                  else
-                    ElevatedButton.icon(
-                      onPressed: _loadNotifications,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Coba Lagi'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                ],
-              ),
+            final isAuth = provider.errorMessage!.contains('Sesi') ||
+                provider.errorMessage!.contains('Token');
+            return _ErrorView(
+              isAuth: isAuth,
+              message: provider.errorMessage!,
+              onRetry: isAuth ? () => _logout(context) : _load,
             );
           }
 
+          // Empty
           if (provider.notifications.isEmpty) {
             return Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.notifications_none,
-                    size: 80,
-                    color: AppTheme.textSecondary,
-                  ),
+                  Icon(Icons.notifications_off_outlined,
+                      size: 64, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
-                  Text(
-                    'Tidak ada notifikasi',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Notifikasi akan muncul di sini',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
+                  Text('Tidak ada notifikasi',
+                      style: GoogleFonts.nunito(
+                          fontSize: 16, fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary)),
+                  const SizedBox(height: 6),
+                  Text('Notifikasi akan muncul di sini',
+                      style: GoogleFonts.nunito(
+                          fontSize: 13, color: Colors.grey.shade400)),
                 ],
               ),
             );
           }
 
+          // List
+          final notifs = provider.notifications;
+          final unread = notifs.where((n) => !n.isRead).toList();
+          final read   = notifs.where((n) => n.isRead).toList();
+
           return RefreshIndicator(
-            onRefresh: _loadNotifications,
+            onRefresh: _load,
             color: AppTheme.primary,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: provider.notifications.length,
-              itemBuilder: (context, index) {
-                final notification = provider.notifications[index];
-                return _buildNotificationCard(notification, provider);
-              },
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+              children: [
+                if (unread.isNotEmpty) ...[
+                  _sectionLabel('Belum Dibaca', unread.length),
+                  const SizedBox(height: 8),
+                  ...unread.map((n) => _NotifCard(
+                        notif: n,
+                        onTap: () => provider.markAsRead(n.id),
+                      )),
+                  const SizedBox(height: 16),
+                ],
+                if (read.isNotEmpty) ...[
+                  _sectionLabel('Sudah Dibaca', null),
+                  const SizedBox(height: 8),
+                  ...read.map((n) => _NotifCard(notif: n)),
+                ],
+              ],
             ),
           );
         },
@@ -263,199 +159,225 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     );
   }
 
-  Widget _buildNotificationCard(
-    NotificationModel notification,
-    NotificationProvider provider,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: notification.isRead 
-            ? Colors.white 
-          : AppTheme.primary.withOpacity(0.02),
-        borderRadius: BorderRadius.circular(16),
-        border: notification.isRead 
-            ? Border.all(color: Colors.black.withOpacity(0.05))
-            : Border.all(color: AppTheme.primary.withOpacity(0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+  Widget _sectionLabel(String label, int? count) {
+    return Row(
+      children: [
+        Text(label,
+            style: GoogleFonts.nunito(
+                fontSize: 13, fontWeight: FontWeight.w700,
+                color: AppTheme.textSecondary)),
+        if (count != null) ...[
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppTheme.primary, borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text('$count',
+                style: GoogleFonts.nunito(
+                    fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
           ),
         ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () async {
-              if (!notification.isRead) {
-                await provider.markAsRead(notification.id);
-              }
-              // TODO: Navigate based on notification type
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!notification.isRead)
-                    Container(
-                      width: 4,
-                      color: AppTheme.primary,
-                    ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _getIconBackgroundColor(notification.type),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              _getNotificationIcon(notification.type),
-                              color: _getIconColor(notification.type),
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        notification.title,
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 15,
-                                          fontWeight: notification.isRead 
-                                              ? FontWeight.w500 
-                                              : FontWeight.w600,
-                                          color: AppTheme.textPrimary,
-                                        ),
-                                      ),
-                                    ),
-                                    if (!notification.isRead)
-                                      Container(
-                                        width: 8,
-                                        height: 8,
-                                        margin: const EdgeInsets.only(left: 8),
-                                        decoration: const BoxDecoration(
-                                          color: AppTheme.primary,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  notification.body,
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 14,
-                                    color: AppTheme.textSecondary,
-                                    height: 1.5,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.access_time,
-                                      size: 14,
-                                      color: AppTheme.textSecondary,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      _formatDateTime(notification.createdAt),
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 12,
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+      ],
+    );
+  }
+
+  Future<void> _logout(BuildContext ctx) async {
+    try { ctx.read<ComplaintProvider>().clear(); } catch (_) {}
+    try { ctx.read<NotificationProvider>().clear(); } catch (_) {}
+    try { ctx.read<AnnouncementProvider>().clear(); } catch (_) {}
+    await ctx.read<AuthProvider>().logout();
+  }
+}
+
+// ─── Notification Card ────────────────────────────────────────────────────────
+class _NotifCard extends StatelessWidget {
+  final NotificationModel notif;
+  final VoidCallback? onTap;
+  const _NotifCard({required this.notif, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final unread = !notif.isRead;
+    final iconColor = _iconColor(notif.type);
+    final iconBg   = iconColor.withValues(alpha: 0.12);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: unread ? AppTheme.primary.withValues(alpha: 0.04) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: unread ? AppTheme.primary.withValues(alpha: 0.25) : AppTheme.border,
+          ),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Unread indicator strip
+              if (unread)
+                Container(
+                  width: 4,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
                     ),
                   ),
-                ],
+                ),
+              // Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Icon
+                      Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(
+                          color: iconBg,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(_iconData(notif.type), size: 20, color: iconColor),
+                      ),
+                      const SizedBox(width: 12),
+                      // Text
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(notif.title,
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 14,
+                                          fontWeight: unread ? FontWeight.w700 : FontWeight.w600,
+                                          color: AppTheme.textPrimary)),
+                                ),
+                                if (unread)
+                                  Container(
+                                    width: 8, height: 8,
+                                    margin: const EdgeInsets.only(left: 6, top: 3),
+                                    decoration: const BoxDecoration(
+                                        color: AppTheme.primary, shape: BoxShape.circle),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(notif.body,
+                                style: GoogleFonts.nunito(
+                                    fontSize: 13,
+                                    color: AppTheme.textSecondary,
+                                    height: 1.4),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Icon(Icons.access_time_rounded,
+                                    size: 12, color: Colors.grey.shade400),
+                                const SizedBox(width: 4),
+                                Text(_timeAgo(notif.createdAt),
+                                    style: GoogleFonts.nunito(
+                                        fontSize: 11, color: Colors.grey.shade400)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  IconData _getNotificationIcon(String type) {
+  IconData _iconData(String type) {
     switch (type.toLowerCase()) {
       case 'complaint':
-      case 'complaint_update':
-        return Icons.report_outlined;
-      case 'announcement':
-        return Icons.campaign_outlined;
-      case 'system':
-        return Icons.info_outlined;
-      default:
-        return Icons.notifications_outlined;
+      case 'complaint_update': return Icons.report_rounded;
+      case 'announcement':     return Icons.campaign_rounded;
+      case 'system':           return Icons.info_rounded;
+      default:                 return Icons.notifications_rounded;
     }
   }
 
-  Color _getIconColor(String type) {
+  Color _iconColor(String type) {
     switch (type.toLowerCase()) {
       case 'complaint':
-      case 'complaint_update':
-        return const Color(0xFFEF4444);
-      case 'announcement':
-        return const Color(0xFF16A34A);
-      case 'system':
-        return const Color(0xFF10B981);
-      default:
-        return const Color(0xFF6B7280);
+      case 'complaint_update': return const Color(0xFFEF4444);
+      case 'announcement':     return AppTheme.primary;
+      case 'system':           return const Color(0xFF0891B2);
+      default:                 return AppTheme.textSecondary;
     }
   }
 
-  Color _getIconBackgroundColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'complaint':
-      case 'complaint_update':
-        return const Color(0xFFFEE2E2);
-      case 'announcement':
-        return const Color(0xFFEEF2FF);
-      case 'system':
-        return const Color(0xFFD1FAE5);
-      default:
-        return const Color(0xFFF3F4F6);
-    }
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'Baru saja';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
+    if (diff.inHours < 24)   return '${diff.inHours} jam lalu';
+    if (diff.inDays < 7)     return '${diff.inDays} hari lalu';
+    return DateFormat('dd/MM/yyyy HH:mm').format(dt);
   }
+}
 
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+// ─── Error View ───────────────────────────────────────────────────────────────
+class _ErrorView extends StatelessWidget {
+  final bool isAuth;
+  final String message;
+  final VoidCallback onRetry;
+  const _ErrorView({required this.isAuth, required this.message, required this.onRetry});
 
-    if (difference.inMinutes < 1) {
-      return 'Baru saja';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} menit lalu';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} jam lalu';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} hari lalu';
-    } else {
-      return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
-    }
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isAuth ? Icons.lock_outline_rounded : Icons.error_outline_rounded,
+              size: 64,
+              color: isAuth ? const Color(0xFFD97706) : Colors.red.shade300,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isAuth ? 'Sesi Berakhir' : 'Gagal Memuat',
+              style: GoogleFonts.nunito(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            Text(message,
+                style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary),
+                textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: Icon(isAuth ? Icons.logout_rounded : Icons.refresh_rounded, size: 18),
+              label: Text(isAuth ? 'Login Ulang' : 'Coba Lagi',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isAuth ? const Color(0xFFD97706) : AppTheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

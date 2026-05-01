@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../../widgets/admin/admin_filter_panel.dart';
-import '../../../widgets/admin/admin_empty_state.dart';
-import '../../../widgets/admin/admin_info_card.dart';
-import '../../../widgets/admin/admin_section_header.dart';
-import '../../../widgets/admin/admin_status_badge.dart';
-import '../../../widgets/skeleton_loader.dart';
 import 'announcement_detail_screen.dart';
 import 'edit_announcement_screen.dart';
 
@@ -21,30 +16,33 @@ class AdminAnnouncementsTab extends StatefulWidget {
   }
 }
 
-class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with AutomaticKeepAliveClientMixin {
+class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
+    with AutomaticKeepAliveClientMixin {
   final AdminService _adminService = AdminService();
   final TextEditingController _searchController = TextEditingController();
-  
+
   List<dynamic> _announcements = [];
   bool _isLoading = false;
   String? _selectedStatus;
   String _searchQuery = '';
-  
+
   // Static variables for global caching
   static bool _hasLoadedDataGlobally = false;
   static List<dynamic> _cachedAnnouncements = [];
-  
+
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    debugPrint('📢 [AdminAnnouncementsTab] Screen initialized - will load after visible');
-    
+    debugPrint(
+        '📢 [AdminAnnouncementsTab] Screen initialized - will load after visible');
+
     // Use cached data if available
     if (_hasLoadedDataGlobally && _cachedAnnouncements.isNotEmpty) {
-      debugPrint('📢 [AdminAnnouncementsTab] Using cached data (${_cachedAnnouncements.length} items)');
+      debugPrint(
+          '📢 [AdminAnnouncementsTab] Using cached data (${_cachedAnnouncements.length} items)');
       _announcements = _cachedAnnouncements;
     }
   }
@@ -59,7 +57,8 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with Auto
       _hasLoadedOnce = true;
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted && !_hasLoadedDataGlobally) {
-          debugPrint('📢 [AdminAnnouncementsTab] Screen visible - loading announcements now');
+          debugPrint(
+              '📢 [AdminAnnouncementsTab] Screen visible - loading announcements now');
           _loadAnnouncements();
         }
       });
@@ -73,38 +72,38 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with Auto
   }
 
   Future<void> _loadAnnouncements({bool forceRefresh = false}) async {
-    // Skip if already loading
     if (_isLoading) {
       debugPrint('Admin Announcements: Already loading, skipping...');
       return;
     }
-    
-    // Skip if already loaded globally and not forcing refresh
+
     if (_hasLoadedDataGlobally && !forceRefresh) {
       debugPrint('Admin Announcements: Already loaded globally, skipping...');
       return;
     }
-    
+
     if (!mounted) return;
-    
-    debugPrint('Admin Announcements: Loading... (forceRefresh: $forceRefresh)');
+
+    debugPrint(
+        'Admin Announcements: Loading... (forceRefresh: $forceRefresh)');
     setState(() => _isLoading = true);
-    
+
     try {
       final response = await _adminService.getAnnouncements(
         search: _searchQuery.isEmpty ? null : _searchQuery,
         status: _selectedStatus,
         perPage: 10,
       );
-      
+
       if (mounted) {
         setState(() {
           _announcements = response['data'] ?? [];
-          _cachedAnnouncements = response['data'] ?? []; // Update cache
-          _hasLoadedDataGlobally = true; // Mark as loaded globally
+          _cachedAnnouncements = response['data'] ?? [];
+          _hasLoadedDataGlobally = true;
           _isLoading = false;
         });
-        debugPrint('Admin Announcements: Loaded ${_announcements.length} items');
+        debugPrint(
+            'Admin Announcements: Loaded ${_announcements.length} items');
       }
     } catch (e) {
       if (mounted) {
@@ -122,16 +121,20 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with Auto
   Future<void> _toggleStatus(int id) async {
     try {
       await _adminService.toggleAnnouncementStatus(id);
-      _loadAnnouncements();
+      _loadAnnouncements(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Status berhasil diubah'), backgroundColor: Colors.green),
+          const SnackBar(
+              content: Text('Status berhasil diubah'),
+              backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal ubah status: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Gagal ubah status: $e'),
+              backgroundColor: Colors.red),
         );
       }
     }
@@ -140,317 +143,23 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with Auto
   Future<void> _publishAnnouncement(int id) async {
     try {
       await _adminService.publishAnnouncement(id);
-      _loadAnnouncements();
+      _loadAnnouncements(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pengumuman berhasil dipublikasi'), backgroundColor: Colors.green),
+          const SnackBar(
+              content: Text('Pengumuman berhasil dipublikasi'),
+              backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal publikasi: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Gagal publikasi: $e'),
+              backgroundColor: Colors.red),
         );
       }
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    
-    return Column(
-      children: [
-        // Action Bar
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: AdminFilterPanel(
-            child: Column(
-              children: [
-                const AdminSectionHeader(
-                  title: 'Manajemen Pengumuman',
-                  subtitle: 'Kelola konten pengumuman, prioritas, dan status tayang.',
-                  icon: Icons.announcement,
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: 'Cari pengumuman...',
-                          prefixIcon: Icon(Icons.search),
-                        ),
-                        onSubmitted: (value) {
-                          setState(() => _searchQuery = value);
-                          _loadAnnouncements();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.filter_list),
-                      onSelected: (value) {
-                        setState(() => _selectedStatus = value == 'all' ? null : value);
-                        _loadAnnouncements();
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'all', child: Text('Semua')),
-                        const PopupMenuItem(value: 'published', child: Text('Dipublikasi')),
-                        const PopupMenuItem(value: 'draft', child: Text('Draft')),
-                      ],
-                    ),
-                  ],
-                ),
-                if (_selectedStatus != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Chip(
-                      label: Text('Filter: $_selectedStatus'),
-                      onDeleted: () {
-                        setState(() => _selectedStatus = null);
-                        _loadAnnouncements();
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        
-        // Announcements List
-        Expanded(
-          child: !_hasLoadedDataGlobally && _isLoading
-              ? ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: 5,
-                  itemBuilder: (context, index) => const ListItemSkeleton(),
-                )
-              : _announcements.isEmpty
-                  ? const AdminEmptyState(
-                      icon: Icons.announcement_outlined,
-                      title: 'Tidak ada pengumuman',
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () => _loadAnnouncements(forceRefresh: true),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _announcements.length,
-                        itemBuilder: (context, index) {
-                          final announcement = _announcements[index];
-                          return _buildAnnouncementCard(announcement);
-                        },
-                      ),
-                    ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnnouncementCard(dynamic announcement) {
-    final isActive = announcement['is_active'] == true || announcement['is_active'] == 1;
-    final isSticky = announcement['is_sticky'] == true || announcement['is_sticky'] == 1;
-    final priority = announcement['priority']?.toString().toLowerCase() ?? 'medium';
-    
-    Color priorityColor;
-    IconData priorityIcon;
-    switch (priority) {
-      case 'urgent':
-        priorityColor = Colors.red;
-        priorityIcon = Icons.priority_high;
-        break;
-      case 'high':
-        priorityColor = Colors.orange;
-        priorityIcon = Icons.arrow_upward;
-        break;
-      case 'medium':
-        priorityColor = Colors.blue;
-        priorityIcon = Icons.remove;
-        break;
-      case 'low':
-        priorityColor = Colors.green;
-        priorityIcon = Icons.arrow_downward;
-        break;
-      default:
-        priorityColor = Colors.grey;
-        priorityIcon = Icons.help_outline;
-    }
-
-    return AdminInfoCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: isSticky ? 2 : 0,
-      borderColor: isSticky ? Colors.red.withValues(alpha: 0.5) : priorityColor.withValues(alpha: 0.3),
-      borderWidth: isSticky ? 2 : 1,
-      padding: const EdgeInsets.all(16),
-      onTap: () {
-        _showAnnouncementDetailDialog(announcement);
-      },
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (isSticky)
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.push_pin, color: Colors.red, size: 28),
-                  )
-                else
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: priorityColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(Icons.announcement, color: priorityColor, size: 28),
-                  ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  announcement['title'] ?? 'No Title',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                if (isSticky) ...[
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Disematkan',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          PopupMenuButton<String>(
-                            padding: EdgeInsets.zero,
-                            onSelected: (value) async {
-                              switch (value) {
-                                case 'view':
-                                  _showAnnouncementDetailDialog(announcement);
-                                  break;
-                                case 'edit':
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => EditAnnouncementScreen(announcement: announcement),
-                                    ),
-                                  );
-                                  if (result == true) _loadAnnouncements();
-                                  break;
-                                case 'toggle_status':
-                                  _toggleStatus(announcement['id']);
-                                  break;
-                                case 'publish':
-                                  _publishAnnouncement(announcement['id']);
-                                  break;
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'view',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.visibility, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Detail'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Ubah'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'toggle_status',
-                                child: Row(
-                                  children: [
-                                    Icon(isActive ? Icons.visibility_off : Icons.visibility, size: 18),
-                                    SizedBox(width: 8),
-                                    Text(isActive ? 'Nonaktifkan' : 'Aktifkan'),
-                                  ],
-                                ),
-                              ),
-                              if (!isActive)
-                                const PopupMenuItem(
-                                  value: 'publish',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.publish, size: 18),
-                                      SizedBox(width: 8),
-                                      Text('Terbitkan'),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                            child: const Icon(Icons.more_vert, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        announcement['summary'] ?? announcement['content'] ?? '',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey[600], height: 1.4),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          AdminStatusBadge(
-                            label: _priorityLabel(priority),
-                            color: priorityColor,
-                            icon: priorityIcon,
-                          ),
-                          const SizedBox(width: 8),
-                          AdminStatusBadge(
-                            label: isActive ? 'Aktif' : 'Nonaktif',
-                            color: isActive ? Colors.green : Colors.grey,
-                            icon: isActive ? Icons.visibility : Icons.visibility_off,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-    );
   }
 
   void _showAnnouncementDetailDialog(dynamic announcement) {
@@ -481,5 +190,369 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab> with Auto
       default:
         return 'Normal';
     }
+  }
+
+  Color _priorityColor(String priority) {
+    switch (priority) {
+      case 'urgent':
+      case 'high':
+        return Colors.red;
+      case 'medium':
+        return Colors.orange;
+      case 'low':
+        return Colors.green;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    final filtered = _announcements.where((a) {
+      final title = a['title']?.toString().toLowerCase() ?? '';
+      final q = _searchQuery.toLowerCase();
+      final matchSearch = q.isEmpty || title.contains(q);
+
+      if (_selectedStatus == null) return matchSearch;
+      final isActive =
+          a['is_active'] == true || a['is_active'] == 1;
+      if (_selectedStatus == 'published') return matchSearch && isActive;
+      if (_selectedStatus == 'draft') return matchSearch && !isActive;
+      return matchSearch;
+    }).toList();
+
+    return Column(
+      children: [
+        // ── Filter bar ──────────────────────────────────────
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      style: GoogleFonts.nunito(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Cari pengumuman...',
+                        hintStyle: GoogleFonts.nunito(
+                            fontSize: 14, color: Colors.grey.shade400),
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                })
+                            : null,
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(color: AppTheme.border)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(color: AppTheme.border)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                                color: AppTheme.primary, width: 1.5)),
+                      ),
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _statusDropdown(),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: AppTheme.border),
+
+        // ── List ────────────────────────────────────────────
+        Expanded(
+          child: !_hasLoadedDataGlobally && _isLoading
+              ? const Center(
+                  child:
+                      CircularProgressIndicator(color: AppTheme.primary))
+              : filtered.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.announcement_outlined,
+                              size: 56, color: Colors.grey.shade300),
+                          const SizedBox(height: 12),
+                          Text('Tidak ada pengumuman',
+                              style: GoogleFonts.nunito(
+                                  color: AppTheme.textSecondary)),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () =>
+                          _loadAnnouncements(forceRefresh: true),
+                      color: AppTheme.primary,
+                      child: ListView.builder(
+                        padding:
+                            const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) =>
+                            _buildAnnouncementCard(filtered[i]),
+                      ),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _statusDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedStatus,
+          hint: Text('Semua',
+              style: GoogleFonts.nunito(
+                  fontSize: 13, color: Colors.grey.shade500)),
+          style: GoogleFonts.nunito(
+              fontSize: 13, color: AppTheme.textPrimary),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+          items: [
+            DropdownMenuItem(
+                value: null,
+                child: Text('Semua',
+                    style: GoogleFonts.nunito(fontSize: 13))),
+            DropdownMenuItem(
+                value: 'published',
+                child: Text('Published',
+                    style: GoogleFonts.nunito(fontSize: 13))),
+            DropdownMenuItem(
+                value: 'draft',
+                child:
+                    Text('Draft', style: GoogleFonts.nunito(fontSize: 13))),
+          ],
+          onChanged: (v) => setState(() => _selectedStatus = v),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnnouncementCard(dynamic a) {
+    final isActive =
+        a['is_active'] == true || a['is_active'] == 1;
+    final priority =
+        a['priority']?.toString().toLowerCase() ?? 'medium';
+    final priorityColor = _priorityColor(priority);
+    final priorityLabel = _priorityLabel(priority);
+
+    final title = a['title']?.toString() ?? 'Tanpa Judul';
+    final publishedAt = a['published_at']?.toString() ??
+        a['created_at']?.toString() ??
+        '';
+    String dateStr = '';
+    if (publishedAt.isNotEmpty) {
+      try {
+        final dt = DateTime.parse(publishedAt).toLocal();
+        dateStr =
+            '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      } catch (_) {
+        dateStr = publishedAt.length > 10
+            ? publishedAt.substring(0, 10)
+            : publishedAt;
+      }
+    }
+
+    return GestureDetector(
+      onTap: () => _showAnnouncementDetailDialog(a),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left priority strip
+              Container(
+                width: 5,
+                decoration: BoxDecoration(
+                  color: priorityColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Priority pill
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: priorityColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                priorityLabel,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: priorityColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              title,
+                              style: GoogleFonts.nunito(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: AppTheme.textPrimary,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            if (dateStr.isNotEmpty)
+                              Text(
+                                dateStr,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            const SizedBox(height: 6),
+                            // Status chip
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? AppTheme.primary
+                                        .withValues(alpha: 0.1)
+                                    : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                isActive ? 'Aktif' : 'Draft',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: isActive
+                                      ? AppTheme.primary
+                                      : Colors.grey.shade600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Edit / Hapus actions
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditAnnouncementScreen(
+                                      announcement: a),
+                                ),
+                              );
+                              if (result == true) {
+                                _loadAnnouncements(forceRefresh: true);
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.blue,
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              tapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text('Edit',
+                                style: GoogleFonts.nunito(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                          Container(
+                              width: 1,
+                              height: 14,
+                              color: Colors.grey.shade300),
+                          TextButton(
+                            onPressed: () => _toggleStatus(
+                                _toInt(a['id'])),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              tapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text('Hapus',
+                                style: GoogleFonts.nunito(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  int _toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 }

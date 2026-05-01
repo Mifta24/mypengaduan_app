@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../../widgets/admin/admin_filter_panel.dart';
-import '../../../widgets/admin/admin_empty_state.dart';
-import '../../../widgets/admin/admin_info_card.dart';
-import '../../../widgets/admin/admin_section_header.dart';
-import '../../../widgets/admin/admin_status_badge.dart';
-import '../../../widgets/skeleton_loader.dart';
 import '../../../models/complaint_model.dart';
 import '../../complaints/complaint_detail_screen.dart';
 import 'resolve_complaint_screen.dart';
@@ -249,349 +244,15 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-
-    return Column(
-      children: [
-        // Search and Filter Bar
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: AdminFilterPanel(
-            child: Column(
-              children: [
-                const AdminSectionHeader(
-                  title: 'Manajemen Pengaduan',
-                  subtitle:
-                      'Kelola aduan warga, pantau progres, dan tindak lanjut.',
-                  icon: Icons.report_problem,
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: 'Cari pengaduan...',
-                          prefixIcon: Icon(Icons.search),
-                        ),
-                        onSubmitted: (value) {
-                          setState(() => _searchQuery = value);
-                          _loadComplaints();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.filter_list),
-                      onSelected: (value) {
-                        setState(() =>
-                            _selectedStatus = value == 'all' ? null : value);
-                        _loadComplaints();
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                            value: 'all', child: Text('Semua Status')),
-                        const PopupMenuItem(
-                            value: 'pending', child: Text('Pending')),
-                        const PopupMenuItem(
-                            value: 'in_progress', child: Text('Dalam Proses')),
-                        const PopupMenuItem(
-                            value: 'waiting_user_confirmation',
-                            child: Text('Menunggu Konfirmasi User')),
-                        const PopupMenuItem(
-                            value: 'resolved', child: Text('Selesai')),
-                        const PopupMenuItem(
-                            value: 'rejected', child: Text('Ditolak')),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  const AdminTrashComplaintsScreen()),
-                        );
-                        await _loadComplaints(forceRefresh: true);
-                      },
-                      icon: const Icon(Icons.delete_sweep),
-                      label: const Text('Lihat Trash'),
-                    ),
-                  ],
-                ),
-                if (_selectedStatus != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Chip(
-                      label: Text('Filter: ${_statusLabel(_selectedStatus!)}'),
-                      onDeleted: () {
-                        setState(() => _selectedStatus = null);
-                        _loadComplaints();
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-
-        // Complaints List
-        Expanded(
-          child: !_hasLoadedDataGlobally
-              ? ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: 5, // Show 5 skeleton items
-                  itemBuilder: (context, index) => const ListItemSkeleton(),
-                )
-              : _complaints.isEmpty
-                  ? const AdminEmptyState(
-                      icon: Icons.report_problem_outlined,
-                      title: 'Tidak ada pengaduan',
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () => _loadComplaints(forceRefresh: true),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _complaints.length,
-                        itemBuilder: (context, index) {
-                          final complaint = _complaints[index];
-                          return _buildComplaintCard(complaint);
-                        },
-                      ),
-                    ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildComplaintCard(dynamic complaint) {
-    final status = complaint['status']?.toString().toLowerCase() ?? 'pending';
-    Color statusColor;
-    IconData statusIcon;
-
-    switch (status) {
-      case 'pending':
-        statusColor = Colors.orange;
-        statusIcon = Icons.pending_actions;
-        break;
-      case 'processing':
-      case 'in_progress':
-        statusColor = Colors.blue;
-        statusIcon = Icons.autorenew;
-        break;
-      case 'waiting_user_confirmation':
-        statusColor = Colors.deepOrange;
-        statusIcon = Icons.hourglass_top;
-        break;
-      case 'resolved':
-      case 'completed':
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
-        break;
-      case 'rejected':
-        statusColor = Colors.red;
-        statusIcon = Icons.cancel;
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.help_outline;
-    }
-
-    return AdminInfoCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      borderColor: statusColor.withValues(alpha: 0.3),
-      padding: const EdgeInsets.all(16),
-      onTap: () async {
-        try {
-          final complaintModel = Complaint.fromJson(complaint);
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ComplaintDetailScreen(
-                complaint: complaintModel,
-              ),
-            ),
-          );
-          await _loadComplaints(forceRefresh: true);
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${e.toString()}')),
-            );
-          }
-        }
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(statusIcon, color: statusColor, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                complaint['title'] ?? 'No Title',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'ID: ${complaint['id']}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[500],
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          padding: EdgeInsets.zero,
-                          onSelected: (value) async {
-                            if (value == 'delete') {
-                              _deleteComplaintToTrash(_toInt(complaint['id']));
-                              return;
-                            }
-
-                            if (value == 'delete_attachment') {
-                              _showAttachmentDeleteDialog(complaint);
-                              return;
-                            }
-
-                            if (value == 'resolved') {
-                              // Show resolve screen with form
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      ResolveComplaintScreen(complaint: complaint),
-                                ),
-                              );
-                              if (result == true) {
-                                await _loadComplaints(forceRefresh: true);
-                              }
-                            } else {
-                              _updateStatus(complaint['id'], value);
-                            }
-                          },
-                          itemBuilder: (context) {
-                            return [
-                              const PopupMenuItem(
-                                value: 'in_progress',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.autorenew, size: 18, color: Colors.blue),
-                                    SizedBox(width: 8),
-                                    Text('Tandai Dalam Proses'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'resolved',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.check_circle,
-                                        size: 18, color: Colors.green),
-                                    SizedBox(width: 8),
-                                    Text('Tandai Selesai'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'rejected',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.cancel, size: 18, color: Colors.red),
-                                    SizedBox(width: 8),
-                                    Text('Tolak'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'delete_attachment',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.attachment, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Hapus Attachment'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete, size: 18, color: Colors.red),
-                                    SizedBox(width: 8),
-                                    Text('Pindah ke Trash'),
-                                  ],
-                                ),
-                              ),
-                            ];
-                          },
-                          child: const Icon(Icons.more_vert, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      complaint['description'] ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey[600], height: 1.4),
-                    ),
-                    const SizedBox(height: 12),
-                    AdminStatusBadge(
-                      label: _statusLabel(status),
-                      color: statusColor,
-                      icon: statusIcon,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   String _statusLabel(String status) {
     switch (status) {
       case 'pending':
         return 'Menunggu';
       case 'processing':
       case 'in_progress':
-        return 'Dalam Proses';
+        return 'Diproses';
       case 'waiting_user_confirmation':
-        return 'Menunggu Konfirmasi User';
+        return 'Konfirmasi';
       case 'resolved':
       case 'completed':
         return 'Selesai';
@@ -599,6 +260,25 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
         return 'Ditolak';
       default:
         return status;
+    }
+  }
+
+  Color _statusColor(String s) {
+    switch (s) {
+      case 'pending':
+        return const Color(0xFFD97706);
+      case 'in_progress':
+      case 'processing':
+        return const Color(0xFF0891B2);
+      case 'waiting_user_confirmation':
+        return const Color(0xFFEA580C);
+      case 'resolved':
+      case 'completed':
+        return AppTheme.primary;
+      case 'rejected':
+        return const Color(0xFFDC2626);
+      default:
+        return Colors.grey;
     }
   }
 
@@ -621,5 +301,461 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
     }
 
     return const [];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final filtered = _complaints.where((c) {
+      final title = c['title']?.toString().toLowerCase() ?? '';
+      final q = _searchQuery.toLowerCase();
+      return q.isEmpty || title.contains(q);
+    }).toList();
+
+    return Column(
+      children: [
+        // ── Filter bar ──────────────────────────────────────
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _dropdownFilter(
+                      value: _selectedStatus,
+                      hint: 'Semua Status',
+                      items: const {
+                        'pending': 'Menunggu',
+                        'in_progress': 'Diproses',
+                        'waiting_user_confirmation': 'Konfirmasi',
+                        'resolved': 'Selesai',
+                        'rejected': 'Ditolak',
+                      },
+                      onChanged: (v) {
+                        setState(() => _selectedStatus = v);
+                        _loadComplaints(forceRefresh: true);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const AdminTrashComplaintsScreen()));
+                      _loadComplaints(forceRefresh: true);
+                    },
+                    icon: const Icon(Icons.delete_sweep, size: 16),
+                    label: Text('Trash',
+                        style: GoogleFonts.nunito(fontSize: 13)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _searchController,
+                style: GoogleFonts.nunito(fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'Cari pengaduan...',
+                  hintStyle: GoogleFonts.nunito(
+                      fontSize: 14, color: Colors.grey.shade400),
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                            _loadComplaints(forceRefresh: true);
+                          })
+                      : null,
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: AppTheme.border)),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: AppTheme.border)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                          color: AppTheme.primary, width: 1.5)),
+                ),
+                onChanged: (v) => setState(() => _searchQuery = v),
+                onSubmitted: (_) => _loadComplaints(forceRefresh: true),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: AppTheme.border),
+
+        // ── List ────────────────────────────────────────────
+        Expanded(
+          child: !_hasLoadedDataGlobally && _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primary))
+              : filtered.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.report_outlined,
+                              size: 56, color: Colors.grey.shade300),
+                          const SizedBox(height: 12),
+                          Text('Tidak ada pengaduan',
+                              style: GoogleFonts.nunito(
+                                  color: AppTheme.textSecondary)),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => _loadComplaints(forceRefresh: true),
+                      color: AppTheme.primary,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) =>
+                            _buildComplaintCard(filtered[i]),
+                      ),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _dropdownFilter({
+    required String? value,
+    required String hint,
+    required Map<String, String> items,
+    required void Function(String?) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          hint: Text(hint,
+              style: GoogleFonts.nunito(
+                  fontSize: 13, color: Colors.grey.shade500)),
+          style: GoogleFonts.nunito(
+              fontSize: 13, color: AppTheme.textPrimary),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+          items: [
+            DropdownMenuItem(
+                value: null,
+                child: Text(hint, style: GoogleFonts.nunito(fontSize: 13))),
+            ...items.entries.map((e) => DropdownMenuItem(
+                value: e.key,
+                child:
+                    Text(e.value, style: GoogleFonts.nunito(fontSize: 13)))),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComplaintCard(dynamic item) {
+    final status =
+        item['status']?.toString().toLowerCase() ?? 'pending';
+    final statusColor = _statusColor(status);
+    final statusLabel = _statusLabel(status);
+
+    final userName = item['user'] is Map
+        ? (item['user']['name']?.toString() ?? 'P')
+        : 'P';
+    final firstLetter =
+        userName.isNotEmpty ? userName[0].toUpperCase() : 'P';
+
+    final title = item['title']?.toString() ?? 'Tanpa Judul';
+    final category = item['category'] is Map
+        ? item['category']['name']?.toString()
+        : item['category_name']?.toString();
+    final location = item['address']?.toString() ??
+        item['location']?.toString() ??
+        '';
+    final createdAt = item['created_at']?.toString() ?? '';
+    String dateStr = '';
+    if (createdAt.isNotEmpty) {
+      try {
+        final dt = DateTime.parse(createdAt).toLocal();
+        dateStr =
+            '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      } catch (_) {
+        dateStr = createdAt.length > 10 ? createdAt.substring(0, 10) : createdAt;
+      }
+    }
+
+    return GestureDetector(
+      onTap: () async {
+        try {
+          final complaintModel = Complaint.fromJson(item);
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ComplaintDetailScreen(complaint: complaintModel),
+            ),
+          );
+          await _loadComplaints(forceRefresh: true);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${e.toString()}')),
+            );
+          }
+        }
+      },
+      onLongPress: () => _showActionSheet(item),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: statusColor.withValues(alpha: 0.15),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  firstLetter,
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (category != null && category.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          category,
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      [
+                        if (location.isNotEmpty) location,
+                        if (dateStr.isNotEmpty) dateStr,
+                      ].join(' • '),
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Status badge + chevron
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: GoogleFonts.nunito(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Icon(Icons.chevron_right,
+                      size: 16, color: Colors.grey.shade400),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showActionSheet(dynamic item) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                item['title']?.toString() ?? 'Aksi Pengaduan',
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.bold, fontSize: 15),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ResolveComplaintScreen(complaint: item),
+                    ),
+                  );
+                  if (result == true) {
+                    await _loadComplaints(forceRefresh: true);
+                  }
+                },
+                icon: const Icon(Icons.check_circle_outline, size: 18),
+                label: Text('Selesaikan',
+                    style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _updateStatus(_toInt(item['id']), 'in_progress');
+                },
+                icon: const Icon(Icons.autorenew, size: 18),
+                label: Text('Tandai Diproses',
+                    style: GoogleFonts.nunito()),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  side: const BorderSide(color: Colors.blue),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _updateStatus(_toInt(item['id']), 'rejected');
+                },
+                icon: const Icon(Icons.cancel_outlined, size: 18),
+                label: Text('Tolak', style: GoogleFonts.nunito()),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showAttachmentDeleteDialog(item);
+                },
+                icon: const Icon(Icons.attach_file, size: 18),
+                label: Text('Hapus Attachment',
+                    style: GoogleFonts.nunito()),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.grey.shade700,
+                  side: BorderSide(color: Colors.grey.shade400),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _deleteComplaintToTrash(_toInt(item['id']));
+                },
+                icon: const Icon(Icons.delete_sweep, size: 18),
+                label: Text('Pindah Trash',
+                    style: GoogleFonts.nunito(color: Colors.red)),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+              ),
+              const SizedBox(height: 4),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/complaint_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/announcement_provider.dart';
 import '../../../routes/app_router.dart';
-import '../../home/landing_screen.dart';
-import '../../test/fcm_debug_screen.dart';
 import '../home/home_tab.dart';
 import '../complaints/complaints_tab.dart';
-import '../users/users_tab.dart';
 import '../announcements/announcements_tab.dart';
 import '../announcements/add_announcement_screen.dart';
-import '../categories/categories_tab.dart';
-import '../categories/add_category_screen.dart';
-import '../reports/reports_tab.dart';
 import '../profile/admin_profile_screen.dart';
+import '../users/users_tab.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -30,27 +26,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _selectedIndex = 0;
   late List<bool> _initializedTabs;
 
+  // 4 tab: Beranda, Pengaduan, Pengumuman, Pengguna
   final List<Widget> _pages = [
     const AdminHomeTab(),
     const AdminComplaintsTab(),
-    const AdminUsersTab(),
     const AdminAnnouncementsTab(),
-    const AdminCategoriesTab(),
-    const AdminReportsTab(),
+    const AdminUsersTab(),
   ];
 
   @override
   void initState() {
     super.initState();
-    _initializedTabs = List.generate(_pages.length, (index) => index == 0);
-    // Load notifications when dashboard opens
+    _initializedTabs = List.generate(_pages.length, (i) => i == 0);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        if (authProvider.isAuthenticated) {
-          final notificationProvider =
-              Provider.of<NotificationProvider>(context, listen: false);
-          notificationProvider.loadNotifications(refresh: true);
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        if (auth.isAuthenticated) {
+          Provider.of<NotificationProvider>(context, listen: false)
+              .loadNotifications(refresh: true);
         }
       }
     });
@@ -58,291 +51,191 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final notificationProvider = Provider.of<NotificationProvider>(context);
-    final user = authProvider.user;
+    final auth   = Provider.of<AuthProvider>(context);
+    final notif  = Provider.of<NotificationProvider>(context);
+    final user   = auth.user;
 
     return Scaffold(
+      backgroundColor: AppTheme.surface,
+      // ── AppBar dark green ──────────────────────────────────
       appBar: AppBar(
-        title: const Text('Admin Dashboard',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.textPrimary,
+        backgroundColor: AppTheme.bgDark,
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withOpacity(0.05),
-        elevation: 1,
+        elevation: 0,
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            const Icon(Icons.campaign_rounded, color: Colors.white, size: 22),
+            const SizedBox(width: 8),
+            Text('MyPengaduan Admin',
+                style: GoogleFonts.nunito(
+                    fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white)),
+          ],
+        ),
         actions: [
-          // Notification button with badge
+          // Notification bell + badge
           Stack(
             children: [
               IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.shade100,
-                  foregroundColor: Colors.black87,
-                ),
-                icon: const Icon(Icons.notifications_none_rounded),
-                onPressed: () {
-                  context.push(AppRouter.notifications);
-                },
+                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 26),
+                onPressed: () => context.push(AppRouter.notifications),
               ),
-              if (notificationProvider.unreadCount > 0)
+              if (notif.unreadCount > 0)
                 Positioned(
-                  right: 8,
-                  top: 8,
+                  right: 8, top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade600,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: Center(
-                      child: Text(
-                        notificationProvider.unreadCount > 99
-                            ? '99+'
-                            : notificationProvider.unreadCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      notif.unreadCount > 99 ? '99+' : '${notif.unreadCount}',
+                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
             ],
           ),
+          // Admin avatar dropdown
           PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'profile') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminProfileScreen(),
-                  ),
-                );
-              } else if (value == 'fcm_debug') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const FCMDebugScreen(),
-                  ),
-                );
-              } else if (value == 'logout') {
-                final result = await showDialog<bool>(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (dialogContext) => AlertDialog(
-                    title: const Text('Konfirmasi Logout'),
-                    content: const Text('Apakah Anda yakin ingin keluar?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(dialogContext).pop(false),
-                        child: const Text('Batal'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.of(dialogContext).pop(true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Logout'),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (result == true && context.mounted) {
-                  // Clear all provider states before logout
-                  try {
-                    context.read<ComplaintProvider>().clear();
-                  } catch (e) {
-                    debugPrint('ComplaintProvider not available: $e');
-                  }
-                  try {
-                    context.read<NotificationProvider>().clear();
-                  } catch (e) {
-                    debugPrint('NotificationProvider not available: $e');
-                  }
-                  try {
-                    context.read<AnnouncementProvider>().clear();
-                  } catch (e) {
-                    debugPrint('AnnouncementProvider not available: $e');
-                  }
-
-                  await authProvider.logout();
-                  if (context.mounted) {
-                    context.go(AppRouter.landing);
-                  }
-                }
-              }
-            },
-            itemBuilder: (context) => [
+            onSelected: (v) => _handleMenu(v, context, auth),
+            itemBuilder: (_) => [
               const PopupMenuItem(
                 value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person, size: 20),
-                    SizedBox(width: 8),
-                    Text('Profile'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'fcm_debug',
-                child: Row(
-                  children: [
-                    Icon(Icons.bug_report, size: 20, color: Colors.orange),
-                    SizedBox(width: 8),
-                    Text('FCM Debug'),
-                  ],
-                ),
+                child: Row(children: [Icon(Icons.manage_accounts, size: 18), SizedBox(width: 8), Text('Profil Admin')]),
               ),
               const PopupMenuItem(
                 value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, size: 20),
-                    SizedBox(width: 8),
-                    Text('Logout'),
-                  ],
-                ),
+                child: Row(children: [Icon(Icons.logout, size: 18, color: Colors.red), SizedBox(width: 8), Text('Logout', style: TextStyle(color: Colors.red))]),
               ),
             ],
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppTheme.primary.withValues(alpha: 0.14),
-                    child: Text(
-                      user?.name.substring(0, 1).toUpperCase() ?? 'A',
-                      style: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.primary,
-                          fontWeight: FontWeight.w700),
-                    ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Container(
+                width: 34, height: 34,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLight,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: Center(
+                  child: Text(
+                    user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'A',
+                    style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    user?.name ?? 'Admin',
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                  const Icon(Icons.arrow_drop_down),
-                ],
+                ),
               ),
             ),
           ),
         ],
       ),
-      backgroundColor: AppTheme.surface,
+      // ── Body ──────────────────────────────────────────────
       body: IndexedStack(
         index: _selectedIndex,
-        children: List.generate(_pages.length, (index) {
-          return _initializedTabs[index]
-              ? _pages[index]
-              : const SizedBox.shrink();
-        }),
+        children: List.generate(_pages.length, (i) =>
+            _initializedTabs[i] ? _pages[i] : const SizedBox.shrink()),
       ),
-      floatingActionButton: _selectedIndex == 3
+      // ── FAB (tab Pengumuman) ──────────────────────────────
+      floatingActionButton: _selectedIndex == 2
           ? FloatingActionButton.extended(
               onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AddAnnouncementScreen(),
-                  ),
-                );
+                final result = await Navigator.push<bool>(context,
+                    MaterialPageRoute(builder: (_) => const AddAnnouncementScreen()));
                 if (result == true && context.mounted) {
-                  // Reload announcements
-                  final announcementsTab = _pages[3] as AdminAnnouncementsTab;
-                  announcementsTab.reload();
+                  final tab = _pages[2] as AdminAnnouncementsTab;
+                  tab.reload();
                 }
               },
               icon: const Icon(Icons.add),
-              label: const Text('Buat Pengumuman'),
+              label: Text('Tambah', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
               backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
             )
-          : _selectedIndex == 4
-              ? FloatingActionButton.extended(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AddCategoryScreen(),
-                      ),
-                    );
-                    if (result == true && context.mounted) {
-                      // Reload categories
-                      final categoriesTab = _pages[4] as AdminCategoriesTab;
-                      categoriesTab.reload();
-                    }
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah Kategori'),
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                )
-              : null,
+          : null,
+      // ── Bottom Navigation 4 item ──────────────────────────
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.5)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, -2))],
         ),
         child: NavigationBar(
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
-          height: 65,
-          indicatorColor: AppTheme.primary.withValues(alpha: 0.15),
+          height: 64,
+          indicatorColor: AppTheme.primary.withValues(alpha: 0.12),
           selectedIndex: _selectedIndex,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          onDestinationSelected: (index) {
+          onDestinationSelected: (i) {
             setState(() {
-              _selectedIndex = index;
-              _initializedTabs[index] = true;
+              _selectedIndex = i;
+              _initializedTabs[i] = true;
             });
           },
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined, size: 22),
-              selectedIcon: Icon(Icons.dashboard, size: 24, color: AppTheme.primary),
-              label: 'Home',
+              icon: const Icon(Icons.dashboard_outlined, size: 22),
+              selectedIcon: Icon(Icons.dashboard_rounded, size: 24, color: AppTheme.primary),
+              label: 'Beranda',
             ),
             NavigationDestination(
-              icon: Icon(Icons.report_problem_outlined, size: 22),
-              selectedIcon: Icon(Icons.report_problem, size: 24, color: AppTheme.primary),
-              label: 'Aduan',
+              icon: const Icon(Icons.report_outlined, size: 22),
+              selectedIcon: Icon(Icons.report_rounded, size: 24, color: AppTheme.primary),
+              label: 'Pengaduan',
             ),
             NavigationDestination(
-              icon: Icon(Icons.people_outline, size: 22),
-              selectedIcon: Icon(Icons.people, size: 24, color: AppTheme.primary),
-              label: 'User',
+              icon: const Icon(Icons.campaign_outlined, size: 22),
+              selectedIcon: Icon(Icons.campaign_rounded, size: 24, color: AppTheme.primary),
+              label: 'Pengumuman',
             ),
             NavigationDestination(
-              icon: Icon(Icons.announcement_outlined, size: 22),
-              selectedIcon: Icon(Icons.announcement, size: 24, color: AppTheme.primary),
-              label: 'Info',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.category_outlined, size: 22),
-              selectedIcon: Icon(Icons.category, size: 24, color: AppTheme.primary),
-              label: 'Kategori',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.assessment_outlined, size: 22),
-              selectedIcon: Icon(Icons.assessment, size: 24, color: AppTheme.primary),
-              label: 'Laporan',
+              icon: const Icon(Icons.people_outline, size: 22),
+              selectedIcon: Icon(Icons.people_rounded, size: 24, color: AppTheme.primary),
+              label: 'Pengguna',
             ),
           ],
         ),
       ),
     );
   }
+
+  Future<void> _handleMenu(String value, BuildContext ctx, AuthProvider auth) async {
+    if (value == 'profile') {
+      Navigator.push(ctx, MaterialPageRoute(builder: (_) => const AdminProfileScreen()));
+    } else if (value == 'logout') {
+      final confirm = await showDialog<bool>(
+        context: ctx,
+        builder: (_) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Konfirmasi Logout', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+          content: Text('Apakah Anda yakin ingin keluar?', style: GoogleFonts.nunito()),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Logout'),
+            ),
+          ],
+        ),
+      );
+      if (confirm == true && ctx.mounted) {
+        try { ctx.read<ComplaintProvider>().clear(); } catch (_) {}
+        try { ctx.read<NotificationProvider>().clear(); } catch (_) {}
+        try { ctx.read<AnnouncementProvider>().clear(); } catch (_) {}
+        await auth.logout();
+        if (ctx.mounted) ctx.go(AppRouter.landing);
+      }
+    }
+  }
+}
+
+// Helper untuk navigasi ke tab dari luar (dipanggil oleh quick actions)
+class AdminTabNavigator extends InheritedWidget {
+  final void Function(int) switchTab;
+  const AdminTabNavigator({super.key, required this.switchTab, required super.child});
+  static AdminTabNavigator? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AdminTabNavigator>();
+  @override
+  bool updateShouldNotify(AdminTabNavigator old) => false;
 }

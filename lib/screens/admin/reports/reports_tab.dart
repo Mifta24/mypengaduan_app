@@ -1,12 +1,13 @@
+﻿import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:mypengaduan_app/widgets/admin/admin_info_card.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/complaint_model.dart';
 import '../../../providers/reports_provider.dart';
 import '../../../theme/app_theme.dart';
-import '../../../widgets/admin/admin_section_header.dart';
+import '../../../widgets/admin/admin_info_card.dart';
 import '../../complaints/complaint_detail_screen.dart';
 
 class AdminReportsTab extends StatefulWidget {
@@ -193,16 +194,69 @@ class _AdminReportsTabState extends State<AdminReportsTab>
   }
 
   Widget _buildHeader() {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final weekEnd   = weekStart.add(const Duration(days: 6));
+    final fmt = DateFormat('d MMM', 'id_ID');
+
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(bottom: BorderSide(color: AppTheme.border)),
-      ),
-      child: const AdminSectionHeader(
-        title: 'Manajemen Laporan',
-        subtitle: 'Pantau statistik sistem dan laporan detail pengguna.',
-        icon: Icons.assessment,
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: 'week',
+                style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                items: [
+                  DropdownMenuItem(value: 'week', child: Text('Minggu Ini', style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(value: 'month', child: Text('Bulan Ini', style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(value: 'all', child: Text('Semua', style: GoogleFonts.nunito(fontSize: 13))),
+                ],
+                onChanged: (_) => _loadReports(forceRefresh: true),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.calendar_today_outlined, size: 14, color: AppTheme.textSecondary),
+                const SizedBox(width: 6),
+                Text(
+                  '${fmt.format(weekStart)} – ${fmt.format(weekEnd)} ${weekEnd.year}',
+                  style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          TextButton.icon(
+            onPressed: () => _exportReport('complaints', 'pdf'),
+            icon: const Icon(Icons.picture_as_pdf, size: 16, color: Colors.red),
+            label: Text('PDF', style: GoogleFonts.nunito(fontSize: 12, color: Colors.red, fontWeight: FontWeight.w600)),
+          ),
+          TextButton.icon(
+            onPressed: () => _exportReport('complaints', 'excel'),
+            icon: const Icon(Icons.table_chart, size: 16, color: Colors.green),
+            label: Text('CSV', style: GoogleFonts.nunito(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w600)),
+          ),
+        ],
       ),
     );
   }
@@ -211,230 +265,195 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     final overviewData = (_overview?['data'] as Map<String, dynamic>?) ?? {};
     final stats = (overviewData['statistics'] as Map<String, dynamic>?) ?? {};
 
-    final totalComplaints = _toInt(
-      stats['total_complaints'] ?? overviewData['total_complaints'],
-    );
-    final totalUsers = _toInt(stats['total_users'] ?? overviewData['total_users']);
-    final totalCategories = _toInt(
-      stats['total_categories'] ?? overviewData['total_categories'],
-    );
-    final totalAnnouncements = _toInt(
-      stats['total_announcements'] ?? overviewData['total_announcements'],
-    );
-
+    final totalComplaints = _toInt(stats['total_complaints'] ?? overviewData['total_complaints']);
     final byStatus = ((_statistics?['data'] as Map<String, dynamic>?)?['by_status'] as Map<String, dynamic>?) ??
         ((overviewData['complaints_by_status'] as Map<String, dynamic>?) ?? {});
-
-    final resolved = _toInt(byStatus['resolved'] ?? byStatus['completed']);
-    final pending = _toInt(byStatus['pending']);
+    final resolved   = _toInt(byStatus['resolved']   ?? byStatus['completed']);
+    final pending    = _toInt(byStatus['pending']);
     final inProgress = _toInt(byStatus['in_progress'] ?? byStatus['processing']);
-    final rejected = _toInt(byStatus['rejected']);
-
-    final resolutionRate = totalComplaints == 0 ? 0.0 : (resolved / totalComplaints * 100);
+    final rejected   = _toInt(byStatus['rejected']);
     final avgResponse = _extractAvgResponseHours();
 
     final byCategory = ((_statistics?['data'] as Map<String, dynamic>?)?['by_category'] as List?) ?? [];
-    final topCategories = byCategory.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).take(5).toList();
-
-    final complaintsMonth = _toInt(
-      ((_complaintsReport?['statistics'] as Map<String, dynamic>?)?['this_month']),
-    );
-    final usersMonth = _toInt(((_usersReport?['statistics'] as Map<String, dynamic>?)?['this_month']));
-    final commentsMonth = _toInt(
-      ((_overview?['data'] as Map<String, dynamic>?)?['new_comments_30_days']) ??
-          ((_overview?['data'] as Map<String, dynamic>?)?['comments_this_month']),
-    );
+    final topCategories = byCategory.whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .take(5)
+        .toList();
+    final maxCat = topCategories.isEmpty ? 1 :
+        topCategories.map((c) => _toInt(c['total'] ?? c['count'])).reduce(math.max);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        _summarySectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // ── Summary stat cards ──────────────────────────────
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.8,
             children: [
-              const Text('Ringkasan Laporan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 4),
-              Text(
-                'Pantau performa keluhan dan pengguna dalam satu tampilan.',
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 16),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final isNarrow = width < 520;
-                  final cardWidth = isNarrow ? width : (width - 10) / 2;
-
-                  return Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      SizedBox(
-                        width: cardWidth,
-                        child: _overviewCard('Total Keluhan', '$totalComplaints', '+$complaintsMonth bulan ini'),
-                      ),
-                      SizedBox(
-                        width: cardWidth,
-                        child: _overviewCard('Total Pengguna', '$totalUsers', '+$usersMonth bulan ini'),
-                      ),
-                      SizedBox(
-                        width: cardWidth,
-                        child: _overviewCard('Total Kategori', '$totalCategories', 'Aktif dan tidak aktif'),
-                      ),
-                      SizedBox(
-                        width: cardWidth,
-                        child: _overviewCard('Total Pengumuman', '$totalAnnouncements', 'Semua pengumuman'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 520;
-                  if (isNarrow) {
-                    return Column(
-                      children: [
-                        _overviewCard(
-                          'Tingkat Penyelesaian',
-                          '${resolutionRate.toStringAsFixed(0)}%',
-                          'dari total keluhan',
-                        ),
-                        const SizedBox(height: 8),
-                        _overviewCard(
-                          'Rata-rata Waktu Respon',
-                          '${avgResponse.toStringAsFixed(1)} jam',
-                          'Waktu rata-rata dari keluhan dibuat hingga direspon',
-                        ),
-                      ],
-                    );
-                  }
-
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: _overviewCard(
-                          'Tingkat Penyelesaian',
-                          '${resolutionRate.toStringAsFixed(0)}%',
-                          'dari total keluhan',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _overviewCard(
-                          'Rata-rata Waktu Respon',
-                          '${avgResponse.toStringAsFixed(1)} jam',
-                          'Waktu rata-rata dari keluhan dibuat hingga direspon',
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+              _summaryCard('Total Pengaduan', '$totalComplaints', AppTheme.primary, Icons.assignment_rounded),
+              _summaryCard('Selesai', '$resolved', const Color(0xFF059669), Icons.check_circle_rounded),
+              _summaryCard('Ditolak', '$rejected', const Color(0xFFDC2626), Icons.cancel_rounded),
+              _summaryCard('Rata-rata Waktu', '${avgResponse.toStringAsFixed(1)} hari', const Color(0xFF0891B2), Icons.timer_rounded),
             ],
           ),
-        ),
-        const SizedBox(height: 12),
-        _summarySectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Distribusi Status Keluhan', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              _statusRow('Dalam Proses', inProgress, Colors.blue),
-              _statusRow('Pending', pending, Colors.orange),
-              _statusRow('Selesai', resolved, Colors.green),
-              if (rejected > 0) _statusRow('Ditolak', rejected, Colors.red),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        _summarySectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Top 5 Kategori', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              if (topCategories.isEmpty)
-                Text('Belum ada data kategori', style: TextStyle(color: Colors.grey.shade600))
-              else
-                ...topCategories.map((cat) {
-                  final name = cat['category']?.toString() ?? cat['category_name']?.toString() ?? 'Kategori';
-                  final count = _toInt(cat['total'] ?? cat['count']);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.category_outlined, size: 16, color: AppTheme.primary),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(name)),
-                        Text('$count', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
+          const SizedBox(height: 24),
+
+          // ── Distribusi Status (pie chart) ───────────────────
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Distribusi Status',
+                    style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 120, height: 120,
+                      child: CustomPaint(
+                        painter: _PieChartPainter(
+                          segments: [
+                            (resolved.toDouble(),   AppTheme.primary),
+                            (inProgress.toDouble(), const Color(0xFF0891B2)),
+                            (pending.toDouble(),     const Color(0xFFD97706)),
+                            (rejected.toDouble(),    const Color(0xFFDC2626)),
+                          ],
+                        ),
+                      ),
                     ),
-                  );
-                }),
-            ],
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _legendItem('Selesai',   resolved,   AppTheme.primary, totalComplaints),
+                          _legendItem('Diproses',  inProgress, const Color(0xFF0891B2), totalComplaints),
+                          _legendItem('Menunggu',  pending,    const Color(0xFFD97706), totalComplaints),
+                          _legendItem('Ditolak',   rejected,   const Color(0xFFDC2626), totalComplaints),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        _summarySectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Aktivitas Terbaru (30 Hari Terakhir)', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 520;
-                  if (isNarrow) {
-                    return Column(
-                      children: [
-                        _activityCard('$complaintsMonth', 'Keluhan Baru'),
-                        const SizedBox(height: 8),
-                        _activityCard('$commentsMonth', 'Komentar Baru'),
-                      ],
-                    );
-                  }
+          const SizedBox(height: 16),
 
-                  return Row(
-                    children: [
-                      Expanded(child: _activityCard('$complaintsMonth', 'Keluhan Baru')),
-                      const SizedBox(width: 8),
-                      Expanded(child: _activityCard('$commentsMonth', 'Komentar Baru')),
-                    ],
-                  );
-                },
+          // ── Pengaduan per Kategori (bar chart) ──────────────
+          if (topCategories.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.border),
               ),
-              const SizedBox(height: 12),
-              const Text('Aksi Cepat', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _tabController.animateTo(0),
-                    icon: const Icon(Icons.description),
-                    label: const Text('Laporan Keluhan'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _tabController.animateTo(1),
-                    icon: const Icon(Icons.people),
-                    label: const Text('Laporan Pengguna'),
-                  ),
+                  Text('Pengaduan per Kategori',
+                      style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  const SizedBox(height: 14),
+                  ...topCategories.map((cat) {
+                    final name  = cat['category']?.toString() ?? cat['category_name']?.toString() ?? 'Kategori';
+                    final count = _toInt(cat['total'] ?? cat['count']);
+                    final ratio = maxCat == 0 ? 0.0 : count / maxCat;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 110,
+                            child: Text(name,
+                                style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary),
+                                maxLines: 1, overflow: TextOverflow.ellipsis),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: ratio,
+                                minHeight: 12,
+                                backgroundColor: Colors.grey.shade100,
+                                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('$count',
+                              style: GoogleFonts.nunito(
+                                  fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                        ],
+                      ),
+                    );
+                  }),
                 ],
               ),
+            ),
+        ],
+      ),
+    );
+
+  }
+
+  Widget _summaryCard(String label, String value, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(icon, size: 22, color: color),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value,
+                  style: GoogleFonts.nunito(
+                      fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              Text(label,
+                  style: GoogleFonts.nunito(
+                      fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
             ],
           ),
-        ),
-      ],
-    ),
+        ],
+      ),
     );
   }
 
-
+  Widget _legendItem(String label, int count, Color color, int total) {
+    final pct = total == 0 ? 0.0 : count / total * 100;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Expanded(child: Text(label, style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textPrimary))),
+          Text('$count (${pct.toStringAsFixed(1)}%)',
+              style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+        ],
+      ),
+    );
+  }
 
   Widget _buildComplaintReportPage() {
     final total = _filteredComplaintItems.length;
@@ -1561,5 +1580,32 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     }
     return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
   }
+}
 
+// ─── Pie Chart Painter ────────────────────────────────────────────────────────
+class _PieChartPainter extends CustomPainter {
+  final List<(double, Color)> segments;
+  const _PieChartPainter({required this.segments});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final total = segments.fold(0.0, (s, e) => s + e.$1);
+    if (total == 0) return;
+
+    final paint = Paint()..style = PaintingStyle.stroke..strokeWidth = size.width * 0.28;
+    final radius = size.width / 2 * 0.72;
+    final center = Offset(size.width / 2, size.height / 2);
+    final smallRect = Rect.fromCircle(center: center, radius: radius);
+
+    double startAngle = -math.pi / 2;
+    for (final seg in segments) {
+      final sweep = seg.$1 / total * 2 * math.pi;
+      paint.color = seg.$2;
+      canvas.drawArc(smallRect, startAngle, sweep - 0.04, false, paint);
+      startAngle += sweep;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PieChartPainter old) => old.segments != segments;
 }
