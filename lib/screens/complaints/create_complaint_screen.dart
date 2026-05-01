@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/complaint_provider.dart';
 import '../../models/complaint_model.dart';
 import '../../theme/app_theme.dart';
+import 'complaint_form_widgets.dart';
 
 class CreateComplaintScreen extends StatefulWidget {
   const CreateComplaintScreen({super.key});
@@ -21,25 +22,26 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
-  
+
   DateTime? _selectedDate;
   int? _selectedCategoryId;
   final List<File> _images = [];
   bool _isLoading = false;
-  
+  int _descLength = 0;
+
   List<Category> _categories = [];
 
   @override
   void initState() {
     super.initState();
-    // Get categories from provider (already loaded in ComplaintListScreen)
+    _descriptionController.addListener(() {
+      setState(() => _descLength = _descriptionController.text.length);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final provider = context.read<ComplaintProvider>();
         setState(() {
-          _categories = provider.categories;
+          _categories = context.read<ComplaintProvider>().categories;
         });
-        print('📋 [CreateComplaint] Using ${_categories.length} categories from provider');
       }
     });
   }
@@ -52,119 +54,29 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
     super.dispose();
   }
 
-
-
   Future<void> _pickImage(ImageSource source) async {
+    if (_images.length >= 5) {
+      _showSnack('Maksimal 5 foto', isError: true);
+      return;
+    }
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
+      final picked = await ImagePicker().pickImage(
         source: source,
         maxWidth: 1920,
         maxHeight: 1080,
         imageQuality: 85,
       );
-
-      if (pickedFile != null) {
-        setState(() {
-          _images.add(File(pickedFile.path));
-        });
-      }
+      if (picked != null) setState(() => _images.add(File(picked.path)));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal mengambil gambar: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showSnack('Gagal mengambil gambar: $e', isError: true);
     }
   }
 
-  void _showImageSourceDialog() {
+  void _showImageSourceSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Pilih Sumber Gambar',
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: AppTheme.primary,
-                  ),
-                ),
-                title: Text(
-                  'Kamera',
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.photo_library,
-                    color: AppTheme.primary,
-                  ),
-                ),
-                title: Text(
-                  'Galeri',
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
+      builder: (_) => ImageSourceSheet(onCamera: () => _pickImage(ImageSource.camera), onGallery: () => _pickImage(ImageSource.gallery)),
     );
   }
 
@@ -174,546 +86,421 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primary,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Color(0xFF1F2937),
-            ),
-          ),
-          child: child!,
-        );
-      },
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppTheme.primary, onPrimary: Colors.white),
+        ),
+        child: child!,
+      ),
     );
-
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
+    if (picked != null) setState(() => _selectedDate = picked);
   }
 
-  Future<void> _submitComplaint() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Guard: user must be verified by admin
-    final authProvider = context.read<AuthProvider>();
-    if (authProvider.user?.isUserVerified == false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Akun Anda belum diverifikasi oleh admin. Harap tunggu verifikasi KTP terlebih dahulu.'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
-        ),
-      );
+    final auth = context.read<AuthProvider>();
+    if (auth.user?.isUserVerified == false) {
+      _showSnack('Akun belum diverifikasi. Harap tunggu verifikasi KTP.', isError: true);
       return;
     }
-
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pilih kategori terlebih dahulu'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnack('Pilih kategori terlebih dahulu', isError: true);
       return;
     }
-
     if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pilih tanggal kejadian terlebih dahulu'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnack('Pilih tanggal kejadian terlebih dahulu', isError: true);
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      final provider = context.read<ComplaintProvider>();
-      
-      // Convert File objects to String paths
-      final attachmentPaths = _images.map((file) => file.path).toList();
-      
-      await provider.createComplaint(
+      await context.read<ComplaintProvider>().createComplaint(
         categoryId: _selectedCategoryId!,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         location: _locationController.text.trim(),
         reportDate: _selectedDate!,
-        attachments: attachmentPaths,
+        attachments: _images.map((f) => f.path).toList(),
       );
-
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pengaduan berhasil dibuat'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Return true to indicate success
+        _showSnack('Pengaduan berhasil dibuat');
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal membuat pengaduan: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (mounted) _showSnack('Gagal membuat pengaduan: $e', isError: true);
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showSnack(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+      backgroundColor: isError ? Colors.red.shade700 : AppTheme.primary,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final isVerified = authProvider.user?.isUserVerified ?? true;
+    final isVerified = context.watch<AuthProvider>().user?.isUserVerified ?? true;
 
     return Scaffold(
-      backgroundColor: AppTheme.surface,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F2937)),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          color: AppTheme.textPrimary,
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Buat Pengaduan',
-          style: GoogleFonts.nunito(
-            color: const Color(0xFF1F2937),
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
+        title: Text('Lapor Keluhan',
+            style: GoogleFonts.nunito(
+                color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 18)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(height: 1, color: AppTheme.border),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Verification warning banner
-            if (!isVerified) ...[
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFDBA74), width: 1.2),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        color: Color(0xFFEA580C), size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Akun Belum Terverifikasi',
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF9A3412),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'KTP Anda sedang menunggu verifikasi dari admin. Anda tidak dapat mengirim pengaduan sampai akun terverifikasi.',
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              color: const Color(0xFF9A3412),
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            // Category Dropdown
-            _buildSectionTitle('Kategori'),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: DropdownButtonFormField<int>(
-                value: _selectedCategoryId,
-                decoration: InputDecoration(
-                  hintText: _categories.isEmpty 
-                      ? 'Tidak ada kategori tersedia' 
-                      : 'Pilih kategori pengaduan',
-                  hintStyle: GoogleFonts.nunito(
-                    color: const Color(0xFF9CA3AF),
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.category_outlined,
-                    color: AppTheme.primary,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                ),
-                isExpanded: true,
-                items: _categories.isEmpty 
-                    ? null 
-                    : _categories
-                        .map((category) => DropdownMenuItem<int>(
-                              value: category.id,
-                              child: Text(
-                                category.name,
-                                style: GoogleFonts.nunito(),
-                              ),
-                            ))
-                        .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategoryId = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) return 'Pilih kategori';
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Title
-            _buildSectionTitle('Judul Pengaduan'),
-            const SizedBox(height: 8),
-            _buildTextField(
-              controller: _titleController,
-              hintText: 'Contoh: Jalan rusak di Gang Annur 2',
-              prefixIcon: Icons.title,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Judul tidak boleh kosong';
-                }
-                if (value.trim().length < 10) {
-                  return 'Judul minimal 10 karakter';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Description
-            _buildSectionTitle('Deskripsi'),
-            const SizedBox(height: 8),
-            _buildTextField(
-              controller: _descriptionController,
-              hintText: 'Jelaskan detail pengaduan Anda...',
-              prefixIcon: Icons.description_outlined,
-              maxLines: 5,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Deskripsi tidak boleh kosong';
-                }
-                if (value.trim().length < 20) {
-                  return 'Deskripsi minimal 20 karakter';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Location
-            _buildSectionTitle('Lokasi'),
-            const SizedBox(height: 8),
-            _buildTextField(
-              controller: _locationController,
-              hintText: 'Contoh: Gang Annur 2 RT 05',
-              prefixIcon: Icons.location_on_outlined,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Lokasi tidak boleh kosong';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Report Date
-            _buildSectionTitle('Tanggal Kejadian'),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: InkWell(
-                onTap: _selectDate,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        color: AppTheme.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        _selectedDate == null
-                            ? 'Pilih tanggal'
-                            : DateFormat('dd/MM/yyyy')
-                                .format(_selectedDate!),
-                        style: GoogleFonts.nunito(
-                          color: _selectedDate == null
-                              ? const Color(0xFF9CA3AF)
-                              : const Color(0xFF1F2937),
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Images
-            _buildSectionTitle('Foto (Opsional)'),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
+      body: Column(
+        children: [
+          // ── Step indicator ─────────────────────────────────
+          ComplaintStepIndicator(current: 1),
+          // ── Form ───────────────────────────────────────────
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                 children: [
-                  if (_images.isNotEmpty) ...[
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemCount: _images.length,
-                      itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                _images[index],
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            ),
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _images.removeAt(index);
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 4,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.close,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    const Divider(),
-                  ],
-                  InkWell(
-                    onTap: _showImageSourceDialog,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.add_photo_alternate,
-                            color: AppTheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Tambah Foto',
-                            style: GoogleFonts.nunito(
-                              color: AppTheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  // Verification warning
+                  if (!isVerified) _buildVerifWarning(),
+
+                  _buildGroupLabel('Informasi Keluhan'),
+                  const SizedBox(height: 16),
+
+                  // Kategori
+                  _buildFieldLabel('Kategori Keluhan'),
+                  const SizedBox(height: 6),
+                  _buildCategoryDropdown(),
+                  const SizedBox(height: 16),
+
+                  // Lokasi
+                  _buildFieldLabel('Lokasi Kejadian'),
+                  const SizedBox(height: 6),
+                  _buildTextField(
+                    controller: _locationController,
+                    hint: 'Masukkan lokasi kejadian',
+                    suffix: const Icon(Icons.location_on_outlined, color: AppTheme.textSecondary, size: 20),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Lokasi tidak boleh kosong' : null,
                   ),
+                  const SizedBox(height: 16),
+
+                  // Judul
+                  _buildFieldLabel('Judul Keluhan'),
+                  const SizedBox(height: 6),
+                  _buildTextField(
+                    controller: _titleController,
+                    hint: 'Tuliskan ringkasan keluhan Anda',
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Judul tidak boleh kosong';
+                      if (v.trim().length < 10) return 'Judul minimal 10 karakter';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Deskripsi
+                  _buildFieldLabel('Deskripsi Keluhan'),
+                  const SizedBox(height: 6),
+                  _buildDescriptionField(),
+                  const SizedBox(height: 16),
+
+                  // Tanggal
+                  _buildFieldLabel('Tanggal Kejadian'),
+                  const SizedBox(height: 6),
+                  _buildDateField(),
+                  const SizedBox(height: 20),
+
+                  // Foto
+                  _buildFieldLabel('Unggah Foto'),
+                  Text('Lampirkan foto untuk memperjelas keluhan Anda.',
+                      style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                  const SizedBox(height: 10),
+                  _buildPhotoSection(),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+          ),
+          // ── Bottom button ───────────────────────────────────
+          _buildBottomButton(isVerified),
+        ],
+      ),
+    );
+  }
 
-            // Submit Button
-            SizedBox(
-              height: 54,
-              child: ElevatedButton(
-                onPressed: (_isLoading || !isVerified) ? null : _submitComplaint,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  disabledBackgroundColor: AppTheme.primary.withOpacity(0.5),
+  // ── Widgets ───────────────────────────────────────────────────
+
+  Widget _buildVerifWarning() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFDBA74), width: 1.2),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Color(0xFFEA580C), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Akun Belum Terverifikasi — KTP Anda sedang menunggu verifikasi admin.',
+              style: GoogleFonts.nunito(fontSize: 12, color: const Color(0xFF9A3412), height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupLabel(String label) {
+    return Text(label,
+        style: GoogleFonts.nunito(
+            fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary));
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Text(label,
+        style: GoogleFonts.nunito(
+            fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary));
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    Widget? suffix,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+        suffixIcon: suffix != null ? Padding(padding: const EdgeInsets.only(right: 12), child: suffix) : null,
+        suffixIconConstraints: const BoxConstraints(),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.red.shade400)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.red.shade400, width: 1.5)),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildCategoryDropdown() {
+    return DropdownButtonFormField<int>(
+      value: _selectedCategoryId,
+      style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
+      decoration: InputDecoration(
+        hintText: _categories.isEmpty ? 'Tidak ada kategori' : 'Pilih kategori keluhan',
+        hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.red.shade400)),
+      ),
+      isExpanded: true,
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textSecondary),
+      items: _categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, style: GoogleFonts.nunito(fontSize: 14)))).toList(),
+      onChanged: (v) => setState(() => _selectedCategoryId = v),
+      validator: (v) => v == null ? 'Pilih kategori' : null,
+    );
+  }
+
+  Widget _buildDescriptionField() {
+    return Stack(
+      children: [
+        TextFormField(
+          controller: _descriptionController,
+          maxLines: 6,
+          maxLength: 500,
+          buildCounter: (_, {required currentLength, required isFocused, maxLength}) => const SizedBox.shrink(),
+          style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
+          decoration: InputDecoration(
+            hintText: 'Jelaskan keluhan Anda secara detail',
+            hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.fromLTRB(14, 14, 14, 32),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+            errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.red.shade400)),
+          ),
+          validator: (v) {
+            if (v == null || v.trim().isEmpty) return 'Deskripsi tidak boleh kosong';
+            if (v.trim().length < 20) return 'Deskripsi minimal 20 karakter';
+            return null;
+          },
+        ),
+        Positioned(
+          bottom: 10,
+          right: 12,
+          child: Text('$_descLength/500',
+              style: GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade400)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField() {
+    return GestureDetector(
+      onTap: _selectDate,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _selectedDate == null
+                    ? 'Pilih tanggal kejadian'
+                    : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedDate!),
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  color: _selectedDate == null ? Colors.grey.shade400 : AppTheme.textPrimary,
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : Text(
-                        !isVerified ? 'Akun Belum Terverifikasi' : 'Kirim Pengaduan',
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
               ),
             ),
-            const SizedBox(height: 16),
+            Icon(Icons.calendar_today_rounded, size: 18, color: AppTheme.textSecondary),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.nunito(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFF1F2937),
-      ),
+  Widget _buildPhotoSection() {
+    return Column(
+      children: [
+        // Existing photos grid
+        if (_images.isNotEmpty) ...[
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8,
+            ),
+            itemCount: _images.length,
+            itemBuilder: (_, i) => Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(_images[i], fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                ),
+                Positioned(
+                  top: 4, right: 4,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _images.removeAt(i)),
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                      child: const Icon(Icons.close, size: 14, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        // Upload area (dashed border)
+        if (_images.length < 5)
+          GestureDetector(
+            onTap: _showImageSourceSheet,
+            child: CustomPaint(
+              painter: DashedBorderPainter(color: AppTheme.border),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 28),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.cloud_upload_outlined, size: 36, color: Colors.grey.shade400),
+                    const SizedBox(height: 8),
+                    Text('Seret & lepas foto di sini',
+                        style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary)),
+                    const SizedBox(height: 4),
+                    Text('atau', style: GoogleFonts.nunito(fontSize: 12, color: Colors.grey.shade400)),
+                    const SizedBox(height: 4),
+                    Text('Pilih Foto dari Galeri',
+                        style: GoogleFonts.nunito(
+                            fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppTheme.primary)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        const SizedBox(height: 6),
+        Text('Maks. 5 foto (5MB per foto)',
+            style: GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade400)),
+      ],
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hintText,
-    required IconData prefixIcon,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildBottomButton(bool isVerified) {
     return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border(top: BorderSide(color: AppTheme.border)),
       ),
-      child: TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        style: GoogleFonts.nunito(),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: GoogleFonts.nunito(
-            color: const Color(0xFF9CA3AF),
+      child: SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          onPressed: (_isLoading || !isVerified) ? null : _submit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            disabledBackgroundColor: AppTheme.primary.withValues(alpha: 0.4),
           ),
-          prefixIcon: Icon(
-            prefixIcon,
-            color: AppTheme.primary,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
+          child: _isLoading
+              ? const SizedBox(width: 22, height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : Text(
+                  isVerified ? 'Lanjutkan' : 'Akun Belum Terverifikasi',
+                  style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
-        validator: validator,
       ),
     );
   }

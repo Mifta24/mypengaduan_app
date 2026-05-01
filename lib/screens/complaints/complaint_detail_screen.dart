@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -408,14 +408,49 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     );
   }
 
+  // ── Status helper ─────────────────────────────────────────────
+  _StatusInfo _statusInfo(String status) {
+    switch (status) {
+      case 'pending':
+        return _StatusInfo('Menunggu', const Color(0xFFD97706), const Color(0xFFFEF3C7));
+      case 'in_progress':
+        return _StatusInfo('Diproses', const Color(0xFF0891B2), const Color(0xFFDBEAFE));
+      case 'waiting_user_confirmation':
+        return _StatusInfo('Menunggu Konfirmasi', const Color(0xFFEA580C), const Color(0xFFFFF7ED));
+      case 'resolved':
+        return _StatusInfo('Selesai', AppTheme.primary, const Color(0xFFD1FAE5));
+      case 'rejected':
+        return _StatusInfo('Ditolak', const Color(0xFFDC2626), const Color(0xFFFEE2E2));
+      default:
+        return _StatusInfo(status, Colors.grey, Colors.grey.shade100);
+    }
+  }
+
+  // step 0=pending,1=done,2=active
+  int _stepState(int step, String status) {
+    final order = {'pending': 0, 'in_progress': 2, 'waiting_user_confirmation': 3, 'resolved': 4, 'rejected': -1};
+    final idx = order[status] ?? 0;
+    if (status == 'rejected') return step == 0 ? 1 : -1;
+    if (idx >= step + 1) return 1;   // done
+    if (idx == step) return 2;        // active
+    return 0;                          // pending
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading || _complaint == null) {
+    if (_isLoading && _complaint == null) {
       return Scaffold(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: AppTheme.primary,
-          title: const Text('Detail Pengaduan'),
+          backgroundColor: Colors.white,
+          centerTitle: true,
+          title: Text('Detail Keluhan',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            color: AppTheme.textPrimary,
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         body: const Center(
           child: CircularProgressIndicator(
@@ -425,184 +460,616 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       );
     }
 
+    if (_complaint == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Detail Keluhan')),
+        body: const Center(child: Text('Data tidak ditemukan')),
+      );
+    }
+
+    final c = _complaint!;
+    final si = _statusInfo(c.status);
+
     return Scaffold(
       backgroundColor: AppTheme.surface,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar with Gradient
-          SliverAppBar(
-            expandedHeight: 120,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: AppTheme.primary,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          color: AppTheme.textPrimary,
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text('Detail Keluhan',
+            style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.textPrimary)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(height: 1, color: AppTheme.border),
+        ),
+        actions: [
+          // Konfirmasi penyelesaian (user)
+          if (!_isAdminSession && c.status == 'waiting_user_confirmation')
+            TextButton.icon(
+              onPressed: _confirmResolution,
+              icon: const Icon(Icons.verified, size: 17, color: AppTheme.primary),
+              label: Text('Konfirmasi',
+                  style: GoogleFonts.nunito(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 13)),
             ),
-            actions: [
-              if (_isAdminSession &&
-                  _complaint!.status != 'resolved' &&
-                  _complaint!.status != 'rejected' &&
-                  _complaint!.status != 'waiting_user_confirmation')
-                TextButton.icon(
-                  onPressed: _handleResolve,
-                  icon: const Icon(Icons.check_circle_outline,
-                      color: Colors.white, size: 18),
-                  label: Text(
-                    'Selesaikan',
-                    style: GoogleFonts.nunito(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              if (!_isAdminSession &&
-                  _complaint!.status == 'waiting_user_confirmation')
-                TextButton.icon(
-                  onPressed: _confirmResolution,
-                  icon:
-                      const Icon(Icons.verified, color: Colors.white, size: 18),
-                  label: Text(
-                    'Konfirmasi',
-                    style: GoogleFonts.nunito(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              // Export PDF button for regular users
-              if (!_isAdminSession)
-                IconButton(
-                  icon: const Icon(Icons.picture_as_pdf_outlined, color: Colors.white),
-                  tooltip: 'Export PDF',
-                  onPressed: _isLoading ? null : _exportComplaintPdf,
-                ),
-              if (_isAdminSession)
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _handleEditComplaint();
-                    } else if (value == 'delete') {
-                      _handleDeleteComplaint();
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 18),
-                          SizedBox(width: 8),
-                          Text('Edit Pengaduan'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 18, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Hapus Pengaduan'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+          // Selesaikan (admin)
+          if (_isAdminSession &&
+              c.status != 'resolved' &&
+              c.status != 'rejected' &&
+              c.status != 'waiting_user_confirmation')
+            TextButton(
+              onPressed: _handleResolve,
+              child: Text('Selesaikan',
+                  style: GoogleFonts.nunito(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 13)),
+            ),
+          // PDF export (user)
+          if (!_isAdminSession)
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf_outlined, color: AppTheme.textSecondary),
+              tooltip: 'Export PDF',
+              onPressed: _isLoading ? null : _exportComplaintPdf,
+            ),
+          // Admin menu
+          if (_isAdminSession)
+            PopupMenuButton<String>(
+              onSelected: (v) {
+                if (v == 'edit') _handleEditComplaint();
+                if (v == 'delete') _handleDeleteComplaint();
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18), SizedBox(width: 8), Text('Edit')])),
+                PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 18, color: Colors.red), SizedBox(width: 8), Text('Hapus', style: TextStyle(color: Colors.red))])),
+              ],
+            ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadComplaint,
+        color: AppTheme.primary,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+          children: [
+            // ── 1. ID + Status badge ─────────────────────────
+            _buildIdCard(c, si),
+            const SizedBox(height: 16),
+
+            // ── 2. Judul + Kategori + Deskripsi ─────────────
+            _buildMainCard(c),
+            const SizedBox(height: 16),
+
+            // ── 3. Status tracking timeline ──────────────────
+            _buildStatusTracking(c),
+            const SizedBox(height: 16),
+
+            // ── 4. Lokasi ─────────────────────────────────────
+            _buildLocationCard(c),
+            const SizedBox(height: 16),
+
+            // ── 5. Foto lampiran ──────────────────────────────
+            if (c.photoUrl != null || (c.attachments?.isNotEmpty == true)) ...[
+              _buildPhotosSection(c),
+              const SizedBox(height: 16),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Detail Pengaduan',
-                style: GoogleFonts.nunito(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
+
+            // ── 6. Riwayat tanggapan ──────────────────────────
+            if (c.responses.isNotEmpty) ...[
+              _buildResponseThread(c),
+              const SizedBox(height: 16),
+            ],
+
+            // ── 7. Legacy admin response ──────────────────────
+            if (c.responses.isEmpty && c.adminResponse?.isNotEmpty == true) ...[
+              _buildLegacyAdminResponse(c),
+              const SizedBox(height: 16),
+            ],
+
+            // ── 8. Foto dokumentasi penyelesaian ─────────────
+            if (_resolutionPhotoUrls.isNotEmpty) ...[
+              _buildResolutionPhotosSection(),
+              const SizedBox(height: 16),
+            ],
+
+            // ── 9. Info pelapor (admin) ───────────────────────
+            if (_isAdminSession && _reporter != null) ...[
+              _buildReporterInfoCard(),
+              const SizedBox(height: 16),
+            ],
+
+            // ── 10. Form kirim pesan ──────────────────────────
+            if (c.status != 'resolved' && c.status != 'rejected') ...[
+              _buildResponseForm(),
+              const SizedBox(height: 16),
+            ],
+
+            // ── 11. Konfirmasi penyelesaian card ──────────────
+            if (!_isAdminSession && c.status == 'waiting_user_confirmation')
+              _buildUserConfirmationActionCard(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── UI Widgets ───────────────────────────────────────────────
+
+  Widget _buildIdCard(Complaint c, _StatusInfo si) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  'Keluhan #${c.id.toString().padLeft(4, '0')}',
+                  style: GoogleFonts.nunito(
+                      fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                 ),
               ),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF15803D), AppTheme.primary, AppTheme.secondary],
-                  ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: si.bg,
+                  borderRadius: BorderRadius.circular(20),
                 ),
+                child: Text(si.label,
+                    style: GoogleFonts.nunito(
+                        fontSize: 12, fontWeight: FontWeight.w700, color: si.color)),
               ),
-            ),
+            ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            'Dibuat pada ${DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(c.createdAt)} WIB',
+            style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
 
-          // Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildMainCard(Complaint c) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Category badge
+          if (c.category != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Status Card
-                  _buildStatusCard(),
-                  const SizedBox(height: 16),
-
-                  if (!_isAdminSession &&
-                      _complaint!.status == 'waiting_user_confirmation') ...[
-                    _buildUserConfirmationActionCard(),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Ringkasan Status
-                  _buildStatusSummaryCard(),
-                  const SizedBox(height: 16),
-
-                  // Informasi Pelapor
-                  _buildReporterInfoCard(),
-                  const SizedBox(height: 16),
-
-                  // Main Info Card
-                  _buildMainInfoCard(),
-                  const SizedBox(height: 16),
-
-                  // Images & attachments (if available)
-                  if (_complaint!.photoUrl != null ||
-                      (_complaint!.attachments != null &&
-                          _complaint!.attachments!.isNotEmpty)) ...[
-                    _buildImagesSection(),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Location Card
-                  _buildLocationCard(),
-                  const SizedBox(height: 16),
-
-                  // Response thread
-                  if (_complaint!.responses.isNotEmpty) ...[
-                    _buildResponsesThreadCard(),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Legacy admin response fallback (for old payload)
-                  if (_complaint!.responses.isEmpty &&
-                      _complaint!.adminResponse != null &&
-                      _complaint!.adminResponse!.isNotEmpty) ...[
-                    _buildAdminResponseCard(),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Response input disabled only when complaint already final
-                  if (_complaint!.status != 'resolved' &&
-                      _complaint!.status != 'rejected') ...[
-                    _buildAdminResponseForm(),
-                    const SizedBox(height: 16),
-                  ],
-
-                  if (_resolutionPhotoUrls.isNotEmpty) ...[
-                    _buildResolutionPhotosSection(),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Timeline Card
-                  _buildTimelineCard(),
-                  const SizedBox(height: 16),
+                  Icon(Icons.sell_outlined, size: 13, color: AppTheme.primary),
+                  const SizedBox(width: 5),
+                  Text(c.category!.name,
+                      style: GoogleFonts.nunito(
+                          fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.primary)),
                 ],
               ),
+            ),
+          const SizedBox(height: 12),
+          Text(c.title,
+              style: GoogleFonts.nunito(
+                  fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, height: 1.3)),
+          const SizedBox(height: 12),
+          Divider(color: AppTheme.border),
+          const SizedBox(height: 8),
+          Text('Deskripsi',
+              style: GoogleFonts.nunito(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+          const SizedBox(height: 6),
+          Text(c.description,
+              style: GoogleFonts.nunito(
+                  fontSize: 14, color: AppTheme.textPrimary, height: 1.6)),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(Icons.calendar_today_outlined, size: 13, color: AppTheme.textSecondary),
+              const SizedBox(width: 5),
+              Text('Tanggal kejadian: ${DateFormat('dd MMM yyyy', 'id_ID').format(c.reportDate)}',
+                  style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusTracking(Complaint c) {
+    final steps = [
+      ('Diterima',       'Keluhan Anda telah diterima.'),
+      ('Diverifikasi',   'Keluhan Anda sedang diverifikasi.'),
+      ('Dalam Proses',   'Keluhan Anda sedang dalam proses penanganan.'),
+      ('Selesai',        'Keluhan Anda telah selesai ditangani.'),
+    ];
+
+    // map each step's approximate timestamp
+    final times = [
+      c.createdAt,
+      c.updatedAt,
+      c.updatedAt,
+      c.updatedAt,
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Status Penanganan',
+              style: GoogleFonts.nunito(
+                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 16),
+          ...List.generate(steps.length, (i) {
+            final state = _stepState(i, c.status); // 0=pending,1=done,2=active,-1=rejected
+            final isLast = i == steps.length - 1;
+            return _buildTrackingStep(
+              title: steps[i].$1,
+              desc: steps[i].$2,
+              time: state >= 1 ? times[i] : null,
+              state: state,
+              isLast: isLast,
+            );
+          }),
+          if (c.status == 'rejected') ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cancel_outlined, color: Color(0xFFDC2626), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Pengaduan ini ditolak dan tidak dapat diproses.',
+                        style: GoogleFonts.nunito(
+                            fontSize: 12, color: const Color(0xFFDC2626))),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackingStep({
+    required String title,
+    required String desc,
+    DateTime? time,
+    required int state, // 0=pending,1=done,2=active,-1=rejected
+    required bool isLast,
+  }) {
+    Color circleColor;
+    Color lineColor;
+    Widget circleChild;
+
+    if (state == 1) {
+      circleColor = AppTheme.primary;
+      lineColor = AppTheme.primary;
+      circleChild = const Icon(Icons.check_rounded, size: 14, color: Colors.white);
+    } else if (state == 2) {
+      circleColor = const Color(0xFFEA580C);
+      lineColor = AppTheme.border;
+      circleChild = Container(width: 8, height: 8,
+          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle));
+    } else {
+      circleColor = Colors.grey.shade300;
+      lineColor = AppTheme.border;
+      circleChild = Container(width: 8, height: 8,
+          decoration: BoxDecoration(color: Colors.grey.shade400, shape: BoxShape.circle));
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Icon + line column
+        SizedBox(
+          width: 28,
+          child: Column(
+            children: [
+              Container(
+                width: 28, height: 28,
+                decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
+                child: Center(child: circleChild),
+              ),
+              if (!isLast)
+                Container(
+                  width: 2, height: 44,
+                  color: lineColor,
+                  margin: const EdgeInsets.symmetric(vertical: 2),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Text content
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, fontWeight: FontWeight.w700,
+                        color: state == 0 ? Colors.grey.shade400 : AppTheme.textPrimary)),
+                if (time != null) ...[
+                  const SizedBox(height: 2),
+                  Text(DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(time),
+                      style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+                ],
+                const SizedBox(height: 3),
+                Text(desc,
+                    style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        color: state == 0 ? Colors.grey.shade400 : AppTheme.textSecondary,
+                        height: 1.4)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationCard(Complaint c) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Lokasi Kejadian',
+              style: GoogleFonts.nunito(
+                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.location_on_rounded, size: 20, color: AppTheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(c.location,
+                    style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary, height: 1.5)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotosSection(Complaint c) {
+    final urls = <String>[];
+    if (c.photoUrl?.isNotEmpty == true) {
+      final u = _normalizeImageUrl(c.photoUrl!);
+      if (u.isNotEmpty) urls.add(u);
+    }
+    if (c.attachments != null) {
+      urls.addAll(c.attachments!
+          .map((a) => _normalizeImageUrl(a.fileUrl))
+          .where((u) => u.isNotEmpty).toList());
+    }
+    if (urls.isEmpty) return const SizedBox.shrink();
+
+    const maxShow = 3;
+    final shown = urls.take(maxShow).toList();
+    final extra = urls.length - maxShow;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Foto Lampiran',
+              style: GoogleFonts.nunito(
+                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(shown.length, (i) {
+              final isLast = i == shown.length - 1;
+              final showOverlay = isLast && extra > 0;
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(right: i < shown.length - 1 ? 8 : 0),
+                  child: GestureDetector(
+                    onTap: () => _showFullImage(showOverlay ? urls[i] : shown[i]),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: shown[i],
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(color: Colors.grey.shade200),
+                              errorWidget: (_, __, ___) => Container(
+                                  color: Colors.grey.shade200,
+                                  child: Icon(Icons.broken_image, color: Colors.grey.shade400)),
+                            ),
+                            if (showOverlay)
+                              Container(
+                                color: Colors.black.withValues(alpha: 0.55),
+                                child: Center(
+                                  child: Text('+$extra',
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 18, fontWeight: FontWeight.w800,
+                                          color: Colors.white)),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResponseThread(Complaint c) {
+    final thread = [...c.responses]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Tanggapan Petugas',
+              style: GoogleFonts.nunito(
+                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          ...thread.map((item) {
+            final isAdmin = item.isAdmin;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isAdmin
+                    ? AppTheme.primary.withValues(alpha: 0.05)
+                    : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: isAdmin
+                        ? AppTheme.primary.withValues(alpha: 0.15)
+                        : AppTheme.border),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Avatar
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: isAdmin ? AppTheme.primary : Colors.grey.shade300,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        item.userName.isNotEmpty ? item.userName[0].toUpperCase() : 'A',
+                        style: GoogleFonts.nunito(
+                            fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(isAdmin ? 'Admin' : item.userName,
+                                style: GoogleFonts.nunito(
+                                    fontSize: 13, fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimary)),
+                            const Spacer(),
+                            Text(
+                              DateFormat('dd MMM, HH:mm', 'id_ID').format(item.createdAt),
+                              style: GoogleFonts.nunito(
+                                  fontSize: 11, color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Text(item.message,
+                            style: GoogleFonts.nunito(
+                                fontSize: 13, color: AppTheme.textPrimary, height: 1.5)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegacyAdminResponse(Complaint c) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34, height: 34,
+            decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+            child: const Center(child: Icon(Icons.admin_panel_settings, size: 18, color: Colors.white)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Admin',
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                const SizedBox(height: 5),
+                Text(c.adminResponse!,
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, color: AppTheme.textPrimary, height: 1.5)),
+              ],
             ),
           ),
         ],
@@ -610,103 +1077,62 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     );
   }
 
-  Widget _buildStatusCard() {
-    Color backgroundColor;
-    Color textColor;
-    String text;
-    IconData icon;
-    String description;
-
-    switch (_complaint!.status) {
-      case 'pending':
-        backgroundColor = const Color(0xFFFEF3C7);
-        textColor = const Color(0xFFD97706);
-        text = 'Menunggu';
-        icon = Icons.schedule;
-        description = 'Pengaduan Anda sedang menunggu untuk diproses';
-        break;
-      case 'in_progress':
-        backgroundColor = const Color(0xFFDBEAFE);
-        textColor = const Color(0xFF0891B2);
-        text = 'Diproses';
-        icon = Icons.sync;
-        description = 'Pengaduan Anda sedang dalam proses penanganan';
-        break;
-      case 'waiting_user_confirmation':
-        backgroundColor = const Color(0xFFFFF7ED);
-        textColor = const Color(0xFFEA580C);
-        text = 'Menunggu Konfirmasi';
-        icon = Icons.hourglass_top;
-        description =
-            'Admin sudah menyelesaikan pengaduan. Silakan konfirmasi.';
-        break;
-      case 'resolved':
-        backgroundColor = const Color(0xFFD1FAE5);
-        textColor = const Color(0xFF059669);
-        text = 'Selesai';
-        icon = Icons.check_circle;
-        description = 'Pengaduan Anda telah selesai ditangani';
-        break;
-      case 'rejected':
-        backgroundColor = const Color(0xFFFEE2E2);
-        textColor = const Color(0xFFDC2626);
-        text = 'Ditolak';
-        icon = Icons.cancel;
-        description = 'Pengaduan Anda tidak dapat diproses';
-        break;
-      default:
-        backgroundColor = const Color(0xFFF3F4F6);
-        textColor = const Color(0xFF6B7280);
-        text = _complaint!.status;
-        icon = Icons.info;
-        description = 'Status pengaduan';
-    }
-
+  Widget _buildResponseForm() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: textColor.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: textColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+          Text(_isAdminSession ? 'Berikan Tanggapan' : 'Beri Umpan Balik',
+              style: GoogleFonts.nunito(
+                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _responseController,
+            maxLines: 4,
+            style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
+            decoration: InputDecoration(
+              hintText: _isAdminSession
+                  ? 'Tulis tanggapan Anda untuk pengaduan ini...'
+                  : 'Tulis umpan balik atau pertanyaan Anda...',
+              hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+              filled: true,
+              fillColor: Colors.grey.shade50,
+              contentPadding: const EdgeInsets.all(12),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppTheme.border)),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppTheme.border)),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
             ),
-            child: Icon(icon, size: 32, color: textColor),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  text,
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    color: textColor.withOpacity(0.8),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton.icon(
+              onPressed: _isSubmittingResponse ? null : _submitResponse,
+              icon: _isSubmittingResponse
+                  ? const SizedBox(width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.send_rounded, size: 18),
+              label: Text(_isSubmittingResponse ? 'Mengirim...' : 'Kirim',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
           ),
         ],
@@ -719,7 +1145,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF7ED),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFFDBA74), width: 1.1),
       ),
       child: Column(
@@ -727,43 +1153,26 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.verified_user,
-                size: 20,
-                color: Color(0xFFEA580C),
-              ),
+              const Icon(Icons.verified_user, size: 20, color: Color(0xFFEA580C)),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  'Tindakan Anda Dibutuhkan',
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF9A3412),
-                  ),
-                ),
+                child: Text('Tindakan Anda Dibutuhkan',
+                    style: GoogleFonts.nunito(
+                        fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF9A3412))),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            'Jika masalah sudah selesai, silakan konfirmasi agar status menjadi selesai final.',
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              color: const Color(0xFF9A3412),
-              height: 1.4,
-            ),
-          ),
+          Text('Pengaduan telah ditangani admin. Konfirmasi jika masalah benar-benar selesai.',
+              style: GoogleFonts.nunito(fontSize: 13, color: const Color(0xFF9A3412), height: 1.4)),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: _confirmResolution,
               icon: const Icon(Icons.check_circle_outline, size: 18),
-              label: Text(
-                'Konfirmasi Sekarang',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w600),
-              ),
+              label: Text('Konfirmasi Sekarang',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFEA580C),
                 foregroundColor: Colors.white,
@@ -775,419 +1184,77 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     );
   }
 
-  Widget _buildStatusSummaryCard() {
-    if (_complaint == null) return const SizedBox.shrink();
-
-    final statusText = _complaint!.statusText;
-
-    String priorityText;
-    switch ((_complaint!.priority ?? '').toLowerCase()) {
-      case 'low':
-        priorityText = 'Rendah';
-        break;
-      case 'medium':
-        priorityText = 'Sedang';
-        break;
-      case 'high':
-        priorityText = 'Tinggi';
-        break;
-      default:
-        priorityText = _complaint!.priority?.isNotEmpty == true
-            ? _complaint!.priority!
-            : '-';
-    }
-
-    final createdAt = _complaint!.createdAt;
-    final bool isResolved = _complaint!.status == 'resolved';
-    final DateTime endTime =
-        isResolved ? _complaint!.updatedAt : DateTime.now();
-    final duration = endTime.difference(createdAt);
-
-    String formatDuration(Duration d) {
-      final days = d.inDays;
-      final hours = d.inHours % 24;
-      final minutes = d.inMinutes % 60;
-
-      if (days > 0) {
-        return '${days} hari ${hours} jam ${minutes} menit';
-      }
-      if (hours > 0) {
-        return '${hours} jam ${minutes} menit';
-      }
-      return '${minutes} menit';
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Ringkasan Status',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1F2937),
-              ),
-            ),
-          ),
-          const Divider(height: 1, color: AppTheme.border),
-          _buildSummaryTile(Icons.info_outline, 'Status Saat Ini', statusText),
-          const Divider(height: 1, indent: 56, color: AppTheme.border),
-          _buildSummaryTile(Icons.flag_outlined, 'Prioritas', priorityText),
-          const Divider(height: 1, indent: 56, color: AppTheme.border),
-          _buildSummaryTile(Icons.calendar_today, 'Tanggal Dibuat', DateFormat('dd MMM yyyy').format(createdAt)),
-          const Divider(height: 1, indent: 56, color: AppTheme.border),
-          _buildSummaryTile(Icons.timer_outlined, 'Lama Penanganan', formatDuration(duration)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryTile(IconData icon, String label, String value) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppTheme.primary.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, size: 20, color: AppTheme.primary),
-      ),
-      title: Text(
-        label,
-        style: GoogleFonts.nunito(
-          fontSize: 12,
-          color: const Color(0xFF6B7280),
-        ),
-      ),
-      subtitle: Text(
-        value,
-        style: GoogleFonts.nunito(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFF111827),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainInfoCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Category Badge
-          if (_complaint!.category != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF16A34A).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.category_outlined,
-                    size: 16,
-                    color: const Color(0xFF16A34A),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _complaint!.category!.name,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: const Color(0xFF16A34A),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 16),
-
-          // Title
-          Text(
-            _complaint!.title,
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF1F2937),
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Description
-          Text(
-            'Deskripsi',
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _complaint!.description,
-            style: GoogleFonts.nunito(
-              fontSize: 15,
-              color: const Color(0xFF374151),
-              height: 1.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildReporterInfoCard() {
-    if (_complaint == null && _reporter == null) {
-      return const SizedBox.shrink();
-    }
-
-    final reporterName = (_reporter != null
-            ? (_reporter!['name'] ?? _reporter!['full_name'])
-            : null)
-        ?.toString();
-    final reporterEmail = _reporter?['email']?.toString();
-    final reporterPhone = _reporter?['phone']?.toString();
-    final reporterNik =
-        (_reporter?['nik'] ?? _reporter?['national_id'])?.toString();
+    final name = (_reporter?['name'] ?? _reporter?['full_name'])?.toString();
+    final email = _reporter?['email']?.toString();
+    final phone = _reporter?['phone']?.toString();
+    final nik   = (_reporter?['nik'] ?? _reporter?['national_id'])?.toString();
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Informasi Pelapor',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1F2937),
-              ),
-            ),
+            padding: const EdgeInsets.all(16),
+            child: Text('Informasi Pelapor',
+                style: GoogleFonts.nunito(
+                    fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
           ),
-          const Divider(height: 1, color: AppTheme.border),
-          _buildSummaryTile(
-            Icons.person_outline,
-            'Nama Pelapor',
-            reporterName ?? 'ID Pengguna #${_complaint?.userId ?? '-'}',
-          ),
-          if (reporterEmail != null && reporterEmail.isNotEmpty) ...[
-            const Divider(height: 1, indent: 56, color: AppTheme.border),
-            _buildSummaryTile(Icons.email_outlined, 'Email', reporterEmail),
-          ],
-          if (reporterPhone != null && reporterPhone.isNotEmpty) ...[
-            const Divider(height: 1, indent: 56, color: AppTheme.border),
-            _buildSummaryTile(Icons.phone_outlined, 'No. Telepon', reporterPhone),
-          ],
-          if (reporterNik != null && reporterNik.isNotEmpty) ...[
-            const Divider(height: 1, indent: 56, color: AppTheme.border),
-            _buildSummaryTile(Icons.credit_card, 'NIK', reporterNik),
-          ],
+          Divider(height: 1, color: AppTheme.border),
+          _infoRow(Icons.person_outline, 'Nama', name ?? 'ID #${_complaint?.userId ?? '-'}'),
+          if (email?.isNotEmpty == true) _infoRow(Icons.email_outlined, 'Email', email!),
+          if (phone?.isNotEmpty == true) _infoRow(Icons.phone_outlined, 'Telepon', phone!),
+          if (nik?.isNotEmpty == true) _infoRow(Icons.credit_card, 'NIK', nik!),
         ],
       ),
     );
   }
 
-  Widget _buildImagesSection() {
-    // Collect all image URLs: main photo + attachments
-    final List<String> imageUrls = [];
-
-    if (_complaint!.photoUrl != null && _complaint!.photoUrl!.isNotEmpty) {
-      final normalizedMain = _normalizeImageUrl(_complaint!.photoUrl!);
-      if (normalizedMain.isNotEmpty) {
-        imageUrls.add(normalizedMain);
-      }
-    }
-
-    if (_complaint!.attachments != null &&
-        _complaint!.attachments!.isNotEmpty) {
-      imageUrls.addAll(
-        _complaint!.attachments!
-            .map((attachment) => attachment.fileUrl)
-            .map(_normalizeImageUrl)
-            .where((url) => url.isNotEmpty),
-      );
-    }
-
-    if (imageUrls.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final String mainImageUrl = imageUrls.first;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text(
-              'Foto Pengaduan',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1F2937),
-              ),
+          Icon(icon, size: 18, color: AppTheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+                Text(value,
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+              ],
             ),
           ),
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(16),
-            ),
-            child: GestureDetector(
-              onTap: () {
-                // Show full screen image
-                _showFullImage(mainImageUrl);
-              },
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: CachedNetworkImage(
-                  imageUrl: mainImageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: const Color(0xFFF3F4F6),
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Color(0xFF16A34A)),
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: const Color(0xFFF3F4F6),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.broken_image,
-                            size: 48, color: Color(0xFF9CA3AF)),
-                        const SizedBox(height: 8),
-                        const Text('Gagal memuat gambar'),
-                        const SizedBox(height: 8),
-                        Text(
-                          'URL: $mainImageUrl',
-                          style:
-                              const TextStyle(fontSize: 10, color: Colors.grey),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (imageUrls.length > 1) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 90,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: imageUrls.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final url = imageUrls[index];
-                  return GestureDetector(
-                    onTap: () => _showFullImage(url),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: CachedNetworkImage(
-                          imageUrl: url,
-                          fit: BoxFit.cover,
-                          placeholder: (context, _) => Container(
-                            color: const Color(0xFFF3F4F6),
-                          ),
-                          errorWidget: (context, _, __) => Container(
-                            color: const Color(0xFFF3F4F6),
-                            child: const Icon(Icons.broken_image,
-                                color: Color(0xFF9CA3AF)),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
+
+  // ── Utility methods ──────────────────────────────────────────
 
   void _showFullImage(String imageUrl) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (_) => Dialog(
         backgroundColor: Colors.transparent,
         child: Stack(
           children: [
             Center(
               child: InteractiveViewer(
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.contain,
-                ),
+                child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
               ),
             ),
             Positioned(
-              top: 40,
-              right: 20,
+              top: 40, right: 20,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close, color: Colors.white, size: 32),
@@ -1199,212 +1266,49 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     );
   }
 
-  Widget _buildLocationCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF16A34A).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.location_on,
-                  color: Color(0xFF16A34A),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Lokasi Kejadian',
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6B7280),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _complaint!.location,
-                      style: GoogleFonts.nunito(
-                        fontSize: 15,
-                        color: const Color(0xFF1F2937),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdminResponseCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF16A34A).withOpacity(0.2),
-          width: 2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF16A34A),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.admin_panel_settings,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Tanggapan Admin',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1F2937),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              _complaint!.adminResponse!,
-              style: GoogleFonts.nunito(
-                fontSize: 15,
-                color: const Color(0xFF374151),
-                height: 1.6,
-              ),
-            ),
-          ),
-          if (_complaint!.estimatedResolution != null) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.access_time,
-                  size: 18,
-                  color: const Color(0xFF16A34A),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Estimasi selesai: ${DateFormat('dd/MM/yyyy').format(_complaint!.estimatedResolution!)}',
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    color: const Color(0xFF16A34A),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
+  String _normalizeImageUrl(String rawUrl) {
+    final t = rawUrl.trim();
+    if (t.isEmpty) return '';
+    if (t.startsWith('http://') || t.startsWith('https://')) return t;
+    final base = AppConfig.baseUrl.replaceAll('/api', '');
+    return t.startsWith('/') ? '$base$t' : '$base/$t';
   }
 
   Widget _buildResolutionPhotosSection() {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text(
-              'Foto Dokumentasi Penyelesaian',
+          Text('Foto Dokumentasi Penyelesaian',
               style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1F2937),
-              ),
+                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1,
+            itemCount: _resolutionPhotoUrls.length,
+            itemBuilder: (_, i) => GestureDetector(
+              onTap: () => _showFullImage(_resolutionPhotoUrls[i]),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl: _resolutionPhotoUrls[i],
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: Colors.grey.shade200),
+                  errorWidget: (_, __, ___) => Container(
+                      color: Colors.grey.shade200,
+                      child: Icon(Icons.broken_image, color: Colors.grey.shade400)),
+                ),
               ),
-              itemCount: _resolutionPhotoUrls.length,
-              itemBuilder: (context, index) {
-                final imageUrl = _resolutionPhotoUrls[index];
-                return GestureDetector(
-                  onTap: () => _showFullImage(imageUrl),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, _) => Container(
-                        color: const Color(0xFFF3F4F6),
-                        child: const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2)),
-                      ),
-                      errorWidget: (context, _, __) => Container(
-                        color: const Color(0xFFF3F4F6),
-                        child: const Icon(Icons.broken_image,
-                            color: Color(0xFF9CA3AF)),
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
           ),
         ],
@@ -1414,54 +1318,33 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
 
   List<String> _extractResolutionPhotoUrls(dynamic source) {
     if (source is! Map) return const [];
-
     final data = Map<String, dynamic>.from(source as Map);
-    final candidateKeys = <String>[
-      'resolution_attachments',
-      'resolution_photos',
-      'resolved_photos',
-      'documentation_photos',
-      'resolution_images',
-      'resolve_photos',
-      'photos',
-    ];
-
+    final keys = ['resolution_attachments', 'resolution_photos', 'resolved_photos',
+        'documentation_photos', 'resolution_images', 'resolve_photos', 'photos'];
     final results = <String>[];
 
-    for (final key in candidateKeys) {
+    for (final key in keys) {
       final value = data[key];
       if (value is! List) continue;
-
       for (final item in value) {
         if (!_isResolutionAttachment(item, key)) continue;
-        final rawUrl = _extractMediaUrl(item);
-        if (rawUrl.isEmpty) continue;
-        final normalizedUrl = _normalizeImageUrl(rawUrl);
-        if (normalizedUrl.isEmpty) continue;
-        results.add(normalizedUrl);
+        final url = _normalizeImageUrl(_extractMediaUrl(item));
+        if (url.isNotEmpty) results.add(url);
       }
-
-      if (results.isNotEmpty) {
-        break;
-      }
+      if (results.isNotEmpty) break;
     }
 
-    // Backend can store completion documentation inside generic attachments.
     final status = (data['status']?.toString() ?? '').toLowerCase();
     if (results.isEmpty && status == 'resolved') {
       final attachments = data['attachments'];
       if (attachments is List) {
         for (final item in attachments) {
           if (!_isResolutionAttachment(item, 'attachments')) continue;
-          final rawUrl = _extractMediaUrl(item);
-          if (rawUrl.isEmpty) continue;
-          final normalizedUrl = _normalizeImageUrl(rawUrl);
-          if (normalizedUrl.isEmpty) continue;
-          results.add(normalizedUrl);
+          final url = _normalizeImageUrl(_extractMediaUrl(item));
+          if (url.isNotEmpty) results.add(url);
         }
       }
     }
-
     return results.toSet().toList();
   }
 
@@ -1469,366 +1352,28 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     if (item == null) return '';
     if (item is String) return item.trim();
     if (item is Map) {
-      final map = Map<String, dynamic>.from(item as Map);
-      final url = map['url'] ??
-          map['file_url'] ??
-          map['photo_url'] ??
-          map['path'] ??
-          map['file_path'] ??
-          map['name'];
-      return url?.toString().trim() ?? '';
+      final m = Map<String, dynamic>.from(item as Map);
+      return (m['url'] ?? m['file_url'] ?? m['photo_url'] ??
+              m['path'] ?? m['file_path'] ?? m['name'])
+          ?.toString().trim() ?? '';
     }
     return '';
   }
 
-  String _normalizeImageUrl(String rawUrl) {
-    final trimmed = rawUrl.trim();
-    if (trimmed.isEmpty) return '';
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-
-    final base = AppConfig.baseUrl.replaceAll('/api', '');
-    if (trimmed.startsWith('/')) {
-      return '$base$trimmed';
-    }
-    return '$base/$trimmed';
-  }
-
   bool _isResolutionAttachment(dynamic item, String sourceKey) {
-    // Dedicated resolution fields should be accepted as-is.
-    if (sourceKey == 'resolution_attachments' ||
-        sourceKey == 'resolution_photos') {
-      return true;
-    }
-
+    if (sourceKey == 'resolution_attachments' || sourceKey == 'resolution_photos') return true;
     if (item is Map) {
-      final map = Map<String, dynamic>.from(item as Map);
-      final type = map['attachment_type']?.toString().toLowerCase() ?? '';
-      if (type.isNotEmpty) {
-        return type == 'resolution';
-      }
+      final type = Map<String, dynamic>.from(item as Map)['attachment_type']?.toString().toLowerCase() ?? '';
+      if (type.isNotEmpty) return type == 'resolution';
     }
-
-    // For legacy arrays without type metadata, keep previous permissive behavior.
     return sourceKey != 'attachments' && sourceKey != 'complaint_attachments';
   }
+}
 
-  Widget _buildTimelineCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Timeline',
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF1F2937),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildTimelineItem(
-            icon: Icons.flag,
-            title: 'Tanggal Kejadian',
-            date: _complaint!.reportDate,
-            isFirst: true,
-          ),
-          _buildTimelineItem(
-            icon: Icons.send,
-            title: 'Pengaduan Dibuat',
-            date: _complaint!.createdAt,
-          ),
-          _buildTimelineItem(
-            icon: Icons.update,
-            title: 'Terakhir Diperbarui',
-            date: _complaint!.updatedAt,
-            isLast: _complaint!.status != 'resolved' &&
-                _complaint!.status != 'waiting_user_confirmation',
-          ),
-          if (_complaint!.status == 'waiting_user_confirmation')
-            _buildTimelineItem(
-              icon: Icons.hourglass_top,
-              title: 'Menunggu Konfirmasi Pengguna',
-              date: _complaint!.updatedAt,
-              isLast: true,
-              color: const Color(0xFFEA580C),
-            ),
-          if (_complaint!.status == 'resolved')
-            _buildTimelineItem(
-              icon: Icons.check_circle,
-              title: 'Selesai Ditangani',
-              date: _complaint!.updatedAt,
-              isLast: true,
-              color: const Color(0xFF059669),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimelineItem({
-    required IconData icon,
-    required String title,
-    required DateTime date,
-    bool isFirst = false,
-    bool isLast = false,
-    Color? color,
-  }) {
-    final displayColor = color ?? const Color(0xFF16A34A);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: displayColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 20, color: displayColor),
-            ),
-            if (!isLast)
-              Container(
-                width: 2,
-                height: 40,
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                color: const Color(0xFFE5E7EB),
-              ),
-          ],
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  DateFormat('dd/MM/yyyy • HH:mm').format(date),
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    color: const Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAdminResponseForm() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF16A34A).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.reply,
-                  color: Color(0xFF16A34A),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                _isAdminSession ? 'Berikan Tanggapan' : 'Balas Tanggapan',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1F2937),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _responseController,
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: _isAdminSession
-                  ? 'Tulis tanggapan Anda untuk pengaduan ini...'
-                  : 'Tulis balasan Anda terkait pengaduan ini...',
-              hintStyle: GoogleFonts.nunito(
-                color: const Color(0xFF9CA3AF),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: Color(0xFF16A34A), width: 2),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF9FAFB),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _isSubmittingResponse ? null : _submitResponse,
-              icon: _isSubmittingResponse
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Icon(Icons.send),
-              label: Text(
-                _isSubmittingResponse ? 'Mengirim...' : 'Kirim Pesan',
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResponsesThreadCard() {
-    final thread = [..._complaint!.responses]
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Riwayat Tanggapan',
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF1F2937),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...thread.map((item) {
-            final bg = item.isAdmin
-                ? const Color(0xFFEEF2FF)
-                : const Color(0xFFF3F4F6);
-            final label = item.isAdmin ? 'Admin' : item.userName;
-            return Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        label,
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1F2937),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        DateFormat('dd/MM/yyyy • HH:mm').format(item.createdAt),
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          color: const Color(0xFF6B7280),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    item.message,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      color: const Color(0xFF374151),
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
+// ─── Helper data class ────────────────────────────────────────────────────────
+class _StatusInfo {
+  final String label;
+  final Color color;
+  final Color bg;
+  const _StatusInfo(this.label, this.color, this.bg);
 }
