@@ -681,31 +681,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ── Kategori chips ─────────────────────────────────────────────
+  // ── Kategori cards ─────────────────────────────────────────────
   Widget _buildCategoryChips(BuildContext context) {
     final categories = [
-      'Jalan & Infrastruktur',
-      'Kebersihan',
-      'Perizinan',
-      'Lainnya',
+      _CategoryItem(icon: Icons.construction_rounded,       label: 'Jalan &\nInfrastruktur', color: AppTheme.primary),
+      _CategoryItem(icon: Icons.cleaning_services_rounded,  label: 'Kebersihan',              color: AppTheme.secondary),
+      _CategoryItem(icon: Icons.assignment_rounded,         label: 'Perizinan',               color: AppTheme.primaryDark),
+      _CategoryItem(icon: Icons.category_rounded,           label: 'Lainnya',                 color: AppTheme.accent),
     ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: categories.map((cat) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: OutlinedButton(
-              onPressed: () => context.push(AppRouter.myComplaints),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primary,
-                side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.45)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                visualDensity: VisualDensity.compact,
+          return GestureDetector(
+            onTap: () => context.push(AppRouter.myComplaints),
+            child: Container(
+              width: 90,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+              decoration: BoxDecoration(
+                color: cat.color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: cat.color.withValues(alpha: 0.25), width: 1.2),
               ),
-              child: Text(cat,
-                  style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: cat.color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(cat.icon, color: cat.color, size: 26),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    cat.label,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: cat.color,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),
@@ -752,4 +776,12 @@ class _QuickAction {
   final Color color;
   final VoidCallback onTap;
   const _QuickAction({required this.icon, required this.label, required this.color, required this.onTap});
+}
+
+// ─── Data class untuk category item ──────────────────────────────────────────
+class _CategoryItem {
+  final IconData icon;
+  final String label;
+  final Color color;
+  const _CategoryItem({required this.icon, required this.label, required this.color});
 }
