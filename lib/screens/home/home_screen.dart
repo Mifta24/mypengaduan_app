@@ -504,9 +504,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             itemBuilder: (context, index) {
               final item = items[index];
               final gradient = gradientSets[index % gradientSets.length];
-              final imageUrl = item.attachments?.isNotEmpty == true
-                  ? item.attachments!.first
-                  : null;
+              final imageUrl = item.coverImage?.isNotEmpty == true
+                  ? item.coverImage
+                  : (item.attachments?.isNotEmpty == true ? item.attachments!.first : null);
               final date = item.publishedAt != null
                   ? '${item.publishedAt!.day} ${_monthName(item.publishedAt!.month)} ${item.publishedAt!.year}'
                   : '';

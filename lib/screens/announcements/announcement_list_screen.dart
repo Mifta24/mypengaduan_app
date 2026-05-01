@@ -420,9 +420,11 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         priorityText = 'Sedang';
     }
 
-    // Look for an image attachment
+    // Use cover image from dedicated field, fallback to attachments
     String? coverImageUrl;
-    if (announcement.attachments != null && announcement.attachments!.isNotEmpty) {
+    if (announcement.coverImage != null && announcement.coverImage!.isNotEmpty) {
+      coverImageUrl = announcement.coverImage;
+    } else if (announcement.attachments != null && announcement.attachments!.isNotEmpty) {
       final img = announcement.attachments!.firstWhere(
         (att) => att.toLowerCase().endsWith('.jpg') || att.toLowerCase().endsWith('.png') || att.toLowerCase().endsWith('.jpeg'),
         orElse: () => '',

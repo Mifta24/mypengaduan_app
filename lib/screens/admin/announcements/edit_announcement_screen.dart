@@ -1,6 +1,7 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../services/admin_service.dart';
 
 class EditAnnouncementScreen extends StatefulWidget {
@@ -28,6 +29,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
   bool _isLoading = false;
   String? _imagePath;
   final ImagePicker _picker = ImagePicker();
+  List<Map<String, dynamic>> _existingAttachments = [];
+  final List<int> _removedAttachmentIndices = [];
+  final List<PlatformFile> _newAttachments = [];
 
   Future<void> _pickImage() async {
     try {
@@ -61,6 +65,49 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     _priority = widget.announcement['priority']?.toString().toLowerCase() ?? 'medium';
     _isSticky = widget.announcement['is_sticky'] == true || widget.announcement['is_sticky'] == 1;
     _isActive = widget.announcement['is_active'] == true || widget.announcement['is_active'] == 1;
+
+    final raw = widget.announcement['attachments'];
+    if (raw is List) {
+      _existingAttachments = raw.map((a) {
+        if (a is Map<String, dynamic>) return a;
+        return <String, dynamic>{'path': a.toString(), 'original_name': a.toString().split('/').last};
+      }).toList();
+    }
+  }
+
+  Future<void> _pickAttachments() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx'],
+      );
+      if (result != null) {
+        setState(() => _newAttachments.addAll(result.files));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memilih file: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  IconData _fileIcon(String ext) {
+    switch (ext.toLowerCase()) {
+      case 'jpg': case 'jpeg': case 'png': case 'gif': case 'webp': return Icons.image;
+      case 'pdf': return Icons.picture_as_pdf;
+      case 'doc': case 'docx': return Icons.description;
+      case 'xls': case 'xlsx': return Icons.table_chart;
+      default: return Icons.insert_drive_file;
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
   @override
@@ -81,12 +128,18 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         widget.announcement['id'],
         {
           'title': _titleController.text.trim(),
-          'excerpt': _summaryController.text.trim(),
+          'summary': _summaryController.text.trim(),
           'content': _contentController.text.trim(),
           'priority': _priority,
           'is_sticky': _isSticky ? 1 : 0,
+          'is_active': _isActive ? 1 : 0,
         },
         imagePath: _imagePath,
+        attachmentPaths: _newAttachments
+            .where((f) => f.path != null)
+            .map((f) => f.path!)
+            .toList(),
+        removeAttachmentIndices: _removedAttachmentIndices,
       );
 
       if (mounted) {
@@ -184,7 +237,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
               decoration: BoxDecoration(
                 color: _isActive ? Colors.green.shade50 : Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _isActive ? Colors.green.withOpacity(0.3) : Colors.grey.shade200),
+                border: Border.all(color: _isActive ? Colors.green.withValues(alpha: 0.3) : Colors.grey.shade200),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -248,7 +301,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -337,7 +390,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
+                            color: Colors.green.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -405,7 +458,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.purple.withOpacity(0.1),
+                            color: Colors.purple.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -491,6 +544,132 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Attachment Section
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.attach_file, color: Colors.teal, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text('Lampiran', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Existing attachments
+                    if (_existingAttachments.isNotEmpty) ...[
+                      const Text('Lampiran Saat Ini', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
+                      const SizedBox(height: 8),
+                      Column(
+                        children: _existingAttachments.asMap().entries.map((entry) {
+                          final i = entry.key;
+                          final att = entry.value;
+                          final name = att['original_name']?.toString() ?? att['path']?.toString().split('/').last ?? 'File';
+                          final ext = name.contains('.') ? name.split('.').last : '';
+                          final isRemoved = _removedAttachmentIndices.contains(i);
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(_fileIcon(ext), color: isRemoved ? Colors.grey : Colors.teal),
+                            title: Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                decoration: isRemoved ? TextDecoration.lineThrough : null,
+                                color: isRemoved ? Colors.grey : null,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(
+                                isRemoved ? Icons.undo : Icons.remove_circle_outline,
+                                color: isRemoved ? Colors.teal : Colors.red,
+                              ),
+                              onPressed: () => setState(() {
+                                if (isRemoved) {
+                                  _removedAttachmentIndices.remove(i);
+                                } else {
+                                  _removedAttachmentIndices.add(i);
+                                }
+                              }),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const Divider(),
+                    ],
+
+                    // New attachments
+                    if (_newAttachments.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Lampiran Baru', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
+                          const SizedBox(height: 8),
+                          ..._newAttachments.asMap().entries.map((entry) {
+                            final file = entry.value;
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(_fileIcon(file.extension ?? ''), color: Colors.teal),
+                              title: Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              subtitle: Text(_formatFileSize(file.size)),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                onPressed: () => setState(() => _newAttachments.removeAt(entry.key)),
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+
+                    InkWell(
+                      onTap: _pickAttachments,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.teal.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.teal.shade200),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle_outline, color: Colors.teal.shade400),
+                            const SizedBox(width: 8),
+                            Text('Tambah Lampiran', style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Format: JPG, PNG, PDF, DOC, XLS (maks. 10 MB/file)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Settings Section
             Container(
               decoration: BoxDecoration(
@@ -508,7 +687,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
+                            color: Colors.orange.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -531,7 +710,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     
                     // Priority Dropdown
                     DropdownButtonFormField<String>(
-                      value: _priority,
+                      initialValue: _priority,
                       decoration: InputDecoration(
                         labelText: 'Prioritas',
                         filled: true,

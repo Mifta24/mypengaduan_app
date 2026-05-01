@@ -586,31 +586,43 @@ class AdminService {
   }
 
   /// Create announcement
-  Future<ApiResponse> createAnnouncement(Map<String, dynamic> data, {String? imagePath}) async {
+  Future<ApiResponse> createAnnouncement(Map<String, dynamic> data, {String? imagePath, List<String>? attachmentPaths}) async {
     try {
       await _setAuthHeader();
-      
-      dynamic requestData = data;
-      Options? options;
 
-      if (imagePath != null && imagePath.isNotEmpty) {
+      final hasFiles = (imagePath != null && imagePath.isNotEmpty) ||
+          (attachmentPaths != null && attachmentPaths.isNotEmpty);
+
+      if (hasFiles) {
         final formData = FormData.fromMap(data);
-        final normalizedPath = imagePath.replaceAll('\\\\', '/');
-        final fileName = normalizedPath.split('/').last;
-        formData.files.add(
-          MapEntry(
-            'image', 
+
+        if (imagePath != null && imagePath.isNotEmpty) {
+          final fileName = imagePath.split('/').last.split('\\').last;
+          formData.files.add(MapEntry(
+            'cover_image',
             await MultipartFile.fromFile(imagePath, filename: fileName),
-          ),
+          ));
+        }
+
+        if (attachmentPaths != null) {
+          for (final path in attachmentPaths) {
+            final fileName = path.split('/').last.split('\\').last;
+            formData.files.add(MapEntry(
+              'attachments[]',
+              await MultipartFile.fromFile(path, filename: fileName),
+            ));
+          }
+        }
+
+        final response = await _dio.post(
+          'admin/announcements',
+          data: formData,
+          options: Options(headers: {'Accept': 'application/json'}, contentType: 'multipart/form-data'),
         );
-        requestData = formData;
-        options = Options(
-          headers: {'Accept': 'application/json'},
-          contentType: 'multipart/form-data',
-        );
+        return ApiResponse.fromJson(response.data, null);
       }
 
-      final response = await _dio.post('admin/announcements', data: requestData, options: options);
+      final response = await _dio.post('admin/announcements', data: data);
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -618,40 +630,59 @@ class AdminService {
   }
 
   /// Update announcement
-  Future<ApiResponse> updateAnnouncement(int id, Map<String, dynamic> data, {String? imagePath}) async {
+  Future<ApiResponse> updateAnnouncement(
+    int id,
+    Map<String, dynamic> data, {
+    String? imagePath,
+    List<String>? attachmentPaths,
+    List<int>? removeAttachmentIndices,
+  }) async {
     try {
       await _setAuthHeader();
-      
-      dynamic requestData = data;
-      Options? options;
 
-      if (imagePath != null && imagePath.isNotEmpty) {
-        // Laravel requires POST with _method=PUT for multipart form data updates
+      final hasFiles = (imagePath != null && imagePath.isNotEmpty) ||
+          (attachmentPaths != null && attachmentPaths.isNotEmpty) ||
+          (removeAttachmentIndices != null && removeAttachmentIndices.isNotEmpty);
+
+      if (hasFiles) {
         final formDataMap = Map<String, dynamic>.from(data);
         formDataMap['_method'] = 'PUT';
         final formData = FormData.fromMap(formDataMap);
-        
-        final normalizedPath = imagePath.replaceAll('\\\\', '/');
-        final fileName = normalizedPath.split('/').last;
-        formData.files.add(
-          MapEntry(
-            'image', 
+
+        if (imagePath != null && imagePath.isNotEmpty) {
+          final fileName = imagePath.split('/').last.split('\\').last;
+          formData.files.add(MapEntry(
+            'cover_image',
             await MultipartFile.fromFile(imagePath, filename: fileName),
-          ),
+          ));
+        }
+
+        if (attachmentPaths != null) {
+          for (final path in attachmentPaths) {
+            final fileName = path.split('/').last.split('\\').last;
+            formData.files.add(MapEntry(
+              'attachments[]',
+              await MultipartFile.fromFile(path, filename: fileName),
+            ));
+          }
+        }
+
+        if (removeAttachmentIndices != null) {
+          for (final index in removeAttachmentIndices) {
+            formData.fields.add(MapEntry('remove_attachments[]', index.toString()));
+          }
+        }
+
+        final response = await _dio.post(
+          'admin/announcements/$id',
+          data: formData,
+          options: Options(headers: {'Accept': 'application/json'}, contentType: 'multipart/form-data'),
         );
-        
-        requestData = formData;
-        options = Options(
-          headers: {'Accept': 'application/json'},
-          contentType: 'multipart/form-data',
-        );
-        
-        final response = await _dio.post('admin/announcements/$id', data: requestData, options: options);
-        return ApiResponse.fromJson(response.data, null);
-      } else {
-        final response = await _dio.put('admin/announcements/$id', data: requestData);
         return ApiResponse.fromJson(response.data, null);
       }
+
+      final response = await _dio.put('admin/announcements/$id', data: data);
+      return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
     }

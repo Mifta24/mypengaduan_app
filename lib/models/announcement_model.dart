@@ -21,6 +21,7 @@ class Announcement {
   final String? summary;
   final String content;
   final String priority;
+  final String? coverImage;
   final List<String>? targetAudience;
   final List<String>? attachments;
   final bool isActive;
@@ -40,6 +41,7 @@ class Announcement {
     this.summary,
     required this.content,
     required this.priority,
+    this.coverImage,
     this.targetAudience,
     this.attachments,
     this.isActive = true,
@@ -89,6 +91,7 @@ class Announcement {
       summary: json['summary'] as String?,
       content: json['content'] as String,
       priority: json['priority'] as String? ?? 'medium',
+      coverImage: json['cover_image'] as String? ?? json['image_url'] as String? ?? json['image'] as String?,
       targetAudience: targetAudience,
       attachments: attachments,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
@@ -111,6 +114,7 @@ class Announcement {
       'summary': summary,
       'content': content,
       'priority': priority,
+      'cover_image': coverImage,
       'target_audience': targetAudience,
       'attachments': attachments,
       'is_active': isActive,
