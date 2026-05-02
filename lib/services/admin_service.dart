@@ -597,7 +597,8 @@ class AdminService {
         final formData = FormData.fromMap(data);
 
         if (imagePath != null && imagePath.isNotEmpty) {
-          final fileName = imagePath.split('/').last.split('\\').last;
+          var fileName = imagePath.split('/').last.split('\\').last;
+          if (!fileName.contains('.')) fileName = '$fileName.jpg';
           formData.files.add(MapEntry(
             'cover_image',
             await MultipartFile.fromFile(imagePath, filename: fileName),
@@ -650,7 +651,8 @@ class AdminService {
         final formData = FormData.fromMap(formDataMap);
 
         if (imagePath != null && imagePath.isNotEmpty) {
-          final fileName = imagePath.split('/').last.split('\\').last;
+          var fileName = imagePath.split('/').last.split('\\').last;
+          if (!fileName.contains('.')) fileName = '$fileName.jpg';
           formData.files.add(MapEntry(
             'cover_image',
             await MultipartFile.fromFile(imagePath, filename: fileName),

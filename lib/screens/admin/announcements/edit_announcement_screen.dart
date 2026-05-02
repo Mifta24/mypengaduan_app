@@ -1,4 +1,5 @@
 ﻿import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -38,6 +39,8 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 80,
+        maxWidth: 1280,
+        maxHeight: 1280,
       );
       if (image != null) {
         setState(() {
@@ -151,12 +154,32 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         );
         Navigator.pop(context, true);
       }
+    } on DioException catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        final data = e.response?.data;
+        String message = 'Gagal memperbarui pengumuman';
+        if (data is Map) {
+          final errors = data['errors'];
+          if (errors is Map && errors.isNotEmpty) {
+            final firstError = errors.values.first;
+            message = firstError is List && (firstError).isNotEmpty
+                ? firstError.first.toString()
+                : firstError.toString();
+          } else if (data['message'] != null) {
+            message = data['message'].toString();
+          }
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memperbarui pengumuman: ${e.toString()}'),
+            content: Text('Gagal memperbarui pengumuman: $e'),
             backgroundColor: Colors.red,
           ),
         );
