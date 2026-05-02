@@ -349,7 +349,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           const Spacer(),
                                           TextButton(
-                                            onPressed: () {},
+                                            onPressed: () => context.push(AppRouter.forgotPassword),
                                             style: TextButton.styleFrom(
                                               foregroundColor: AppTheme.primary,
                                               padding: EdgeInsets.zero,

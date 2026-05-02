@@ -17,6 +17,7 @@ import '../screens/notifications/notification_list_screen.dart';
 import '../screens/announcements/announcement_list_screen.dart';
 import '../screens/faq/faq_screen.dart';
 import '../screens/contact/contact_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -34,6 +35,7 @@ class AppRouter {
   static const String announcementsList = '/announcements/list';
   static const String faq = '/faq';
   static const String contact = '/contact';
+  static const String forgotPassword = '/forgot-password';
 
   static GoRouter createRouter(AuthProvider authProvider) {
     return GoRouter(
@@ -283,6 +285,21 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const ContactScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: Curves.easeOutCubic));
+              return SlideTransition(position: animation.drive(tween), child: child);
+            },
+          ),
+        ),
+        GoRoute(
+          path: forgotPassword,
+          name: 'forgotPassword',
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const ForgotPasswordScreen(),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(0.0, 1.0);
               const end = Offset.zero;

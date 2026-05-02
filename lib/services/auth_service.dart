@@ -202,6 +202,63 @@ class AuthService {
     }
   }
 
+  // ── Forgot Password ───────────────────────────────────────────
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await _dio.post('auth/forgot-password', data: {'email': email});
+      return {
+        'success': response.data['success'] == true || response.statusCode == 200,
+        'message': response.data['message'] ?? 'Kode OTP telah dikirim ke email Anda.',
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data?['message'] ?? 'Gagal mengirim OTP. Periksa email Anda.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyOtp({required String email, required String otp}) async {
+    try {
+      final response = await _dio.post('auth/verify-otp', data: {'email': email, 'otp': otp});
+      return {
+        'success': response.data['success'] == true || response.statusCode == 200,
+        'message': response.data['message'] ?? 'OTP valid.',
+        'token': response.data['data']?['token'] ?? response.data['token'],
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data?['message'] ?? 'Kode OTP tidak valid atau sudah kedaluwarsa.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    try {
+      final response = await _dio.post('auth/reset-password', data: {
+        'email': email,
+        'otp': otp,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+      });
+      return {
+        'success': response.data['success'] == true || response.statusCode == 200,
+        'message': response.data['message'] ?? 'Password berhasil direset.',
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data?['message'] ?? 'Gagal mereset password.',
+      };
+    }
+  }
+
   // Change Password
   Future<Map<String, dynamic>> changePassword({
     required String currentPassword,
