@@ -12,6 +12,7 @@ import '../complaints/complaint_list_screen.dart';
 import '../announcements/announcement_list_screen.dart' hide Announcement;
 import '../announcements/announcement_detail_screen.dart';
 import '../profile/profile_screen.dart';
+import '../categories/popular_categories_screen.dart';
 
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
@@ -367,7 +368,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 28),
 
                     // Kategori Keluhan Populer
-                    _buildSectionHeader('Kategori Keluhan Populer', onTap: () {}),
+                    _buildSectionHeader('Kategori Keluhan Populer',
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const PopularCategoriesScreen()))),
                     const SizedBox(height: 12),
                     _buildCategoryChips(context),
                     const SizedBox(height: 90),
@@ -695,7 +698,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         children: categories.map((cat) {
           return GestureDetector(
-            onTap: () => context.push(AppRouter.myComplaints),
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const PopularCategoriesScreen())),
             child: Container(
               width: 90,
               margin: const EdgeInsets.only(right: 12),

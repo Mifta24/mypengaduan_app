@@ -396,257 +396,227 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
   }
 
   Widget _buildComplaintCard(Complaint complaint) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ComplaintDetailScreen(complaint: complaint),
+    final statusInfo = _statusInfo(complaint.status);
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ComplaintDetailScreen(complaint: complaint)),
+      ).then((r) { if (r == true) _loadComplaints(); }),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Status strip kiri
+              Container(
+                width: 5,
+                decoration: BoxDecoration(
+                  color: statusInfo.color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(14),
+                    bottomLeft: Radius.circular(14),
+                  ),
+                ),
               ),
-            ).then((result) {
-              // Only reload if there were changes (e.g., status updated)
-              if (result == true) {
-                _loadComplaints();
-              }
-            });
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: Status & Date
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStatusBadge(complaint.status),
-                    Text(
-                      DateFormat('dd/MM/yyyy').format(complaint.reportDate),
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Title
-                Text(
-                  complaint.title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-
-                // Description
-                Text(
-                  complaint.description,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    color: AppTheme.textSecondary,
-                    height: 1.5,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-
-                // Footer: Category & Location
-                Row(
-                  children: [
-                    if (complaint.category != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.category_outlined,
-                              size: 14,
-                              color: AppTheme.primary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              complaint.category!.name,
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                color: AppTheme.primary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: Row(
+              // Konten
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Baris 1: ID + Status badge + Tanggal
+                      Row(
                         children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 14,
-                            color: AppTheme.textSecondary,
+                          Text(
+                            '#${complaint.id.toString().padLeft(4, '0')}',
+                            style: GoogleFonts.nunito(
+                                fontSize: 11, fontWeight: FontWeight.w700,
+                                color: AppTheme.textSecondary),
                           ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              complaint.location,
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                color: AppTheme.textSecondary,
+                          const SizedBox(width: 8),
+                          _statusBadge(statusInfo),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_today_outlined,
+                                  size: 11, color: Colors.grey.shade400),
+                              const SizedBox(width: 3),
+                              Text(
+                                DateFormat('dd/MM/yy').format(complaint.reportDate),
+                                style: GoogleFonts.nunito(
+                                    fontSize: 11, color: Colors.grey.shade400),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Judul
+                      Text(
+                        complaint.title,
+                        style: GoogleFonts.nunito(
+                            fontSize: 15, fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary, height: 1.3),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Deskripsi
+                      Text(
+                        complaint.description,
+                        style: GoogleFonts.nunito(
+                            fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Baris bawah: Kategori + Lokasi
+                      Row(
+                        children: [
+                          if (complaint.category != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.sell_outlined, size: 11, color: AppTheme.primary),
+                                  const SizedBox(width: 3),
+                                  Text(complaint.category!.name,
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 11, fontWeight: FontWeight.w600,
+                                          color: AppTheme.primary)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.location_on_outlined,
+                                    size: 12, color: Colors.grey.shade400),
+                                const SizedBox(width: 3),
+                                Expanded(
+                                  child: Text(complaint.location,
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 11, color: Colors.grey.shade400),
+                                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
 
-                // Edit button (only when status is pending)
-                if (complaint.status == 'pending')
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => EditComplaintScreen(
-                              complaint: complaint,
-                            ),
-                          ),
-                        ).then((result) {
-                          if (result == true) {
-                            _loadComplaints();
-                          }
-                        });
-                      },
-                      icon: const Icon(
-                        Icons.edit,
-                        size: 18,
-                        color: AppTheme.primary,
-                      ),
-                      label: Text(
-                        'Edit Pengaduan',
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primary,
+                      // Tombol aksi
+                      if (complaint.status == 'pending' ||
+                          complaint.status == 'waiting_user_confirmation') ...[
+                        const SizedBox(height: 10),
+                        Divider(height: 1, color: AppTheme.border),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (complaint.status == 'pending')
+                              TextButton.icon(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EditComplaintScreen(complaint: complaint),
+                                  ),
+                                ).then((r) { if (r == true) _loadComplaints(); }),
+                                icon: const Icon(Icons.edit_rounded, size: 15),
+                                label: Text('Edit',
+                                    style: GoogleFonts.nunito(
+                                        fontSize: 13, fontWeight: FontWeight.w600)),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: AppTheme.primary,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    visualDensity: VisualDensity.compact),
+                              ),
+                            if (complaint.status == 'waiting_user_confirmation')
+                              FilledButton.icon(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ComplaintDetailScreen(complaint: complaint),
+                                  ),
+                                ).then((r) { if (r == true) _loadComplaints(); }),
+                                icon: const Icon(Icons.check_circle_outline_rounded, size: 15),
+                                label: Text('Konfirmasi Selesai',
+                                    style: GoogleFonts.nunito(
+                                        fontSize: 12, fontWeight: FontWeight.w700)),
+                                style: FilledButton.styleFrom(
+                                    backgroundColor: const Color(0xFFEA580C),
+                                    foregroundColor: Colors.white,
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
+                              ),
+                          ],
                         ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                      ),
-                    ),
+                      ],
+                    ],
                   ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color backgroundColor;
-    Color textColor;
-    String text;
-    IconData icon;
-
-    switch (status) {
+  ({Color color, Color bg, String label, IconData icon}) _statusInfo(String s) {
+    switch (s) {
       case 'pending':
-        backgroundColor = const Color(0xFFFEF3C7);
-        textColor = const Color(0xFFD97706);
-        text = 'Menunggu';
-        icon = Icons.schedule;
-        break;
+        return (color: const Color(0xFFD97706), bg: const Color(0xFFFEF3C7),
+            label: 'Menunggu', icon: Icons.schedule_rounded);
       case 'in_progress':
-        backgroundColor = const Color(0xFFDBEAFE);
-        textColor = const Color(0xFF0891B2);
-        text = 'Diproses';
-        icon = Icons.sync;
-        break;
+        return (color: const Color(0xFF0891B2), bg: const Color(0xFFDBEAFE),
+            label: 'Diproses', icon: Icons.sync_rounded);
       case 'waiting_user_confirmation':
-        backgroundColor = const Color(0xFFFFF7ED);
-        textColor = const Color(0xFFEA580C);
-        text = 'Menunggu Konfirmasi';
-        icon = Icons.hourglass_top;
-        break;
+        return (color: const Color(0xFFEA580C), bg: const Color(0xFFFFF7ED),
+            label: 'Konfirmasi', icon: Icons.hourglass_top_rounded);
       case 'resolved':
-        backgroundColor = const Color(0xFFD1FAE5);
-        textColor = const Color(0xFF059669);
-        text = 'Selesai';
-        icon = Icons.check_circle;
-        break;
+        return (color: AppTheme.primary, bg: const Color(0xFFD1FAE5),
+            label: 'Selesai', icon: Icons.check_circle_rounded);
       case 'rejected':
-        backgroundColor = const Color(0xFFFEE2E2);
-        textColor = const Color(0xFFDC2626);
-        text = 'Ditolak';
-        icon = Icons.cancel;
-        break;
+        return (color: const Color(0xFFDC2626), bg: const Color(0xFFFEE2E2),
+            label: 'Ditolak', icon: Icons.cancel_rounded);
       default:
-        backgroundColor = const Color(0xFFF3F4F6);
-        textColor = const Color(0xFF6B7280);
-        text = status;
-        icon = Icons.info;
+        return (color: Colors.grey, bg: Colors.grey.shade100,
+            label: s, icon: Icons.info_rounded);
     }
+  }
 
+  Widget _statusBadge(({Color color, Color bg, String label, IconData icon}) info) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: textColor.withOpacity(0.2)),
-      ),
+          color: info.bg, borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: textColor),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
+          Icon(info.icon, size: 11, color: info.color),
+          const SizedBox(width: 3),
+          Text(info.label,
+              style: GoogleFonts.nunito(
+                  fontSize: 11, fontWeight: FontWeight.w700, color: info.color)),
         ],
       ),
     );

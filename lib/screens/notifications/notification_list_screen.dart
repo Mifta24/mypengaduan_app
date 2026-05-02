@@ -7,7 +7,11 @@ import '../../providers/notification_provider.dart';
 import '../../providers/complaint_provider.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/announcement_service.dart';
 import '../../theme/app_theme.dart';
+import '../complaints/complaint_detail_screen.dart';
+import '../announcements/announcement_detail_screen.dart';
+import '../announcements/announcement_list_screen.dart';
 
 class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
@@ -142,14 +146,21 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   const SizedBox(height: 8),
                   ...unread.map((n) => _NotifCard(
                         notif: n,
-                        onTap: () => provider.markAsRead(n.id),
+                        onTap: () async {
+                          final ctx = context;
+                          await provider.markAsRead(n.id);
+                          if (ctx.mounted) _navigateFromNotif(ctx, n);
+                        },
                       )),
                   const SizedBox(height: 16),
                 ],
                 if (read.isNotEmpty) ...[
                   _sectionLabel('Sudah Dibaca', null),
                   const SizedBox(height: 8),
-                  ...read.map((n) => _NotifCard(notif: n)),
+                  ...read.map((n) => _NotifCard(
+                        notif: n,
+                        onTap: () => _navigateFromNotif(context, n),
+                      )),
                 ],
               ],
             ),
@@ -180,6 +191,67 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         ],
       ],
     );
+  }
+
+  Future<void> _navigateFromNotif(BuildContext ctx, NotificationModel notif) async {
+    final type = notif.type.toLowerCase();
+    final data = notif.data ?? {};
+
+    // ── Complaint / status update ────────────────────────────
+    if (type == 'complaint' || type == 'complaint_update') {
+      final rawId = data['complaint_id'] ?? data['id'];
+      final id = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
+      if (id != null && ctx.mounted) {
+        Navigator.push(ctx, MaterialPageRoute(
+          builder: (_) => ComplaintDetailScreen(complaintId: id),
+        ));
+      }
+      return;
+    }
+
+    // ── Announcement ─────────────────────────────────────────
+    if (type == 'announcement') {
+      final rawId = data['announcement_id'] ?? data['id'];
+      final idOrSlug = rawId?.toString() ?? '';
+
+      if (idOrSlug.isNotEmpty) {
+        // Tampilkan loading sementara fetch
+        if (ctx.mounted) {
+          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+            content: Text('Membuka pengumuman...',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+            duration: const Duration(seconds: 2),
+            backgroundColor: AppTheme.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ));
+        }
+        try {
+          final announcement =
+              await AnnouncementService().getAnnouncementDetail(idOrSlug);
+          if (ctx.mounted) {
+            ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
+            Navigator.push(ctx, MaterialPageRoute(
+              builder: (_) => AnnouncementDetailScreen(announcement: announcement),
+            ));
+          }
+        } catch (_) {
+          // Fallback ke list
+          if (ctx.mounted) {
+            ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
+            Navigator.push(ctx, MaterialPageRoute(
+              builder: (_) => const AnnouncementListScreen(),
+            ));
+          }
+        }
+      } else {
+        if (ctx.mounted) {
+          Navigator.push(ctx, MaterialPageRoute(
+            builder: (_) => const AnnouncementListScreen(),
+          ));
+        }
+      }
+    }
   }
 
   Future<void> _logout(BuildContext ctx) async {
