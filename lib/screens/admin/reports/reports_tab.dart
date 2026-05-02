@@ -198,6 +198,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     final weekEnd   = weekStart.add(const Duration(days: 6));
     final fmt = DateFormat('d MMM', 'id_ID');
+    final dateLabel = '${fmt.format(weekStart)} – ${fmt.format(weekEnd)} ${weekEnd.year}';
 
     return Container(
       color: Colors.white,
@@ -225,36 +226,44 @@ class _AdminReportsTabState extends State<AdminReportsTab>
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 14, color: AppTheme.textSecondary),
-                const SizedBox(width: 6),
-                Text(
-                  '${fmt.format(weekStart)} – ${fmt.format(weekEnd)} ${weekEnd.year}',
-                  style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
-                ),
-              ],
+          const SizedBox(width: 8),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.calendar_today_outlined, size: 13, color: AppTheme.textSecondary),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      dateLabel,
+                      style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const Spacer(),
-          TextButton.icon(
+          IconButton(
             onPressed: () => _exportReport('complaints', 'pdf'),
-            icon: const Icon(Icons.picture_as_pdf, size: 16, color: Colors.red),
-            label: Text('PDF', style: GoogleFonts.nunito(fontSize: 12, color: Colors.red, fontWeight: FontWeight.w600)),
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 20),
+            tooltip: 'Export PDF',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
-          TextButton.icon(
+          IconButton(
             onPressed: () => _exportReport('complaints', 'excel'),
-            icon: const Icon(Icons.table_chart, size: 16, color: Colors.green),
-            label: Text('CSV', style: GoogleFonts.nunito(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w600)),
+            icon: const Icon(Icons.table_chart, color: Colors.green, size: 20),
+            tooltip: 'Export Excel',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
         ],
       ),
@@ -294,7 +303,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.8,
+            childAspectRatio: 1.5,
             children: [
               _summaryCard('Total Pengaduan', '$totalComplaints', AppTheme.primary, Icons.assignment_rounded),
               _summaryCard('Selesai', '$resolved', const Color(0xFF059669), Icons.check_circle_rounded),

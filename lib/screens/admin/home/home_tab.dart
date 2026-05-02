@@ -115,7 +115,7 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.6,
+            childAspectRatio: 1.3,
             children: [
               _statCard('Total Pengaduan', _total, Icons.assignment_rounded,
                   AppTheme.primary, '+12 dari kemarin'),
@@ -259,7 +259,7 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             children: [
               Text('$value',
                   style: GoogleFonts.nunito(
-                      fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                      fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
               Text(label,
                   style: GoogleFonts.nunito(
                       fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
