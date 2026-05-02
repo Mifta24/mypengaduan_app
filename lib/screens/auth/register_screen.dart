@@ -486,7 +486,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   const SizedBox(height: 16),
 
                                   // Phone field
-                                  _buildLabel('Nomor Telepon (Opsional)'),
+                                  _buildLabel('Nomor Telepon'),
                                   const SizedBox(height: 8),
                                   _buildTextField(
                                     controller: _phoneController,

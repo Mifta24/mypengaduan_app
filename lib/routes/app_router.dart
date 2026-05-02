@@ -50,7 +50,8 @@ class AppRouter {
         final isLandingRoute = state.matchedLocation == landing;
         final isLoginRoute = state.matchedLocation == login;
         final isRegisterRoute = state.matchedLocation == register;
-        final isAuthRoute = isLoginRoute || isRegisterRoute || isLandingRoute;
+        final isForgotPassRoute = state.matchedLocation == forgotPassword;
+        final isAuthRoute = isLoginRoute || isRegisterRoute || isForgotPassRoute||isLandingRoute;
         final isHomeRoute = state.matchedLocation == home;
         final isAdminRoute = state.matchedLocation == adminDashboard;
         

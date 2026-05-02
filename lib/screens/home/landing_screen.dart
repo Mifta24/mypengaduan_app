@@ -328,7 +328,7 @@ class _LandingScreenState extends State<LandingScreen>
   // ── Tagline bawah ─────────────────────────────────────────────
   Widget _buildBottomTagline() {
     return Text(
-      'Untuk Indonesia yang Lebih Baik',
+      'Untuk Lingkungan yang Lebih Baik',
       style: GoogleFonts.nunito(
         fontSize: 13,
         color: Colors.white.withValues(alpha: 0.45),

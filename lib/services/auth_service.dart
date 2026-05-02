@@ -224,7 +224,7 @@ class AuthService {
       return {
         'success': response.data['success'] == true || response.statusCode == 200,
         'message': response.data['message'] ?? 'OTP valid.',
-        'token': response.data['data']?['token'] ?? response.data['token'],
+        'reset_token': response.data['data']?['reset_token'],
       };
     } on DioException catch (e) {
       return {
@@ -235,15 +235,13 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> resetPassword({
-    required String email,
-    required String otp,
+    required String resetToken,
     required String password,
     required String passwordConfirmation,
   }) async {
     try {
       final response = await _dio.post('auth/reset-password', data: {
-        'email': email,
-        'otp': otp,
+        'reset_token': resetToken,
         'password': password,
         'password_confirmation': passwordConfirmation,
       });

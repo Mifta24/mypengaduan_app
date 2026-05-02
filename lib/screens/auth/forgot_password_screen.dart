@@ -33,7 +33,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   int  _step      = 1;
   bool _loading   = false;
-  String _verifiedOtp = '';
+  String _resetToken = '';
 
   // Countdown resend
   int  _countdown = 0;
@@ -80,7 +80,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (!mounted) return;
     setState(() => _loading = false);
     if (res['success'] == true) {
-      _verifiedOtp = otp;
+      _resetToken = res['reset_token'] ?? '';
       setState(() => _step = 3);
     } else {
       _showSnack(res['message'] ?? 'OTP tidak valid', error: true);
@@ -92,8 +92,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (!_passFormKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final res = await _authService.resetPassword(
-      email: _emailCtrl.text.trim(),
-      otp: _verifiedOtp,
+      resetToken: _resetToken,
       password: _passCtrl.text,
       passwordConfirmation: _passConfCtrl.text,
     );
