@@ -2376,5 +2376,7 @@ Map<String, dynamic> _adminUserProfilePayload({
     'nik': nik.trim(),
     'rt_number': rtNumber.trim(),
     'rw_number': rwNumber.trim(),
+    'rt': rtNumber.trim(),
+    'rw': rwNumber.trim(),
   };
 }

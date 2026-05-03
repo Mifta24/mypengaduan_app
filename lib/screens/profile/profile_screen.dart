@@ -19,6 +19,18 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final auth = context.read<AuthProvider>();
+      if (auth.user == null && auth.isAuthenticated) {
+        auth.getProfile();
+      }
+    });
+  }
+
   Future<void> _loadProfile() async {
     if (!mounted) return;
     await context.read<AuthProvider>().getProfile();
@@ -31,6 +43,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           final user = auth.user;
+          if (user == null && auth.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            );
+          }
+
           if (user == null) {
             return Center(
               child: Column(

@@ -132,13 +132,16 @@ class AuthService {
       );
 
       if (response.data['success']) {
-        final user = User.fromJson(response.data['data']);
+        final userData = _extractUserData(response.data);
+        if (userData == null) return await getUserFromStorage();
+
+        final user = User.fromJson(userData);
         await _saveUser(user);
         return user;
       }
-      return null;
+      return await getUserFromStorage();
     } catch (e) {
-      return null;
+      return await getUserFromStorage();
     }
   }
 
@@ -200,6 +203,21 @@ class AuthService {
         'message': 'Network error: ${e.message}',
       };
     }
+  }
+
+  Map<String, dynamic>? _extractUserData(dynamic responseData) {
+    if (responseData is! Map) return null;
+
+    final data = responseData['data'];
+    if (data is Map) {
+      final user = data['user'];
+      if (user is Map) return Map<String, dynamic>.from(user);
+      return Map<String, dynamic>.from(data);
+    }
+
+    final user = responseData['user'];
+    if (user is Map) return Map<String, dynamic>.from(user);
+    return null;
   }
 
   // ── Forgot Password ───────────────────────────────────────────

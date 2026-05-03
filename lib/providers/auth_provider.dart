@@ -181,8 +181,13 @@ class AuthProvider extends ChangeNotifier {
   // Refresh profile
   Future<void> refreshProfile() async {
     try {
-      _user = await _authService.getProfile();
-      notifyListeners();
+      final freshUser = await _authService.getProfile();
+      if (freshUser != null) {
+        _user = freshUser;
+        _isAuthenticated = true;
+        _errorMessage = null;
+        notifyListeners();
+      }
     } catch (e) {
       // Handle error silently
     }
@@ -194,12 +199,20 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _user = await _authService.getProfile();
-      if (_user != null) {
+      final freshUser = await _authService.getProfile();
+      if (freshUser != null) {
+        _user = freshUser;
         _isAuthenticated = true;
+        _errorMessage = null;
+      } else if (_user == null) {
+        _user = await _authService.getUserFromStorage();
+        _isAuthenticated = _user != null;
       }
     } catch (e) {
-      // Handle error silently
+      if (_user == null) {
+        _user = await _authService.getUserFromStorage();
+        _isAuthenticated = _user != null;
+      }
     }
 
     _isLoading = false;

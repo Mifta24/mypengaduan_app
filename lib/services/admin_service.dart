@@ -444,14 +444,17 @@ class AdminService {
       return response.data;
     } catch (e) {
       rethrow;
-    }
+   }
   }
 
   /// Create user
   Future<ApiResponse> createUser(Map<String, dynamic> data) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.post('admin/users', data: data);
+      final response = await _dio.post(
+        'admin/users',
+        data: _normalizeUserRtRwPayload(data),
+      );
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -462,7 +465,10 @@ class AdminService {
   Future<ApiResponse> updateUser(int id, Map<String, dynamic> data) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.put('admin/users/$id', data: data);
+      final response = await _dio.put(
+        'admin/users/$id',
+        data: _normalizeUserRtRwPayload(data),
+      );
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -549,6 +555,35 @@ class AdminService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Map<String, dynamic> _normalizeUserRtRwPayload(Map<String, dynamic> data) {
+    final payload = Map<String, dynamic>.from(data);
+
+    final rt = _firstNonEmpty(payload['rt_number'], payload['rt']);
+    final rw = _firstNonEmpty(payload['rw_number'], payload['rw']);
+
+    if (rt != null) {
+      payload['rt_number'] = rt;
+      payload['rt'] = rt;
+    }
+
+    if (rw != null) {
+      payload['rw_number'] = rw;
+      payload['rw'] = rw;
+    }
+
+    return payload;
+  }
+
+  String? _firstNonEmpty(dynamic primary, dynamic fallback) {
+    final primaryText = primary?.toString().trim();
+    if (primaryText != null && primaryText.isNotEmpty) return primaryText;
+
+    final fallbackText = fallback?.toString().trim();
+    if (fallbackText != null && fallbackText.isNotEmpty) return fallbackText;
+
+    return null;
   }
 
   // ========== ANNOUNCEMENT MANAGEMENT ==========

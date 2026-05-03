@@ -62,8 +62,8 @@ class User {
         nik: userData['nik']?.toString(),
         ktpPath: userData['ktp_path']?.toString(),
         ktpUrl: userData['ktp_url']?.toString(),
-        rtNumber: userData['rt_number']?.toString(),
-        rwNumber: userData['rw_number']?.toString(),
+        rtNumber: (userData['rt_number'] ?? userData['rt'])?.toString(),
+        rwNumber: (userData['rw_number'] ?? userData['rw'])?.toString(),
         role: userData['role']?.toString() ?? 'user',
         roles: userData['roles'] != null 
             ? (userData['roles'] is List 
