@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
@@ -119,7 +119,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   Future<void> _verifyUser(int id) async {
     try {
       await _adminService.verifyUser(id);
-      _loadUsers();
+      await _loadUsers(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -141,7 +141,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   Future<void> _changeRole(int id, String role) async {
     try {
       await _adminService.changeUserRole(id, role);
-      _loadUsers();
+      await _loadUsers(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -597,13 +597,13 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                       clipBehavior: Clip.none,
                       children: [
                         Container(
-                          height: 140,
+                          height: 160,
                           width: double.infinity,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: role == 'admin' 
                                   ? [Colors.indigo.shade400, Colors.indigo.shade800]
-                                  : [Colors.teal.shade400, Colors.teal.shade800],
+                                  : AppTheme.primaryGradient,
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -613,17 +613,17 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                           bottom: -40,
                           left: 20,
                           child: Container(
-                            width: 86,
-                            height: 86,
+                            width: 90,
+                            height: 90,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
+                              shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 4),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 5),
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
                                 )
                               ]
                             ),
@@ -632,10 +632,10 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                               (detail['name']?.toString().isNotEmpty ?? false)
                                   ? detail['name'].toString().substring(0, 1).toUpperCase()
                                   : 'U',
-                              style: TextStyle(
+                              style: GoogleFonts.nunito(
                                 color: roleColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 36,
                               ),
                             ),
                           ),
@@ -643,41 +643,38 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                         Positioned(
                           bottom: 12,
                           right: 20,
-                          child: Row(
-                            children: [
-                              OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(0.9),
-                                  foregroundColor: roleColor,
-                                  side: const BorderSide(color: Colors.transparent),
-                                ),
-                                onPressed: () => _showEditUserDialog(detail),
-                                child: const Text('Ubah Profil'),
-                              ),
-                            ],
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white.withOpacity(0.9),
+                              foregroundColor: roleColor,
+                              side: const BorderSide(color: Colors.transparent),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            ),
+                            onPressed: () => _showEditUserDialog(detail),
+                            icon: const Icon(Icons.edit_rounded, size: 16),
+                            label: Text('Ubah Profil', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 55),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: Text(
                                   detail['name']?.toString() ?? '-',
-                                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 24, 
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.textPrimary,
+                                  ),
                                 ),
-                              ),
-                              OutlinedButton.icon(
-                                onPressed: () => Navigator.pop(routeContext),
-                                icon: const Icon(Icons.arrow_back),
-                                label: const Text('Kembali'),
                               ),
                             ],
                           ),
@@ -686,64 +683,56 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              _buildStatusChip(
+                              _buildBadge(
                                 isActive ? 'Aktif' : 'Nonaktif',
-                                isActive ? Colors.green : Colors.red,
-                                isActive ? Icons.check_circle : Icons.block,
+                                isActive ? AppTheme.primary : Colors.red,
+                                isActive ? Icons.check_circle_rounded : Icons.block_rounded,
                               ),
-                              _buildStatusChip(
+                              _buildBadge(
                                 role == 'admin' ? 'Admin' : 'User',
                                 roleColor,
-                                role == 'admin' ? Icons.admin_panel_settings : Icons.person,
+                                role == 'admin' ? Icons.admin_panel_settings_rounded : Icons.person_rounded,
                               ),
                               if (isEmailVerified)
-                                _buildStatusChip(
+                                _buildBadge(
                                   'Email Verified',
                                   Colors.blue,
-                                  Icons.verified,
+                                  Icons.verified_rounded,
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withOpacity(0.04),
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppTheme.primary.withOpacity(0.1)),
+                              border: Border.all(color: AppTheme.border.withOpacity(0.5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
                             ),
-                            child: Row(
+                            child: Column(
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.email, size: 16, color: Colors.grey),
-                                          const SizedBox(width: 8),
-                                          Expanded(child: Text(detail['email']?.toString() ?? '-')),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.phone, size: 16, color: Colors.grey),
-                                          const SizedBox(width: 8),
-                                          Text(detail['phone']?.toString() ?? '-'),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                _contactRow(Icons.email_outlined, detail['email']?.toString() ?? '-'),
+                                const SizedBox(height: 12),
+                                _contactRow(Icons.phone_outlined, detail['phone']?.toString() ?? '-'),
+                                const Divider(height: 24),
+                                Row(
                                   children: [
-                                    const Text('Bergabung Sejak', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      _formatDate(detail['created_at']),
-                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                    const Icon(Icons.calendar_today_outlined, size: 18, color: AppTheme.textSecondary),
+                                    const SizedBox(width: 12),
+                                    Text('Bergabung: ', style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
+                                    Expanded(
+                                      child: Text(
+                                        _formatDate(detail['created_at']),
+                                        style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                                        textAlign: TextAlign.right,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -760,221 +749,228 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           LayoutBuilder(
-                      builder: (context, constraints) {
-                        final width = constraints.maxWidth;
-                        final crossAxisCount = width < 620 ? 1 : 2;
-                        final itemWidth =
-                            (width - (10 * (crossAxisCount - 1))) /
-                                crossAxisCount;
+                            builder: (context, constraints) {
+                              final width = constraints.maxWidth;
+                              final crossAxisCount = width < 620 ? 1 : 2;
+                              final itemWidth = (width - (12 * (crossAxisCount - 1))) / crossAxisCount;
 
-                        return Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            SizedBox(
-                              width: itemWidth,
-                              child: _buildStatCard(
-                                  'Total Keluhan',
-                                  totalComplaintsFinal.toString(),
-                                  Icons.report_problem_outlined),
+                              return Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: [
+                                  SizedBox(
+                                    width: itemWidth,
+                                    child: _buildStatCard(
+                                      'Total Keluhan',
+                                      totalComplaintsFinal.toString(),
+                                      Icons.report_problem_outlined,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: itemWidth,
+                                    child: _buildStatCard(
+                                      'Selesai',
+                                      resolvedComplaints.toString(),
+                                      Icons.task_alt_rounded,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: itemWidth,
+                                    child: _buildStatCard(
+                                      'Pending',
+                                      pendingComplaints.toString(),
+                                      Icons.pending_actions_rounded,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: itemWidth,
+                                    child: _buildStatCard(
+                                      'Komentar',
+                                      totalComments.toString(),
+                                      Icons.comment_outlined,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          _buildSectionHeader(
+                            'Keluhan Terbaru',
+                            action: TextButton(
+                              onPressed: () => _showAllUserComplaints(detail),
+                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
+                              child: Text('Lihat Semua', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                             ),
-                            SizedBox(
-                              width: itemWidth,
-                              child: _buildStatCard(
-                                  'Keluhan Selesai',
-                                  resolvedComplaints.toString(),
-                                  Icons.task_alt),
+                          ),
+                          const SizedBox(height: 8),
+                          if (latestComplaint == null)
+                            _buildEmptyTile('Belum ada keluhan', 'Pengguna ini belum pernah membuat keluhan.')
+                          else
+                            _buildLatestComplaintCard(latestComplaint),
+                          
+                          const SizedBox(height: 24),
+                          _buildSectionHeader('Komentar Terbaru'),
+                          const SizedBox(height: 8),
+                          if (latestComment == null)
+                            _buildEmptyTile('Belum ada komentar', 'Pengguna ini belum pernah memberikan komentar.')
+                          else
+                            _buildLatestCommentCard(latestComment),
+                          
+                          const SizedBox(height: 24),
+                          _buildSectionHeader('Detail Alamat'),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppTheme.border),
                             ),
-                            SizedBox(
-                              width: itemWidth,
-                              child: _buildStatCard(
-                                  'Keluhan Pending',
-                                  pendingComplaints.toString(),
-                                  Icons.pending_actions),
+                            child: Column(
+                              children: [
+                                _buildDetailRow(Icons.location_on_outlined, 'Alamat', detail['address']?.toString() ?? '-'),
+                                const Divider(height: 20),
+                                _buildDetailRow(Icons.account_balance_outlined, 'RT', _firstString(detail, ['rt_number', 'rt'], fallback: '-')),
+                                const Divider(height: 20),
+                                _buildDetailRow(Icons.home_work_outlined, 'RW', _firstString(detail, ['rw_number'], fallback: '-')),
+                              ],
                             ),
-                            SizedBox(
-                              width: itemWidth,
-                              child: _buildStatCard(
-                                  'Total Komentar',
-                                  totalComments.toString(),
-                                  Icons.comment_outlined),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          _buildSectionHeader('Verifikasi Identitas'),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppTheme.border),
                             ),
-                          ],
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSectionHeader(
-                      'Keluhan Terbaru',
-                      action: TextButton(
-                        onPressed: () => _showAllUserComplaints(detail),
-                        child: const Text('Lihat Semua'),
-                      ),
-                    ),
-                    if (latestComplaint == null)
-                      _buildEmptyTile('Belum ada keluhan',
-                          'Pengguna ini belum pernah membuat keluhan.')
-                    else
-                      _buildLatestComplaintCard(latestComplaint),
-                    const SizedBox(height: 16),
-                    _buildSectionHeader('Komentar Terbaru'),
-                    if (latestComment == null)
-                      _buildEmptyTile('Belum ada komentar',
-                          'Pengguna ini belum pernah memberikan komentar.')
-                    else
-                      _buildLatestCommentCard(latestComment),
-                    const SizedBox(height: 20),
-                    _buildSectionHeader('Detail Pengguna'),
-                    _buildDetailRow(Icons.person, 'Nama Lengkap',
-                        detail['name']?.toString() ?? '-'),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(Icons.email, 'Email',
-                        detail['email']?.toString() ?? '-'),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(Icons.phone, 'Nomor Telepon',
-                        detail['phone']?.toString() ?? '-'),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(Icons.location_on, 'Alamat',
-                        detail['address']?.toString() ?? '-'),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(
-                        Icons.apartment,
-                        'Lurah',
-                        _firstString(detail, ['lurah', 'rt_number'],
-                            fallback: '-')),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(Icons.home, 'RW',
-                        _firstString(detail, ['rw_number'], fallback: '-')),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(
-                        Icons.badge, 'NIK', detail['nik']?.toString() ?? '-'),
-                    const SizedBox(height: 14),
-                    Text('Foto KTP',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800])),
-                    const SizedBox(height: 8),
-                    _buildKtpBlock(detail),
-                    const SizedBox(height: 14),
-                    Text('Status Verifikasi KTP',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800])),
-                    const SizedBox(height: 6),
-                    _buildStatusChip(
-                      isVerified ? 'Terverifikasi' : 'Belum Terverifikasi',
-                      isVerified ? Colors.green : Colors.orange,
-                      isVerified ? Icons.check_circle : Icons.warning,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(_formatDate(
-                        detail['verified_at'] ?? detail['updated_at'],
-                        withTime: true)),
-                    const SizedBox(height: 18),
-                    _buildSectionHeader('Aksi Verifikasi'),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: isVerified
-                              ? () {
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildDetailRow(Icons.badge_outlined, 'NIK', detail['nik']?.toString() ?? '-'),
+                                const Divider(height: 20),
+                                Text('Status KTP', style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    _buildBadge(
+                                      isVerified ? 'Terverifikasi' : 'Belum Terverifikasi',
+                                      isVerified ? AppTheme.primary : Colors.orange,
+                                      isVerified ? Icons.check_circle_rounded : Icons.warning_rounded,
+                                    ),
+                                    const Spacer(),
+                                    Text(_formatDate(detail['verified_at'] ?? detail['updated_at']), style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildKtpBlock(detail),
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          _buildSectionHeader('Aksi Verifikasi'),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isVerified ? Colors.orange : AppTheme.primary,
+                                  side: BorderSide(color: isVerified ? Colors.orange : AppTheme.primary),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () {
                                   Navigator.pop(routeContext);
-                                  _toggleUserVerification(detail,
-                                      shouldVerify: false);
-                                }
-                              : () {
-                                  Navigator.pop(routeContext);
-                                  _toggleUserVerification(detail,
-                                      shouldVerify: true);
+                                  _toggleUserVerification(detail, shouldVerify: !isVerified);
                                 },
-                          icon: Icon(
-                              isVerified ? Icons.undo : Icons.verified_user),
-                          label: Text(isVerified
-                              ? 'Batalkan Verifikasi'
-                              : 'Verifikasi User'),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(routeContext);
-                            _toggleEmailVerification(detail,
-                                shouldVerify: !isEmailVerified);
-                          },
-                          icon: Icon(isEmailVerified
-                              ? Icons.mark_email_unread
-                              : Icons.mark_email_read),
-                          label: Text(isEmailVerified
-                              ? 'Batalkan Verifikasi Email'
-                              : 'Verifikasi Email'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    _buildSectionHeader('Aksi'),
-                    _buildDetailRow(Icons.security, 'Peran',
-                        role == 'admin' ? 'Admin' : 'User'),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(Icons.toggle_on, 'Status',
-                        isActive ? 'Aktif' : 'Nonaktif'),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(
-                      Icons.mark_email_read,
-                      'Email Verification',
-                      isEmailVerified ? 'Verified' : 'Belum Verified',
-                    ),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(Icons.calendar_today, 'Bergabung',
-                        _formatDate(detail['created_at'], withTime: true)),
-                    const SizedBox(height: 10),
-                    _buildDetailRow(Icons.update, 'Terakhir Update',
-                        _formatDate(detail['updated_at'], withTime: true)),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => _showEditUserDialog(detail),
-                          icon: const Icon(Icons.edit),
-                          label: const Text('Edit Pengguna'),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(routeContext);
-                            _toggleUserStatus(detail);
-                          },
-                          icon:
-                              Icon(isActive ? Icons.block : Icons.check_circle),
-                          label: Text(isActive ? 'Nonaktifkan' : 'Aktifkan'),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () => _showAllUserComplaints(detail),
-                          icon: const Icon(Icons.list_alt),
-                          label: const Text('Lihat Semua Keluhan'),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () => _resetUserPassword(id,
-                              userName: detail['name']?.toString()),
-                          icon: const Icon(Icons.lock_reset),
-                          label: const Text('Reset Password'),
-                        ),
-                        TextButton.icon(
-                          onPressed: () {
-                            Navigator.pop(routeContext);
-                            _confirmDeleteUser(detail);
-                          },
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          label: const Text('Hapus Pengguna',
-                              style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
+                                icon: Icon(isVerified ? Icons.undo_rounded : Icons.verified_user_rounded, size: 18),
+                                label: Text(isVerified ? 'Batalkan Verifikasi' : 'Verifikasi User', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                              ),
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isEmailVerified ? Colors.orange : Colors.blue,
+                                  side: BorderSide(color: isEmailVerified ? Colors.orange : Colors.blue),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(routeContext);
+                                  _toggleEmailVerification(detail, shouldVerify: !isEmailVerified);
+                                },
+                                icon: Icon(isEmailVerified ? Icons.mark_email_unread_rounded : Icons.mark_email_read_rounded, size: 18),
+                                label: Text(isEmailVerified ? 'Batalkan Verif Email' : 'Verifikasi Email', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          _buildSectionHeader('Aksi Pengguna'),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () => _showEditUserDialog(detail),
+                                icon: const Icon(Icons.edit_rounded, size: 18),
+                                label: Text('Edit Pengguna', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primary,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(routeContext);
+                                  _toggleUserStatus(detail);
+                                },
+                                icon: Icon(isActive ? Icons.block_rounded : Icons.check_circle_rounded, size: 18),
+                                label: Text(isActive ? 'Nonaktifkan' : 'Aktifkan', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isActive ? Colors.orange : AppTheme.primary,
+                                  side: BorderSide(color: isActive ? Colors.orange : AppTheme.primary),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => _resetUserPassword(id, userName: detail['name']?.toString()),
+                                icon: const Icon(Icons.lock_reset_rounded, size: 18),
+                                label: Text('Reset Password', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.blueGrey,
+                                  side: const BorderSide(color: Colors.blueGrey),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(routeContext);
+                                  _confirmDeleteUser(detail);
+                                },
+                                icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                                label: Text('Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        );
+              );
             },
           ),
         ),
@@ -982,13 +978,39 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     );
   }
 
+  Widget _contactRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppTheme.textSecondary),
+        const SizedBox(width: 12),
+        Expanded(child: Text(text, style: GoogleFonts.nunito(fontWeight: FontWeight.w600, color: AppTheme.textPrimary))),
+      ],
+    );
+  }
+
+  Widget _buildBadge(String label, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(label, style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title, {Widget? action}) {
     return Row(
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        Text(title, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
         const Spacer(),
         if (action != null) action,
       ],
@@ -997,41 +1019,27 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
   Widget _buildStatCard(String title, String value, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Icon(icon, color: Colors.blueGrey, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
+          Icon(icon, color: AppTheme.primary, size: 24),
+          const SizedBox(height: 12),
+          Text(value, style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          const SizedBox(height: 4),
+          Text(title, style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
         ],
       ),
     );
@@ -1039,61 +1047,64 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
   Widget _buildLatestComplaintCard(Map<String, dynamic> complaint) {
     final status = complaint['status']?.toString() ?? 'pending';
-    final category = _firstString(
-      complaint,
-      ['category_name', 'category', 'category_title'],
-      fallback: 'Tanpa Kategori',
-    );
+    final category = _firstString(complaint, ['category_name', 'category', 'category_title'], fallback: 'Tanpa Kategori');
+    
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            complaint['title']?.toString() ??
-                complaint['description']?.toString() ??
-                '-',
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            complaint['title']?.toString() ?? complaint['description']?.toString() ?? '-',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
-          Text(
-            '$category • ${_timeAgo(complaint['created_at'])}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          Row(
+            children: [
+              const Icon(Icons.category_outlined, size: 14, color: AppTheme.textSecondary),
+              const SizedBox(width: 4),
+              Text(category, style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
+              const Spacer(),
+              Text(_timeAgo(complaint['created_at']), style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
+            ],
           ),
-          const SizedBox(height: 8),
-          _buildStatusChip(_complaintStatusText(status),
-              _complaintStatusColor(status), Icons.info_outline),
+          const SizedBox(height: 12),
+          _buildBadge(_complaintStatusText(status), _complaintStatusColor(status), Icons.info_outline_rounded),
         ],
       ),
     );
   }
 
   Widget _buildLatestCommentCard(Map<String, dynamic> comment) {
-    final content =
-        _firstString(comment, ['content', 'comment', 'message'], fallback: '-');
+    final content = _firstString(comment, ['content', 'comment', 'message'], fallback: '-');
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(content, style: const TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 6),
-          Text(_timeAgo(comment['created_at']),
-              style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+          Row(
+            children: [
+              Icon(Icons.format_quote_rounded, color: AppTheme.primary.withOpacity(0.5)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(content, style: GoogleFonts.nunito(fontWeight: FontWeight.w600, color: AppTheme.textPrimary))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(_timeAgo(comment['created_at']), style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
         ],
       ),
     );
@@ -1102,18 +1113,20 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   Widget _buildEmptyTile(String title, String subtitle) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border.withOpacity(0.5)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Icon(Icons.inbox_rounded, size: 32, color: AppTheme.textSecondary.withOpacity(0.5)),
+          const SizedBox(height: 8),
+          Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
           const SizedBox(height: 4),
-          Text(subtitle,
-              style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+          Text(subtitle, style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -1124,26 +1137,39 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     final ktpUrl = _firstString(detail, ['ktp_url', 'ktp_path'], fallback: '');
 
     if (ktpUrl.isEmpty) {
-      return _buildEmptyTile('KTP $name', 'Foto KTP belum tersedia.');
+      return _buildEmptyTile('KTP Tidak Ada', 'Foto KTP belum diunggah.');
     }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppTheme.border),
       ),
-      child: Row(
+      child: Column(
         children: [
-          const Icon(Icons.image),
-          const SizedBox(width: 8),
-          Expanded(
-              child: Text('KTP $name',
-                  style: const TextStyle(fontWeight: FontWeight.w600))),
-          TextButton(
-            onPressed: () => _showKtpImage(ktpUrl, 'KTP $name'),
-            child: const Text('Lihat ukuran penuh'),
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Image.network(
+              ktpUrl,
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                height: 150,
+                color: Colors.grey.shade100,
+                child: const Center(child: Icon(Icons.broken_image_rounded, size: 40, color: Colors.grey)),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () => _showKtpImage(ktpUrl, 'KTP $name'),
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              alignment: Alignment.center,
+              child: Text('Lihat Ukuran Penuh', style: GoogleFonts.nunito(color: AppTheme.primary, fontWeight: FontWeight.w700)),
+            ),
           ),
         ],
       ),
@@ -1293,157 +1319,45 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     }
   }
 
-  void _showEditUserDialog(Map<String, dynamic> detail) {
+  Future<void> _showEditUserDialog(Map<String, dynamic> detail) async {
     final id = _toInt(detail['id']);
     if (id == 0) return;
+    final originalRole = detail['role']?.toString() ?? 'user';
 
-    final nameController =
-        TextEditingController(text: detail['name']?.toString() ?? '');
-    final emailController =
-        TextEditingController(text: detail['email']?.toString() ?? '');
-    final phoneController =
-        TextEditingController(text: detail['phone']?.toString() ?? '');
-    final addressController =
-        TextEditingController(text: detail['address']?.toString() ?? '');
-    final nikController =
-        TextEditingController(text: detail['nik']?.toString() ?? '');
-    final rtController =
-        TextEditingController(text: detail['rt_number']?.toString() ?? '');
-    final rwController =
-        TextEditingController(text: detail['rw_number']?.toString() ?? '');
-
-    String selectedRole = detail['role']?.toString() ?? 'user';
-    bool isActive =
-        detail['is_active'] == null ? true : _toBool(detail['is_active']);
-
-    showDialog(
+    final newRole = await showDialog<String>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setLocalState) => AlertDialog(
-          title: const Text('Edit Pengguna'),
-          content: SingleChildScrollView(
-            child: SizedBox(
-              width: 480,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                      controller: nameController,
-                      decoration:
-                          const InputDecoration(labelText: 'Nama Lengkap')),
-                  const SizedBox(height: 10),
-                  TextField(
-                      controller: emailController,
-                      decoration: const InputDecoration(labelText: 'Email')),
-                  const SizedBox(height: 10),
-                  TextField(
-                      controller: phoneController,
-                      decoration:
-                          const InputDecoration(labelText: 'Nomor Telepon')),
-                  const SizedBox(height: 10),
-                  TextField(
-                      controller: addressController,
-                      decoration: const InputDecoration(labelText: 'Alamat')),
-                  const SizedBox(height: 10),
-                  TextField(
-                      controller: nikController,
-                      decoration: const InputDecoration(labelText: 'NIK')),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: rtController,
-                          decoration:
-                              const InputDecoration(labelText: 'RT / Lurah'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: rwController,
-                          decoration: const InputDecoration(labelText: 'RW'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedRole,
-                    decoration: const InputDecoration(labelText: 'Peran'),
-                    items: const [
-                      DropdownMenuItem(value: 'user', child: Text('User')),
-                      DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null)
-                        setLocalState(() => selectedRole = value);
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: isActive,
-                    title: const Text('Status Aktif'),
-                    onChanged: (value) => setLocalState(() => isActive = value),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Batal')),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  await _adminService.updateUser(id, {
-                    'name': nameController.text.trim(),
-                    'email': emailController.text.trim(),
-                    'phone': phoneController.text.trim(),
-                    'address': addressController.text.trim(),
-                    'nik': nikController.text.trim(),
-                    'rt_number': rtController.text.trim(),
-                    'rw_number': rwController.text.trim(),
-                    'role': selectedRole,
-                    'is_active': isActive,
-                  });
-
-                  if (!mounted) return;
-                  Navigator.of(this.context).pop();
-                  await _loadUsers(forceRefresh: true);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Data pengguna berhasil diperbarui'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      SnackBar(
-                          content: Text('Gagal update pengguna: $e'),
-                          backgroundColor: Colors.red),
-                    );
-                  }
-                }
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        ),
+      builder: (context) => _EditUserDialog(
+        adminService: _adminService,
+        detail: detail,
       ),
-    ).then((_) {
-      nameController.dispose();
-      emailController.dispose();
-      phoneController.dispose();
-      addressController.dispose();
-      nikController.dispose();
-      rtController.dispose();
-      rwController.dispose();
-    });
+    );
+
+    if (newRole == null || !mounted) return;
+
+    // Explicitly change role via dedicated endpoint when it changed
+    if (newRole != originalRole) {
+      try {
+        await _adminService.changeUserRole(id, newRole);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Data disimpan tapi role gagal diubah: $e'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    }
+
+    await _loadUsers(forceRefresh: true);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Data pengguna berhasil diperbarui'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   Future<void> _showAllUserComplaints(Map<String, dynamic> detail) async {
@@ -2110,11 +2024,13 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
         'email': email,
         'password': password,
         'password_confirmation': passwordConfirmation,
-        'phone': _phoneController.text.trim(),
-        'address': _addressController.text.trim(),
-        'nik': _nikController.text.trim(),
-        'rt_number': _rtController.text.trim(),
-        'rw_number': _rwController.text.trim(),
+        ..._adminUserProfilePayload(
+          phone: _phoneController.text,
+          address: _addressController.text,
+          nik: _nikController.text,
+          rtNumber: _rtController.text,
+          rwNumber: _rwController.text,
+        ),
         'role': _selectedRole,
         'is_active': true,
       });
@@ -2131,6 +2047,30 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
           );
         }
         return;
+      }
+
+      // Server may create user as 'user' regardless of role param.
+      // Explicitly change role if admin was requested.
+      if (_selectedRole == 'admin') {
+        final rawData = response.data;
+        if (rawData is Map) {
+          final rawId = rawData['id'];
+          final numId = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
+          if (numId != null && numId > 0) {
+            try {
+              await widget.adminService.changeUserRole(numId, 'admin');
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('User dibuat tapi gagal set role admin: $e'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            }
+          }
+        }
       }
 
       if (mounted) Navigator.pop(context, true);
@@ -2219,4 +2159,222 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
     final message = Map<String, dynamic>.from(data)['message'];
     return message?.toString();
   }
+}
+
+// ---------------------------------------------------------------------------
+// Extracted StatefulWidget for the "Edit Pengguna" dialog.
+// Controllers are owned by State.dispose() so they are released only after
+// the dialog exit animation completes. The dialog returns the selected role
+// (String) on save, or null on cancel.
+// ---------------------------------------------------------------------------
+
+class _EditUserDialog extends StatefulWidget {
+  final AdminService adminService;
+  final Map<String, dynamic> detail;
+
+  const _EditUserDialog({
+    required this.adminService,
+    required this.detail,
+  });
+
+  @override
+  State<_EditUserDialog> createState() => _EditUserDialogState();
+}
+
+class _EditUserDialogState extends State<_EditUserDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _addressController;
+  late final TextEditingController _nikController;
+  late final TextEditingController _rtController;
+  late final TextEditingController _rwController;
+
+  late String _selectedRole;
+  late bool _isActive;
+
+  @override
+  void initState() {
+    super.initState();
+    final d = widget.detail;
+    _nameController    = TextEditingController(text: _pick(d, ['name']));
+    _emailController   = TextEditingController(text: _pick(d, ['email']));
+    _phoneController   = TextEditingController(text: _pick(d, ['phone', 'phone_number']));
+    _addressController = TextEditingController(text: _pick(d, ['address', 'alamat']));
+    _nikController     = TextEditingController(text: _pick(d, ['nik']));
+    _rtController      = TextEditingController(text: _pick(d, ['rt_number', 'rt']));
+    _rwController      = TextEditingController(text: _pick(d, ['rw_number', 'rw']));
+    _selectedRole      = d['role']?.toString() ?? 'user';
+    _isActive          = _parseBool(d['is_active']);
+  }
+
+  static String _pick(Map<String, dynamic> d, List<String> keys) {
+    for (final key in keys) {
+      final v = d[key];
+      if (v != null && v.toString().trim().isNotEmpty) return v.toString();
+    }
+    return '';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _nikController.dispose();
+    _rtController.dispose();
+    _rwController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edit Pengguna'),
+      content: SingleChildScrollView(
+        child: SizedBox(
+          width: 480,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(labelText: 'Nomor Telepon'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _addressController,
+                decoration: const InputDecoration(labelText: 'Alamat'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _nikController,
+                decoration: const InputDecoration(labelText: 'NIK'),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _rtController,
+                      decoration: const InputDecoration(labelText: 'RT'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _rwController,
+                      decoration: const InputDecoration(labelText: 'RW'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedRole,
+                decoration: const InputDecoration(labelText: 'Peran'),
+                items: const [
+                  DropdownMenuItem(value: 'user', child: Text('User')),
+                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _selectedRole = value);
+                },
+              ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _isActive,
+                title: const Text('Status Aktif'),
+                onChanged: (value) => setState(() => _isActive = value),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(
+          onPressed: _handleSave,
+          child: const Text('Simpan'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleSave() async {
+    final id = _toInt(widget.detail['id']);
+    try {
+      await widget.adminService.updateUser(id, {
+        'name':       _nameController.text.trim(),
+        'email':      _emailController.text.trim(),
+        ..._adminUserProfilePayload(
+          phone: _phoneController.text,
+          address: _addressController.text,
+          nik: _nikController.text,
+          rtNumber: _rtController.text,
+          rwNumber: _rwController.text,
+        ),
+        'role':       _selectedRole,
+        'is_active':  _isActive,
+      });
+      if (mounted) Navigator.pop(context, _selectedRole);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal update pengguna: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value == null) return true;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) {
+      final s = value.toLowerCase();
+      return s == '1' || s == 'true' || s == 'yes' || s == 'aktif';
+    }
+    return false;
+  }
+}
+
+Map<String, dynamic> _adminUserProfilePayload({
+  required String phone,
+  required String address,
+  required String nik,
+  required String rtNumber,
+  required String rwNumber,
+}) {
+  return {
+    'phone': phone.trim(),
+    'address': address.trim(),
+    'nik': nik.trim(),
+    'rt_number': rtNumber.trim(),
+    'rw_number': rwNumber.trim(),
+  };
 }
