@@ -169,9 +169,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _badge(user.role == 'admin' ? 'Admin' : 'Warga',
                       user.role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primaryLight),
-                  if (user.isEmailVerified)
-                    _badge('Email Verified', AppTheme.secondary,
-                        icon: Icons.mark_email_read_rounded),
                   if (user.isUserVerified)
                     _badge('Terverifikasi', AppTheme.primary,
                         icon: Icons.verified_rounded),

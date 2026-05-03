@@ -71,8 +71,11 @@ class User {
                     role is String ? role : (role['name']?.toString() ?? 'user')))
                 : [userData['role']?.toString() ?? 'user'])
             : [userData['role']?.toString() ?? 'user'],
-        isEmailVerified: userData['email_verified_at'] != null,
-        isUserVerified: userData['is_verified'] == 1 || userData['is_verified'] == true,
+        isEmailVerified: _toBool(userData['is_email_verified']) ||
+            userData['email_verified_at'] != null,
+        isUserVerified: _toBool(userData['is_verified']) ||
+            _toBool(userData['is_user_verified']) ||
+            userData['verified_at'] != null,
         isActive: userData['is_active'] == 1 || userData['is_active'] == true || userData['is_active'] == null,
         createdAt: userData['created_at'] != null 
             ? (DateTime.tryParse(userData['created_at'].toString()) ?? DateTime.now())
@@ -99,13 +102,30 @@ class User {
       'rw_number': rwNumber,
       'role': role,
       'roles': roles,
+      'email_verified_at': isEmailVerified ? true : null,
+      'is_verified': isUserVerified,
       'is_email_verified': isEmailVerified,
       'is_user_verified': isUserVerified,
       'is_active': isActive,
+      'verified_at': isUserVerified ? true : null,
       'created_at': createdAt.toIso8601String(),
     };
   }
 
   bool get isAdmin => roles.contains('admin');
   bool get isUser => roles.contains('user');
+
+  static bool _toBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) {
+      final normalized = value.toLowerCase().trim();
+      return normalized == '1' ||
+          normalized == 'true' ||
+          normalized == 'yes' ||
+          normalized == 'verified' ||
+          normalized == 'terverifikasi';
+    }
+    return false;
+  }
 }
