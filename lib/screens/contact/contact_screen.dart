@@ -10,7 +10,7 @@ class ContactScreen extends StatelessWidget {
     _ContactItem(
       icon: Icons.location_on_rounded,
       label: 'Alamat',
-      value: 'Gang Annur 2 RT 05, Jakarta Selatan',
+      value: 'Gang Annur 2 RT 05 RW 01, Poris Plawad Utara, Cipondoh, Tangerang, Banten',
       action: null,
     ),
     _ContactItem(
@@ -224,7 +224,7 @@ class ContactScreen extends StatelessWidget {
 
   Widget _buildTagline() {
     return Text(
-      'Untuk Indonesia yang Lebih Baik',
+      'Untuk Lingkungan yang Lebih Baik',
       style: GoogleFonts.nunito(
           fontSize: 13,
           color: Colors.white.withValues(alpha: 0.4),

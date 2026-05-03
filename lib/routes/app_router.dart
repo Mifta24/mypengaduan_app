@@ -490,7 +490,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Untuk Indonesia yang Lebih Baik',
+                      'Untuk Lingkungan yang Lebih Baik',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.white.withValues(alpha: 0.45),
