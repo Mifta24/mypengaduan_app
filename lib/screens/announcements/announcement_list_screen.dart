@@ -424,6 +424,12 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
     String? coverImageUrl;
     if (announcement.coverImage != null && announcement.coverImage!.isNotEmpty) {
       coverImageUrl = announcement.coverImage;
+    } else if (announcement.attachmentItems != null && announcement.attachmentItems!.isNotEmpty) {
+      final img = announcement.attachmentItems!.firstWhere(
+        (att) => att.url.toLowerCase().endsWith('.jpg') || att.url.toLowerCase().endsWith('.png') || att.url.toLowerCase().endsWith('.jpeg'),
+        orElse: () => const models.AnnouncementAttachment(name: '', url: ''),
+      );
+      if (img.url.isNotEmpty) coverImageUrl = img.url;
     } else if (announcement.attachments != null && announcement.attachments!.isNotEmpty) {
       final img = announcement.attachments!.firstWhere(
         (att) => att.toLowerCase().endsWith('.jpg') || att.toLowerCase().endsWith('.png') || att.toLowerCase().endsWith('.jpeg'),

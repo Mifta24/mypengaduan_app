@@ -24,6 +24,7 @@ class Announcement {
   final String? coverImage;
   final List<String>? targetAudience;
   final List<String>? attachments;
+  final List<AnnouncementAttachment>? attachmentItems;
   final bool isActive;
   final bool isSticky;
   final bool allowComments;
@@ -44,6 +45,7 @@ class Announcement {
     this.coverImage,
     this.targetAudience,
     this.attachments,
+    this.attachmentItems,
     this.isActive = true,
     this.isSticky = false,
     this.allowComments = true,
@@ -56,24 +58,16 @@ class Announcement {
   });
 
   factory Announcement.fromJson(Map<String, dynamic> json) {
-    // Normalize attachments into a list of strings (e.g. URLs or filenames)
+    // Normalize attachments into display-ready items while keeping the old
+    // string URL list for existing screens.
     List<String>? attachments;
+    List<AnnouncementAttachment>? attachmentItems;
     if (json['attachments'] != null && json['attachments'] is List) {
-      attachments = (json['attachments'] as List)
-          .map((item) {
-            if (item is String) return item;
-            if (item is Map<String, dynamic>) {
-              // Try common keys that might store a file path or URL
-              return item['file_url']?.toString() ??
-                  item['file_path']?.toString() ??
-                  item['url']?.toString() ??
-                  item['path']?.toString() ??
-                  item['name']?.toString() ??
-                  item.toString();
-            }
-            return item.toString();
-          })
+      attachmentItems = (json['attachments'] as List)
+          .map((item) => AnnouncementAttachment.fromJson(item))
+          .where((item) => item.url.isNotEmpty)
           .toList();
+      attachments = attachmentItems.map((item) => item.url).toList();
     }
 
     // Normalize target audience into list of strings as well
@@ -94,6 +88,7 @@ class Announcement {
       coverImage: json['cover_image'] as String? ?? json['image_url'] as String? ?? json['image'] as String?,
       targetAudience: targetAudience,
       attachments: attachments,
+      attachmentItems: attachmentItems,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
       isSticky: json['is_sticky'] == 1 || json['is_sticky'] == true,
       allowComments: json['allow_comments'] == 1 || json['allow_comments'] == true,
@@ -131,4 +126,56 @@ class Announcement {
 
   bool get isPublished => status == 'published';
   bool get isUrgent => priority == 'urgent' || priority == 'high';
+}
+
+class AnnouncementAttachment {
+  final String name;
+  final String url;
+
+  const AnnouncementAttachment({
+    required this.name,
+    required this.url,
+  });
+
+  factory AnnouncementAttachment.fromJson(dynamic value) {
+    if (value is String) {
+      return AnnouncementAttachment(
+        name: _fileNameFromUrl(value),
+        url: value,
+      );
+    }
+
+    if (value is Map) {
+      final map = Map<String, dynamic>.from(value);
+      final url = map['file_url']?.toString() ??
+          map['secure_url']?.toString() ??
+          map['download_url']?.toString() ??
+          map['url']?.toString() ??
+          map['file_path']?.toString() ??
+          map['path']?.toString() ??
+          '';
+      final name = map['original_name']?.toString() ??
+          map['file_name']?.toString() ??
+          map['filename']?.toString() ??
+          map['name']?.toString() ??
+          map['title']?.toString() ??
+          _fileNameFromUrl(url);
+
+      return AnnouncementAttachment(name: name, url: url);
+    }
+
+    final fallback = value.toString();
+    return AnnouncementAttachment(
+      name: _fileNameFromUrl(fallback),
+      url: fallback,
+    );
+  }
+}
+
+String _fileNameFromUrl(String value) {
+  final uri = Uri.tryParse(value);
+  final path = uri?.path ?? value;
+  final parts = path.split('/').where((part) => part.isNotEmpty).toList();
+  final name = parts.isEmpty ? '' : parts.last;
+  return name.isEmpty ? 'Lampiran' : name;
 }

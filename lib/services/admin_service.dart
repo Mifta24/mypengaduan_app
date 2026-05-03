@@ -606,8 +606,14 @@ class AdminService {
         }
 
         if (attachmentPaths != null) {
-          for (final path in attachmentPaths) {
-            final fileName = path.split('/').last.split('\\').last;
+          for (var i = 0; i < attachmentPaths.length; i++) {
+            final path = attachmentPaths[i];
+            final fileName = _announcementAttachmentFileName(
+              data['title']?.toString(),
+              path,
+              index: i,
+              total: attachmentPaths.length,
+            );
             formData.files.add(MapEntry(
               'attachments[]',
               await MultipartFile.fromFile(path, filename: fileName),
@@ -660,8 +666,14 @@ class AdminService {
         }
 
         if (attachmentPaths != null) {
-          for (final path in attachmentPaths) {
-            final fileName = path.split('/').last.split('\\').last;
+          for (var i = 0; i < attachmentPaths.length; i++) {
+            final path = attachmentPaths[i];
+            final fileName = _announcementAttachmentFileName(
+              data['title']?.toString(),
+              path,
+              index: i,
+              total: attachmentPaths.length,
+            );
             formData.files.add(MapEntry(
               'attachments[]',
               await MultipartFile.fromFile(path, filename: fileName),
@@ -743,6 +755,29 @@ class AdminService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  String _announcementAttachmentFileName(
+    String? title,
+    String path, {
+    required int index,
+    required int total,
+  }) {
+    final originalName = path.split('/').last.split('\\').last;
+    final dotIndex = originalName.lastIndexOf('.');
+    final extension = dotIndex >= 0 ? originalName.substring(dotIndex) : '';
+    final baseTitle = _safeFileBaseName(title);
+    final suffix = total > 1 ? '-${index + 1}' : '';
+    return '$baseTitle$suffix$extension';
+  }
+
+  String _safeFileBaseName(String? title) {
+    final value = (title ?? '').trim();
+    final safe = value
+        .replaceAll(RegExp(r'[\\/:*?"<>|]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return safe.isEmpty ? 'Lampiran Pengumuman' : safe;
   }
 
   // ========== REPORT MANAGEMENT ==========

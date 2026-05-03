@@ -4,11 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 import '../../models/announcement_model.dart';
 import '../../models/comment_model.dart';
 import '../../services/announcement_service.dart';
+import '../../services/file_download_service.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {
   final Announcement announcement;
@@ -25,6 +25,7 @@ class AnnouncementDetailScreen extends StatefulWidget {
 
 class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   final AnnouncementService _announcementService = AnnouncementService();
+  final FileDownloadService _fileDownloadService = FileDownloadService();
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -34,6 +35,16 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   bool _isSubmittingComment = false;
   bool _hasLoadedComments = false; // Track if comments already loaded
   List<Comment> _comments = [];
+
+  List<AnnouncementAttachment> get _announcementAttachments {
+    final structured = widget.announcement.attachmentItems;
+    if (structured != null && structured.isNotEmpty) return structured;
+
+    return (widget.announcement.attachments ?? [])
+        .map((url) => AnnouncementAttachment.fromJson(url))
+        .where((item) => item.url.isNotEmpty)
+        .toList();
+  }
 
   @override
   void initState() {
@@ -60,14 +71,29 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         lower.endsWith('.bmp');
   }
 
-  Future<void> _openUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+  Future<void> _downloadAttachment(String url, String fileName) async {
+    if (url.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka lampiran')),
+          const SnackBar(content: Text('URL lampiran tidak tersedia')),
+        );
+      }
+      return;
+    }
+
+    try {
+      await _fileDownloadService.downloadToDownloads(
+        url: url,
+        fileName: fileName,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File tersimpan di Downloads: $fileName')),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengunduh lampiran: $e')),
         );
       }
     }
@@ -541,8 +567,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           ),
 
           // Attachments if available
-          if (widget.announcement.attachments != null &&
-              widget.announcement.attachments!.isNotEmpty) ...[
+          if (_announcementAttachments.isNotEmpty) ...[
             const SizedBox(height: 20),
             const Divider(),
             const SizedBox(height: 12),
@@ -555,14 +580,10 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            ...widget.announcement.attachments!.map((attachment) {
-              final url = attachment;
+            ..._announcementAttachments.map((attachment) {
+              final url = attachment.url;
               final isImage = _isImageUrl(url);
-              // Derive a display name from the URL/path
-              final uri = Uri.tryParse(url);
-              final path = uri?.path ?? url;
-              final fileName =
-                  path.split('/').isNotEmpty ? path.split('/').last : url;
+              final fileName = attachment.name;
 
               if (isImage) {
                 return Container(
@@ -630,7 +651,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
 
               // Non-image files: show as downloadable row
               return InkWell(
-                onTap: () => _openUrl(url),
+                onTap: () => _downloadAttachment(url, fileName),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(12),
