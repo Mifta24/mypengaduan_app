@@ -137,7 +137,7 @@ class _MyAppState extends State<MyApp> {
       title: 'MyPengaduan',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      routerConfig: AppRouter.createRouter(authProvider),
+      routerConfig: AppRouter.createRouter(authProvider, navigatorKey: navigatorKey),
     );
   }
 }

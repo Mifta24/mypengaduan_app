@@ -37,8 +37,12 @@ class AppRouter {
   static const String contact = '/contact';
   static const String forgotPassword = '/forgot-password';
 
-  static GoRouter createRouter(AuthProvider authProvider) {
+  static GoRouter createRouter(
+    AuthProvider authProvider, {
+    GlobalKey<NavigatorState>? navigatorKey,
+  }) {
     return GoRouter(
+      navigatorKey: navigatorKey,
       initialLocation: splash,
       debugLogDiagnostics: true,
       redirect: (BuildContext context, GoRouterState state) {
