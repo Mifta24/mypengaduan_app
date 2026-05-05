@@ -27,6 +27,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
   late String _priority;
   late bool _isSticky;
   late bool _isActive;
+  late bool _wasActive; // tracks original status to detect activation
   bool _isLoading = false;
   String? _imagePath;
   final ImagePicker _picker = ImagePicker();
@@ -68,6 +69,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     _priority = widget.announcement['priority']?.toString().toLowerCase() ?? 'medium';
     _isSticky = widget.announcement['is_sticky'] == true || widget.announcement['is_sticky'] == 1;
     _isActive = widget.announcement['is_active'] == true || widget.announcement['is_active'] == 1;
+    _wasActive = _isActive;
 
     final raw = widget.announcement['attachments'];
     if (raw is List) {
@@ -126,6 +128,8 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
 
     setState(() => _isLoading = true);
 
+    final activatingNow = _isActive && !_wasActive;
+
     try {
       await _adminService.updateAnnouncement(
         widget.announcement['id'],
@@ -145,10 +149,22 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         removeAttachmentIndices: _removedAttachmentIndices,
       );
 
+      // Jika pengumuman baru saja diaktifkan (sebelumnya draft), panggil endpoint
+      // publish agar backend mengirim notifikasi FCM ke semua user.
+      if (activatingNow) {
+        try {
+          await _adminService.publishAnnouncement(widget.announcement['id']);
+        } catch (_) {
+          // Notifikasi gagal dikirim, tapi data sudah tersimpan — tidak perlu rollback.
+        }
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pengumuman berhasil diperbarui'),
+          SnackBar(
+            content: Text(activatingNow
+                ? 'Pengumuman dipublikasi & notifikasi dikirim'
+                : 'Pengumuman berhasil diperbarui'),
             backgroundColor: Colors.green,
           ),
         );

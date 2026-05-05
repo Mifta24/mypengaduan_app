@@ -167,7 +167,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
   // ];
 
   List<models.Announcement> get _filteredAnnouncements {
-    return _announcements.where((announcement) {
+    final list = _announcements.where((announcement) {
       final matchesSearch = announcement.title
               .toLowerCase()
               .contains(_searchController.text.toLowerCase()) ||
@@ -175,7 +175,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
               .toLowerCase()
               .contains(_searchController.text.toLowerCase());
 
-      final priorityMap = {
+      const priorityMap = {
         'Semua Prioritas': '',
         'Mendesak': 'urgent',
         'Tinggi': 'high',
@@ -188,6 +188,17 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
 
       return matchesSearch && matchesPriority;
     }).toList();
+
+    // Sticky announcements always appear first, then sorted by date descending
+    list.sort((a, b) {
+      if (a.isSticky && !b.isSticky) return -1;
+      if (!a.isSticky && b.isSticky) return 1;
+      final dateA = a.publishedAt ?? a.createdAt;
+      final dateB = b.publishedAt ?? b.createdAt;
+      return dateB.compareTo(dateA);
+    });
+
+    return list;
   }
 
   @override
@@ -443,9 +454,12 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: announcement.isSticky
+            ? Border.all(color: Colors.orange.shade300, width: 1.5)
+            : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -474,7 +488,36 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                       )
                     else
                       _buildFallbackHeader(),
-                    
+
+                    // Sticky pin badge (top left)
+                    if (announcement.isSticky)
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade600,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.push_pin, size: 12, color: Colors.white),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Disematkan',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
                     // Priority Badge Floating on Image
                     Positioned(
                       top: 12,
@@ -482,9 +525,9 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: priorityBgColor.withOpacity(0.9),
+                          color: priorityBgColor.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: priorityColor.withOpacity(0.2)),
+                          border: Border.all(color: priorityColor.withValues(alpha: 0.2)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -608,7 +651,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       height: 80,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppTheme.primary.withOpacity(0.8), AppTheme.secondary.withOpacity(0.8)],
+          colors: [AppTheme.primary.withValues(alpha: 0.8), AppTheme.secondary.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -617,7 +660,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         child: Icon(
           Icons.campaign_outlined,
           size: 40,
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
         ),
       ),
     );

@@ -16,336 +16,177 @@ class AdminProfileScreen extends StatefulWidget {
   State<AdminProfileScreen> createState() => _AdminProfileScreenState();
 }
 
-class _AdminProfileScreenState extends State<AdminProfileScreen> {
+class _AdminProfileScreenState extends State<AdminProfileScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
+
+  static const _gradientStart = Color(0xFF1A237E);
+  static const _gradientEnd = Color(0xFF3949AB);
+  static const _accentColor = Color(0xFF5C6BC0);
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProfile();
-    });
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _animController.forward();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadProfile());
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProfile() async {
     if (!mounted) return;
-    final authProvider = context.read<AuthProvider>();
-    await authProvider.getProfile();
+    await context.read<AuthProvider>().getProfile();
   }
 
   Future<void> _confirmLogout() async {
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Konfirmasi Logout'),
-        content: const Text('Apakah Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.logout_rounded,
+                    color: Colors.red.shade600, size: 36),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Keluar dari Akun?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Anda akan keluar dari sesi admin ini.',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Batal'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Keluar'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Logout'),
-          ),
-        ],
+        ),
       ),
     );
 
     if (result == true && mounted) {
       final authProvider = context.read<AuthProvider>();
-      
-      // Clear all provider states before logout
-      try {
-        context.read<ComplaintProvider>().clear();
-      } catch (e) {
-        print('ComplaintProvider not available: $e');
-      }
-      try {
-        context.read<NotificationProvider>().clear();
-      } catch (e) {
-        print('NotificationProvider not available: $e');
-      }
-      try {
-        context.read<AnnouncementProvider>().clear();
-      } catch (e) {
-        print('AnnouncementProvider not available: $e');
-      }
-      
+      try { context.read<ComplaintProvider>().clear(); } catch (_) {}
+      try { context.read<NotificationProvider>().clear(); } catch (_) {}
+      try { context.read<AnnouncementProvider>().clear(); } catch (_) {}
       await authProvider.logout();
-      if (mounted) {
-        context.go(AppRouter.landing);
-      }
+      if (mounted) context.go(AppRouter.landing);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil Admin'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      backgroundColor: const Color(0xFFF5F6FA),
       body: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
+        builder: (context, authProvider, _) {
           final user = authProvider.user;
 
           if (user == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person_off,
-                    size: 80,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Tidak ada data profil',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadProfile,
-                    child: const Text('Muat Ulang'),
-                  ),
-                ],
-              ),
-            );
+            return _buildEmptyState();
           }
 
-          return RefreshIndicator(
-            onRefresh: _loadProfile,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  // Header with gradient background
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).primaryColor,
-                          Theme.of(context).primaryColor.withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 24),
-                        // Profile Picture
-                        Stack(
-                          children: [
-                            CircleAvatar(
-                              radius: 60,
-                              backgroundColor: Colors.white,
-                              child: CircleAvatar(
-                                radius: 56,
-                                backgroundColor: Colors.blue.shade100,
-                                child: Text(
-                                  user.name.substring(0, 1).toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.admin_panel_settings,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // Name
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+          return FadeTransition(
+            opacity: _fadeAnim,
+            child: RefreshIndicator(
+              onRefresh: _loadProfile,
+              color: _gradientEnd,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  _buildSliverHeader(user),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          _buildInfoCard(
+                            title: 'Informasi Akun',
+                            icon: Icons.manage_accounts_rounded,
+                            items: [
+                              _InfoItem(Icons.email_rounded, 'Email', user.email),
+                              _InfoItem(Icons.phone_rounded, 'No. Telepon',
+                                  user.phone ?? '-'),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        // Role Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.verified_user,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                user.role.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
+                          const SizedBox(height: 16),
+                          _buildInfoCard(
+                            title: 'Informasi Pribadi',
+                            icon: Icons.person_rounded,
+                            items: [
+                              _InfoItem(Icons.badge_rounded, 'NIK',
+                                  user.nik ?? '-'),
+                              _InfoItem(Icons.home_rounded, 'Alamat',
+                                  user.address ?? '-'),
+                              _InfoItem(
+                                Icons.location_city_rounded,
+                                'RT / RW',
+                                user.rtNumber != null && user.rwNumber != null
+                                    ? 'RT ${user.rtNumber}  /  RW ${user.rwNumber}'
+                                    : '-',
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                  
-                  // Profile Information Cards
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        // Account Information
-                        _buildSectionCard(
-                          title: 'Informasi Akun',
-                          icon: Icons.account_circle,
-                          children: [
-                            _buildInfoTile(
-                              icon: Icons.email,
-                              label: 'Email',
-                              value: user.email,
-                            ),
-                            _buildInfoTile(
-                              icon: Icons.phone,
-                              label: 'No. Telepon',
-                              value: user.phone ?? '-',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Personal Information
-                        _buildSectionCard(
-                          title: 'Informasi Pribadi',
-                          icon: Icons.person,
-                          children: [
-                            _buildInfoTile(
-                              icon: Icons.badge,
-                              label: 'NIK',
-                              value: user.nik ?? '-',
-                            ),
-                            _buildInfoTile(
-                              icon: Icons.home,
-                              label: 'Alamat',
-                              value: user.address ?? '-',
-                            ),
-                            _buildInfoTile(
-                              icon: Icons.location_city,
-                              label: 'RT/RW',
-                              value: user.rtNumber != null && user.rwNumber != null
-                                  ? 'RT ${user.rtNumber}/RW ${user.rwNumber}'
-                                  : '-',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Account Status
-                        _buildSectionCard(
-                          title: 'Status Akun',
-                          icon: Icons.verified,
-                          children: [
-                            _buildInfoTile(
-                              icon: Icons.check_circle,
-                              label: 'Status Verifikasi',
-                              value: user.isUserVerified ? 'Terverifikasi' : 'Belum Terverifikasi',
-                              valueColor: user.isUserVerified ? Colors.green : Colors.orange,
-                            ),
-                            _buildInfoTile(
-                              icon: Icons.calendar_today,
-                              label: 'Bergabung Sejak',
-                              value: _formatDate(user.createdAt),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        
-                        // Action Buttons
-                        Column(
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => EditAdminProfileScreen(user: user),
-                                    ),
-                                  ).then((_) => _loadProfile());
-                                },
-                                icon: const Icon(Icons.edit),
-                                label: const Text('Edit Profil'),
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.all(16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: _confirmLogout,
-                                icon: const Icon(Icons.logout, color: Colors.red),
-                                label: const Text(
-                                  'Logout',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.all(16),
-                                  side: const BorderSide(color: Colors.red),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                          const SizedBox(height: 16),
+                          _buildStatusCard(user),
+                          const SizedBox(height: 28),
+                          _buildActionButtons(user),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -357,73 +198,264 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+  Widget _buildSliverHeader(User user) {
+    return SliverToBoxAdapter(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [_gradientStart, _gradientEnd],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            // AppBar area
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Profil Admin',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings_rounded,
+                          color: Colors.white70),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => EditAdminProfileScreen(user: user)),
+                      ).then((_) => _loadProfile()),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Avatar
+            Stack(
+              alignment: Alignment.bottomRight,
               children: [
-                Icon(icon, color: Theme.of(context).primaryColor),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
+                  child: CircleAvatar(
+                    radius: 56,
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: _accentColor.withValues(alpha: 0.15),
+                      child: Text(
+                        user.name.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.bold,
+                          color: _gradientEnd,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF43A047),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2.5),
+                  ),
+                  child: const Icon(Icons.admin_panel_settings_rounded,
+                      color: Colors.white, size: 16),
                 ),
               ],
             ),
-            const Divider(),
-            ...children,
+
+            const SizedBox(height: 14),
+
+            // Name
+            Text(
+              user.name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            // Email
+            Text(
+              user.email,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Role badge
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.35), width: 1),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.verified_user_rounded,
+                      color: Colors.white, size: 15),
+                  const SizedBox(width: 6),
+                  Text(
+                    user.role.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            // Curved bottom
+            ClipPath(
+              clipper: _WaveClipper(),
+              child: Container(
+                height: 36,
+                color: const Color(0xFFF5F6FA),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoTile({
+  Widget _buildInfoCard({
+    required String title,
     required IconData icon,
-    required String label,
-    required String value,
-    Color? valueColor,
+    required List<_InfoItem> items,
   }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Card header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _gradientEnd.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: _gradientEnd, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A237E),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, indent: 16, endIndent: 16),
+
+          // Items
+          ...items.asMap().entries.map((entry) {
+            final isLast = entry.key == items.length - 1;
+            final item = entry.value;
+            return Column(
+              children: [
+                _buildTile(item),
+                if (!isLast)
+                  const Divider(height: 1, indent: 52, endIndent: 16),
+              ],
+            );
+          }),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTile(_InfoItem item) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F2FF),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(item.icon, size: 16, color: _accentColor),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label,
+                  item.label,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w500),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: valueColor,
+                  item.value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF212121),
                   ),
                 ),
               ],
@@ -434,12 +466,263 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
+  Widget _buildStatusCard(User user) {
+    final isVerified = user.isUserVerified;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _gradientEnd.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.verified_rounded,
+                      color: _gradientEnd, size: 18),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Status Akun',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A237E),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, indent: 16, endIndent: 16),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Verification status
+                Expanded(
+                  child: _buildStatusChip(
+                    icon: isVerified
+                        ? Icons.check_circle_rounded
+                        : Icons.pending_rounded,
+                    label: isVerified ? 'Terverifikasi' : 'Belum Verifikasi',
+                    color: isVerified
+                        ? const Color(0xFF2E7D32)
+                        : const Color(0xFFF57F17),
+                    bgColor: isVerified
+                        ? const Color(0xFFE8F5E9)
+                        : const Color(0xFFFFF8E1),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Join date
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F2FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bergabung',
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _formatDate(user.createdAt),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A237E),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(User user) {
+    return Column(
+      children: [
+        // Edit Profile
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [_gradientStart, _gradientEnd],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: _gradientEnd.withValues(alpha: 0.35),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => EditAdminProfileScreen(user: user)),
+              ).then((_) => _loadProfile()),
+              icon: const Icon(Icons.edit_rounded, size: 18),
+              label: const Text(
+                'Edit Profil',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Logout
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton.icon(
+            onPressed: _confirmLogout,
+            icon: const Icon(Icons.logout_rounded, size: 18),
+            label: const Text(
+              'Keluar',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red.shade600,
+              side: BorderSide(color: Colors.red.shade300, width: 1.5),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_off_rounded, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text('Tidak ada data profil',
+              style: TextStyle(fontSize: 16, color: Colors.grey[500])),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: _loadProfile,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Muat Ulang'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _gradientEnd,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formatDate(DateTime? date) {
     if (date == null) return '-';
-    final months = [
+    const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
       'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
+}
+
+class _InfoItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _InfoItem(this.icon, this.label, this.value);
+}
+
+class _WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, 0);
+    path.quadraticBezierTo(
+        size.width / 2, size.height * 1.8, size.width, 0);
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(_WaveClipper oldClipper) => false;
 }

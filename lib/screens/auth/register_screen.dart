@@ -231,7 +231,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 20),
                       _buildBenefit(Icons.verified_user_rounded, 'Aman & Terpercaya', 'Data Anda dijaga dengan enkripsi tingkat tinggi'),
                       const SizedBox(height: 20),
-                      _buildBenefit(Icons.support_agent_rounded, 'Dukungan RT/RW', 'Langsung terhubung dengan pengurus wilayah Anda'),
+                      _buildBenefit(Icons.support_agent_rounded, 'Dukungan RT', 'Langsung terhubung dengan pengurus wilayah Anda'),
                     ],
                   ),
                 ),

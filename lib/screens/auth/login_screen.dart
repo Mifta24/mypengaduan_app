@@ -112,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Sistem Pengaduan Digital RT/RW',
+                        'Sistem Pengaduan Digital RT',
                         style: GoogleFonts.nunito(
                           fontSize: 16,
                           color: Colors.white.withOpacity(0.9),
@@ -211,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'Sistem Pengaduan Digital RT/RW',
+                                    'Sistem Pengaduan Digital RT',
                                     style: GoogleFonts.nunito(
                                       fontSize: 12,
                                       color: Colors.white.withOpacity(0.85),

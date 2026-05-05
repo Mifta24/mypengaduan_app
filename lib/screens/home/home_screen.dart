@@ -287,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Sampaikan keluhan Anda untuk Indonesia yang lebih baik.',
+                              'Sampaikan keluhan Anda untuk Lingkungan yang lebih baik.',
                               style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 color: Colors.white.withValues(alpha: 0.75),

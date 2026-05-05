@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -41,8 +42,13 @@ class FCMService {
     }
 
     // Initialize local notifications
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
+    // '@drawable/ic_notification' is a white monochrome icon required for Android notification bar
+    const androidSettings = AndroidInitializationSettings('@drawable/ic_notification');
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -55,14 +61,18 @@ class FCMService {
     debugPrint('✅ Local notifications initialized');
 
     // Create notification channel for Android (wajib untuk Android 8+)
+    // Untuk custom sound: taruh file .ogg/.mp3 di android/app/src/main/res/raw/
+    // lalu uncomment baris sound di bawah dan ganti 'notification_sound' dengan nama file (tanpa ekstensi)
     const androidChannel = AndroidNotificationChannel(
       _channelId,
       _channelName,
       description: _channelDesc,
       importance: Importance.high,
       playSound: true,
+      // sound: RawResourceAndroidNotificationSound('notification_sound'),
       enableVibration: true,
       enableLights: true,
+      ledColor: Color(0xFF1E6B3A), // Hijau forest - sesuai branding app
     );
 
     final androidPlugin = _localNotifications
@@ -169,18 +179,29 @@ class FCMService {
     required String body,
     String? payload,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
       channelDescription: _channelDesc,
       importance: Importance.high,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+      // Small icon: putih monochrome untuk status bar (wajib per Android guidelines)
+      icon: '@drawable/ic_notification',
+      color: const Color(0xFF1E6B3A), // Hijau forest - warna branding app
+      // Large icon: logo app berwarna tampil di body notifikasi
+      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       playSound: true,
+      // sound: RawResourceAndroidNotificationSound('notification_sound'),
       enableVibration: true,
       showWhen: true,
+      styleInformation: BigTextStyleInformation(
+        body,
+        htmlFormatBigText: false,
+        contentTitle: title,
+        htmlFormatContentTitle: false,
+      ),
     );
-    const notifDetails = NotificationDetails(android: androidDetails);
+    final notifDetails = NotificationDetails(android: androidDetails);
 
     await _localNotifications.show(id, title, body, notifDetails, payload: payload);
     debugPrint('✅ Local notification shown (id=$id)');
