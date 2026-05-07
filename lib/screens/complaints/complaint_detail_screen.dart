@@ -16,6 +16,7 @@ import '../../services/complaint_service.dart';
 import '../admin/complaints/resolve_complaint_screen.dart';
 import 'edit_complaint_screen.dart';
 import '../../theme/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ComplaintDetailScreen extends StatefulWidget {
   final Complaint? complaint;
@@ -551,8 +552,14 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
             const SizedBox(height: 16),
 
             // ── 5. Foto lampiran ──────────────────────────────
-            if (c.photoUrl != null || (c.attachments?.isNotEmpty == true)) ...[
+            if (c.photoUrl != null || (c.attachments?.any((a) => !a.isVideo) == true)) ...[
               _buildPhotosSection(c),
+              const SizedBox(height: 16),
+            ],
+
+            // ── 5b. Video lampiran ────────────────────────────
+            if (c.attachments?.any((a) => a.isVideo) == true) ...[
+              _buildVideosSection(c),
               const SizedBox(height: 16),
             ],
 
@@ -884,8 +891,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     }
     if (c.attachments != null) {
       urls.addAll(c.attachments!
+          .where((a) => !a.isVideo)
           .map((a) => _normalizeImageUrl(a.fileUrl))
-          .where((u) => u.isNotEmpty).toList());
+          .where((u) => u.isNotEmpty)
+          .toList());
     }
     if (urls.isEmpty) return const SizedBox.shrink();
 
@@ -949,6 +958,90 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                 ),
               );
             }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideosSection(Complaint c) {
+    final videos = c.attachments!.where((a) => a.isVideo).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Video Lampiran',
+              style: GoogleFonts.nunito(
+                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          const SizedBox(height: 12),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: videos.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, i) {
+              final video = videos[i];
+              final name = video.fileName.isNotEmpty
+                  ? video.fileName
+                  : video.fileUrl.split('/').last.split('?').first;
+              return InkWell(
+                onTap: () async {
+                  final uri = Uri.tryParse(video.fileUrl);
+                  if (uri != null && await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.play_circle_outline_rounded,
+                            color: AppTheme.primary, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.nunito(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary)),
+                            Text('Ketuk untuk membuka',
+                                style: GoogleFonts.nunito(
+                                    fontSize: 11, color: AppTheme.textSecondary)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.open_in_new_rounded,
+                          size: 16, color: AppTheme.textSecondary),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

@@ -37,6 +37,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
   final List<File> _newImages = [];
   final List<File> _newVideos = [];
   final List<String> _existingPhotoUrls = [];
+  final List<String> _existingVideoUrls = [];
   bool _isLoading = false;
   int _descLength = 0;
 
@@ -56,7 +57,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
     _descriptionController.addListener(
         () => setState(() => _descLength = _descriptionController.text.length));
 
-    // Kumpulkan URL foto existing
+    // Kumpulkan URL foto & video existing — pisahkan agar video tidak masuk CachedNetworkImage
     final c = widget.complaint;
     if (c.photoUrl?.isNotEmpty == true) {
       _existingPhotoUrls.add(_normalizeUrl(c.photoUrl!));
@@ -64,8 +65,11 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
     if (c.attachments != null) {
       for (final a in c.attachments!) {
         final url = _normalizeUrl(a.fileUrl);
-        if (url.isNotEmpty && !_existingPhotoUrls.contains(url)) {
-          _existingPhotoUrls.add(url);
+        if (url.isEmpty) continue;
+        if (a.isVideo) {
+          if (!_existingVideoUrls.contains(url)) _existingVideoUrls.add(url);
+        } else {
+          if (!_existingPhotoUrls.contains(url)) _existingPhotoUrls.add(url);
         }
       }
     }
@@ -581,6 +585,54 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
   Widget _buildVideoSection() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Existing videos from server
+          if (_existingVideoUrls.isNotEmpty) ...[
+            Text('Video Saat Ini',
+                style: GoogleFonts.nunito(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+            const SizedBox(height: 8),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _existingVideoUrls.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, i) {
+                final name = _existingVideoUrls[i].split('/').last.split('?').first;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.videocam_rounded, color: Colors.grey.shade600, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 14),
+            Text('Tambah Video Baru',
+                style: GoogleFonts.nunito(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+            const SizedBox(height: 8),
+          ],
           if (_newVideos.isNotEmpty) ...[
             ListView.separated(
               shrinkWrap: true,

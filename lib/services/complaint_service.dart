@@ -110,7 +110,7 @@ class ComplaintService {
     required String location,
     required DateTime reportDate,
     List<String>? attachments,
-    List<String>? videos,
+    List<String>? videoUrls,
   }) async {
     try {
       final token = await _authService.getToken();
@@ -138,15 +138,11 @@ class ComplaintService {
         print('📎 No attachments to upload');
       }
 
-      // Add videos if any
-      if (videos != null && videos.isNotEmpty) {
-        print('🎥 Uploading ${videos.length} videos...');
-        for (final path in videos) {
-          final fileName = path.split('/').last;
-          formData.files.add(MapEntry(
-            'videos[]',
-            await MultipartFile.fromFile(path, filename: fileName),
-          ));
+      // Add video URLs (already uploaded to Cloudinary directly)
+      if (videoUrls != null && videoUrls.isNotEmpty) {
+        print('🎥 Attaching ${videoUrls.length} Cloudinary video URLs...');
+        for (final url in videoUrls) {
+          formData.fields.add(MapEntry('video_urls[]', url));
         }
       }
 
@@ -196,7 +192,7 @@ class ComplaintService {
     required String location,
     required DateTime reportDate,
     List<String>? attachments,
-    List<String>? videos,
+    List<String>? videoUrls,
   }) async {
     try {
       final token = await _authService.getToken();
@@ -222,15 +218,11 @@ class ComplaintService {
         }
       }
 
-      // Add new videos if any
-      if (videos != null && videos.isNotEmpty) {
-        print('🎥 Updating with ${videos.length} new videos...');
-        for (final path in videos) {
-          final fileName = path.split('/').last;
-          formData.files.add(MapEntry(
-            'videos[]',
-            await MultipartFile.fromFile(path, filename: fileName),
-          ));
+      // Add video URLs (already uploaded to Cloudinary directly)
+      if (videoUrls != null && videoUrls.isNotEmpty) {
+        print('🎥 Attaching ${videoUrls.length} Cloudinary video URLs...');
+        for (final url in videoUrls) {
+          formData.fields.add(MapEntry('video_urls[]', url));
         }
       }
 
@@ -262,6 +254,40 @@ class ComplaintService {
       }
       throw Exception('Network error: ${e.message}');
     }
+  }
+
+  // Step 1: Get Cloudinary signature from backend
+  Future<Map<String, dynamic>> getCloudinarySignature() async {
+    final options = await _getOptions();
+    final response = await _dio.get(
+      'complaints/cloudinary-signature',
+      options: options,
+    );
+    return (response.data['data'] ?? response.data) as Map<String, dynamic>;
+  }
+
+  // Step 2: Upload video directly to Cloudinary, return secure_url
+  Future<String> uploadVideoToCloudinary(String filePath) async {
+    final sig = await getCloudinarySignature();
+    final uploadDio = Dio();
+    final fileName = filePath.split('/').last;
+
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: fileName),
+      'api_key': sig['api_key'].toString(),
+      'timestamp': sig['timestamp'].toString(),
+      'signature': sig['signature'].toString(),
+      'folder': sig['folder'].toString(),
+    });
+
+    print('🎥 Uploading video directly to Cloudinary: $fileName');
+    final response = await uploadDio.post(
+      sig['upload_url'].toString(),
+      data: formData,
+    );
+    final url = response.data['secure_url'] as String;
+    print('✅ Cloudinary video URL: $url');
+    return url;
   }
 
   // Get categories

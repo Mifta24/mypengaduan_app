@@ -130,6 +130,15 @@ class ComplaintProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Upload each video directly to Cloudinary, collect secure URLs
+      final videoUrls = <String>[];
+      if (videos != null && videos.isNotEmpty) {
+        for (final path in videos) {
+          final url = await _complaintService.uploadVideoToCloudinary(path);
+          videoUrls.add(url);
+        }
+      }
+
       final response = await _complaintService.createComplaint(
         categoryId: categoryId,
         title: title,
@@ -137,7 +146,7 @@ class ComplaintProvider extends ChangeNotifier {
         location: location,
         reportDate: reportDate,
         attachments: attachments,
-        videos: videos,
+        videoUrls: videoUrls.isEmpty ? null : videoUrls,
       );
 
       if (response.success) {
@@ -176,6 +185,15 @@ class ComplaintProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Upload each video directly to Cloudinary, collect secure URLs
+      final videoUrls = <String>[];
+      if (videos != null && videos.isNotEmpty) {
+        for (final path in videos) {
+          final url = await _complaintService.uploadVideoToCloudinary(path);
+          videoUrls.add(url);
+        }
+      }
+
       final response = await _complaintService.updateComplaint(
         id: id,
         categoryId: categoryId,
@@ -184,7 +202,7 @@ class ComplaintProvider extends ChangeNotifier {
         location: location,
         reportDate: reportDate,
         attachments: attachments,
-        videos: videos,
+        videoUrls: videoUrls.isEmpty ? null : videoUrls,
       );
 
       if (response.success) {
