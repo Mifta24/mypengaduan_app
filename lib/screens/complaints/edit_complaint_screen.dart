@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_config.dart';
@@ -34,6 +35,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
   DateTime? _selectedDate;
   int? _selectedCategoryId;
   final List<File> _newImages = [];
+  final List<File> _newVideos = [];
   final List<String> _existingPhotoUrls = [];
   bool _isLoading = false;
   int _descLength = 0;
@@ -118,6 +120,33 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
     );
   }
 
+  Future<void> _pickVideo() async {
+    if (_newVideos.length >= 3) {
+      _showSnack('Maksimal 3 video', isError: true);
+      return;
+    }
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.video,
+        allowMultiple: false,
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final path = result.files.first.path;
+      if (path == null) return;
+
+      final file = File(path);
+      final size = await file.length();
+      if (size > 100 * 1024 * 1024) {
+        _showSnack('Video terlalu besar (maks. 100MB)', isError: true);
+        return;
+      }
+      setState(() => _newVideos.add(file));
+    } catch (e) {
+      _showSnack('Gagal memilih video: $e', isError: true);
+    }
+  }
+
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -160,6 +189,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
             location: _locationController.text.trim(),
             reportDate: _selectedDate!,
             attachments: _newImages.map((f) => f.path).toList(),
+            videos: _newVideos.map((f) => f.path).toList(),
           );
       if (!mounted) return;
       if (success) {
@@ -282,6 +312,15 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                           fontSize: 12, color: AppTheme.textSecondary)),
                   const SizedBox(height: 10),
                   _buildPhotoSection(),
+                  const SizedBox(height: 20),
+
+                  // Video
+                  _buildFieldLabel('Unggah Video Baru'),
+                  Text('Lampirkan video pendukung (maks. 3 video, 100MB per file).',
+                      style: GoogleFonts.nunito(
+                          fontSize: 12, color: AppTheme.textSecondary)),
+                  const SizedBox(height: 10),
+                  _buildVideoSection(),
                   const SizedBox(height: 8),
                 ],
               ),
@@ -536,6 +575,96 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
           const SizedBox(height: 6),
           Text('Maks. 5 foto (5MB per foto)',
               style: GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade400)),
+        ],
+      );
+
+  Widget _buildVideoSection() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_newVideos.isNotEmpty) ...[
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _newVideos.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, i) {
+                final name = _newVideos[i].path.split('/').last;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.videocam_rounded,
+                            color: AppTheme.primary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.nunito(
+                                fontSize: 13, color: AppTheme.textPrimary)),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() => _newVideos.removeAt(i)),
+                        child: const Icon(Icons.close_rounded,
+                            size: 18, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+          if (_newVideos.length < 3)
+            GestureDetector(
+              onTap: _pickVideo,
+              child: CustomPaint(
+                painter: DashedBorderPainter(color: AppTheme.border),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.video_library_outlined,
+                          size: 36, color: Colors.grey.shade400),
+                      const SizedBox(height: 8),
+                      Text('Pilih Video dari Galeri',
+                          style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primary,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppTheme.primary)),
+                      const SizedBox(height: 4),
+                      Text('MP4, MOV, WEBM, AVI — maks. 100MB',
+                          style: GoogleFonts.nunito(
+                              fontSize: 11, color: Colors.grey.shade400)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(height: 6),
+          Text('${_newVideos.length}/3 video dipilih',
+              style: GoogleFonts.nunito(
+                  fontSize: 11, color: Colors.grey.shade400)),
         ],
       );
 

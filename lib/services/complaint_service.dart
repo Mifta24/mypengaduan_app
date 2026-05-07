@@ -110,6 +110,7 @@ class ComplaintService {
     required String location,
     required DateTime reportDate,
     List<String>? attachments,
+    List<String>? videos,
   }) async {
     try {
       final token = await _authService.getToken();
@@ -125,31 +126,28 @@ class ComplaintService {
       // Add attachments if any
       if (attachments != null && attachments.isNotEmpty) {
         print('📎 Uploading ${attachments.length} attachments...');
-        print('📎 Backend validation expects: attachments.* (array format)');
 
         for (int i = 0; i < attachments.length; i++) {
           String fileName = attachments[i].split('/').last;
-          print('📎 Adding attachment $i: $fileName');
-          print('   - Full path: ${attachments[i]}');
-
-          // Use array notation for Laravel: attachments[]
-          // This matches Laravel's validation rule: 'attachments.*'
           formData.files.add(MapEntry(
-            'attachments[]', // Array notation for Laravel
-            await MultipartFile.fromFile(
-              attachments[i],
-              filename: fileName,
-            ),
+            'attachments[]',
+            await MultipartFile.fromFile(attachments[i], filename: fileName),
           ));
         }
-
-        print('📎 Total files in FormData: ${formData.files.length}');
-        print(
-            '📎 FormData files: ${formData.files.map((e) => '${e.key}: ${e.value.filename} (${e.value.length} bytes)').join(', ')}');
-        print(
-            '📎 All FormData fields: ${formData.fields.map((e) => '${e.key}: ${e.value}').join(', ')}');
       } else {
         print('📎 No attachments to upload');
+      }
+
+      // Add videos if any
+      if (videos != null && videos.isNotEmpty) {
+        print('🎥 Uploading ${videos.length} videos...');
+        for (final path in videos) {
+          final fileName = path.split('/').last;
+          formData.files.add(MapEntry(
+            'videos[]',
+            await MultipartFile.fromFile(path, filename: fileName),
+          ));
+        }
       }
 
       print('📤 Sending request to backend...');
@@ -198,6 +196,7 @@ class ComplaintService {
     required String location,
     required DateTime reportDate,
     List<String>? attachments,
+    List<String>? videos,
   }) async {
     try {
       final token = await _authService.getToken();
@@ -208,7 +207,6 @@ class ComplaintService {
         'description': description,
         'location': location,
         'report_date': reportDate.toIso8601String().split('T')[0],
-        // Laravel-style method override to hit PUT /complaints/{id}
         '_method': 'PUT',
       });
 
@@ -219,10 +217,19 @@ class ComplaintService {
           String fileName = attachments[i].split('/').last;
           formData.files.add(MapEntry(
             'attachments[]',
-            await MultipartFile.fromFile(
-              attachments[i],
-              filename: fileName,
-            ),
+            await MultipartFile.fromFile(attachments[i], filename: fileName),
+          ));
+        }
+      }
+
+      // Add new videos if any
+      if (videos != null && videos.isNotEmpty) {
+        print('🎥 Updating with ${videos.length} new videos...');
+        for (final path in videos) {
+          final fileName = path.split('/').last;
+          formData.files.add(MapEntry(
+            'videos[]',
+            await MultipartFile.fromFile(path, filename: fileName),
           ));
         }
       }

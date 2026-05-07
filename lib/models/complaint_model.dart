@@ -227,6 +227,7 @@ class Attachment {
   final String filePath;
   final String fileType;
   final int fileSize;
+  final String? mimeType;
 
   Attachment({
     required this.id,
@@ -234,6 +235,7 @@ class Attachment {
     required this.filePath,
     required this.fileType,
     required this.fileSize,
+    this.mimeType,
   });
 
   factory Attachment.fromJson(Map<String, dynamic> json) {
@@ -255,6 +257,7 @@ class Attachment {
         fileSize: json['file_size'] is int
             ? json['file_size'] as int
             : int.tryParse(json['file_size']?.toString() ?? '0') ?? 0,
+        mimeType: json['mime_type']?.toString(),
       );
     } catch (e) {
       print('Error parsing Attachment: $e');
@@ -264,4 +267,14 @@ class Attachment {
   }
 
   String get fileUrl => filePath;
+
+  bool get isVideo {
+    final mime = mimeType?.toLowerCase() ?? '';
+    final name = fileName.toLowerCase();
+    return mime.startsWith('video/') ||
+        name.endsWith('.mp4') ||
+        name.endsWith('.mov') ||
+        name.endsWith('.webm') ||
+        name.endsWith('.avi');
+  }
 }

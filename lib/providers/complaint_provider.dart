@@ -123,6 +123,7 @@ class ComplaintProvider extends ChangeNotifier {
     required String location,
     required DateTime reportDate,
     List<String>? attachments,
+    List<String>? videos,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -136,6 +137,7 @@ class ComplaintProvider extends ChangeNotifier {
         location: location,
         reportDate: reportDate,
         attachments: attachments,
+        videos: videos,
       );
 
       if (response.success) {
@@ -167,6 +169,7 @@ class ComplaintProvider extends ChangeNotifier {
     required String location,
     required DateTime reportDate,
     List<String>? attachments,
+    List<String>? videos,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -181,6 +184,7 @@ class ComplaintProvider extends ChangeNotifier {
         location: location,
         reportDate: reportDate,
         attachments: attachments,
+        videos: videos,
       );
 
       if (response.success) {

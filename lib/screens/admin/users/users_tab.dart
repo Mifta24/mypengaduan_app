@@ -353,8 +353,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
   Widget _buildUserCard(dynamic user) {
     final role = user['role']?.toString() ?? 'user';
-    final isVerified =
-        user['is_user_verified'] == true || user['is_user_verified'] == 1;
+    final isVerified = _toBool(user['is_user_verified']) || _toBool(user['is_verified']);
     final name  = user['name']?.toString()  ?? 'Pengguna';
     final email = user['email']?.toString() ?? '';
     final initials = name.trim().split(' ').take(2).map((w) => w.isEmpty ? '' : w[0].toUpperCase()).join();
@@ -481,14 +480,24 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
     try {
       final response = await _adminService.getUser(id);
-      final data = response['data'] ?? response['user'] ?? response;
-      if (data is Map<String, dynamic>) {
-        return data;
+      final raw = response['data'] ?? response['user'] ?? response;
+      final Map<String, dynamic> result = raw is Map<String, dynamic>
+          ? Map<String, dynamic>.from(raw)
+          : raw is Map
+              ? Map<String, dynamic>.from(raw)
+              : Map<String, dynamic>.from(summary);
+
+      // Flatten nested profile object so fields like phone/rt_number are top-level
+      for (final key in ['profile', 'user_profile', 'userProfile']) {
+        final nested = result[key];
+        if (nested is Map) {
+          for (final e in nested.entries) {
+            result.putIfAbsent(e.key as String, () => e.value);
+          }
+        }
       }
-      if (data is Map) {
-        return Map<String, dynamic>.from(data);
-      }
-      return summary;
+
+      return result;
     } catch (_) {
       return summary;
     }
@@ -621,7 +630,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                               border: Border.all(color: Colors.white, width: 4),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Colors.black.withValues(alpha: 0.08),
                                   blurRadius: 12,
                                   offset: const Offset(0, 6),
                                 )
@@ -645,7 +654,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                           right: 20,
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white.withOpacity(0.9),
+                              backgroundColor: Colors.white.withValues(alpha: 0.9),
                               foregroundColor: roleColor,
                               side: const BorderSide(color: Colors.transparent),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -707,10 +716,10 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppTheme.border.withOpacity(0.5)),
+                              border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.02),
+                                  color: Colors.black.withValues(alpha: 0.02),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 )
@@ -720,7 +729,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                               children: [
                                 _contactRow(Icons.email_outlined, detail['email']?.toString() ?? '-'),
                                 const SizedBox(height: 12),
-                                _contactRow(Icons.phone_outlined, detail['phone']?.toString() ?? '-'),
+                                _contactRow(Icons.phone_outlined, _firstString(detail, ['phone', 'phone_number', 'no_hp', 'nomor_telepon'], fallback: '-')),
                                 const Divider(height: 24),
                                 Row(
                                   children: [
@@ -833,7 +842,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                                 const Divider(height: 20),
                                 _buildDetailRow(Icons.account_balance_outlined, 'RT', _firstString(detail, ['rt_number', 'rt'], fallback: '-')),
                                 const Divider(height: 20),
-                                _buildDetailRow(Icons.home_work_outlined, 'RW', _firstString(detail, ['rw_number'], fallback: '-')),
+                                _buildDetailRow(Icons.home_work_outlined, 'RW', _firstString(detail, ['rw_number', 'rw'], fallback: '-')),
                               ],
                             ),
                           ),
@@ -992,9 +1001,9 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1023,10 +1032,10 @@ class _AdminUsersTabState extends State<AdminUsersTab>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border.withOpacity(0.5)),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.01),
+            color: Colors.black.withValues(alpha: 0.01),
             blurRadius: 5,
             offset: const Offset(0, 2),
           )
@@ -1098,7 +1107,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         children: [
           Row(
             children: [
-              Icon(Icons.format_quote_rounded, color: AppTheme.primary.withOpacity(0.5)),
+              Icon(Icons.format_quote_rounded, color: AppTheme.primary.withValues(alpha: 0.5)),
               const SizedBox(width: 8),
               Expanded(child: Text(content, style: GoogleFonts.nunito(fontWeight: FontWeight.w600, color: AppTheme.textPrimary))),
             ],
@@ -1117,12 +1126,12 @@ class _AdminUsersTabState extends State<AdminUsersTab>
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border.withOpacity(0.5)),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_rounded, size: 32, color: AppTheme.textSecondary.withOpacity(0.5)),
+          Icon(Icons.inbox_rounded, size: 32, color: AppTheme.textSecondary.withValues(alpha: 0.5)),
           const SizedBox(height: 8),
           Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
           const SizedBox(height: 4),
@@ -2106,7 +2115,7 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
       RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
 
   bool _isStrongPassword(String password) {
-    if (password.length < 8) return false;
+    if (password.length < 8) { return false; }
     return RegExp(r'[A-Za-z]').hasMatch(password) &&
         RegExp(r'[0-9]').hasMatch(password);
   }

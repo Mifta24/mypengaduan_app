@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../services/admin_service.dart';
+import '../../../theme/app_theme.dart';
 
 class EditCategoryScreen extends StatefulWidget {
   final dynamic category;
-  
-  const EditCategoryScreen({
-    super.key,
-    required this.category,
-  });
+
+  const EditCategoryScreen({super.key, required this.category});
 
   @override
   State<EditCategoryScreen> createState() => _EditCategoryScreenState();
@@ -16,21 +16,21 @@ class EditCategoryScreen extends StatefulWidget {
 class _EditCategoryScreenState extends State<EditCategoryScreen> {
   final _formKey = GlobalKey<FormState>();
   final AdminService _adminService = AdminService();
-  
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _slugController;
-  
+
+  late final TextEditingController _nameController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _slugController;
+
   late bool _isActive;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.category['name'] ?? '');
+    _nameController        = TextEditingController(text: widget.category['name'] ?? '');
     _descriptionController = TextEditingController(text: widget.category['description'] ?? '');
-    _slugController = TextEditingController(text: widget.category['slug'] ?? '');
-    _isActive = widget.category['is_active'] == true || widget.category['is_active'] == 1;
+    _slugController        = TextEditingController(text: widget.category['slug'] ?? '');
+    _isActive = _toBool(widget.category['is_active']);
   }
 
   @override
@@ -44,17 +44,15 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   void _generateSlug() {
     final name = _nameController.text.trim();
     if (name.isNotEmpty) {
-      final slug = name
+      _slugController.text = name
           .toLowerCase()
           .replaceAll(' ', '-')
           .replaceAll(RegExp(r'[^a-z0-9-]'), '');
-      _slugController.text = slug;
     }
   }
 
-  Future<void> _submitForm() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
@@ -62,20 +60,16 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
         'name': _nameController.text.trim(),
         'is_active': _isActive,
       };
-      
-      // Only add optional fields if they have values
-      if (_descriptionController.text.trim().isNotEmpty) {
-        data['description'] = _descriptionController.text.trim();
-      }
+      final desc = _descriptionController.text.trim();
+      if (desc.isNotEmpty) data['description'] = desc;
+      final slug = _slugController.text.trim();
+      if (slug.isNotEmpty) data['slug'] = slug;
 
       await _adminService.updateCategory(widget.category['id'], data);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Kategori berhasil diperbarui'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Kategori berhasil diperbarui'), backgroundColor: Colors.green),
         );
         Navigator.pop(context, true);
       }
@@ -83,10 +77,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memperbarui kategori: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Gagal memperbarui: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -95,39 +86,27 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   Future<void> _deleteCategory() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Konfirmasi Hapus'),
-        content: const Text(
-          'Apakah Anda yakin ingin menghapus kategori ini? '
-          'Tindakan ini tidak dapat dibatalkan.',
-        ),
+        content: const Text('Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.'),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
         ],
       ),
     );
-
     if (confirm != true) return;
 
     setState(() => _isLoading = true);
-
     try {
       await _adminService.deleteCategory(widget.category['id']);
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Kategori berhasil dihapus'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: Colors.green),
         );
         Navigator.pop(context, true);
       }
@@ -135,10 +114,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menghapus kategori: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Gagal menghapus: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -147,29 +123,22 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     final complaintsCount = widget.category['complaints_count'] ?? 0;
-    final createdAt = widget.category['created_at'] != null 
-        ? DateTime.tryParse(widget.category['created_at'].toString()) 
-        : null;
+    final createdAt = _parseDate(widget.category['created_at']);
 
     return Scaffold(
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Edit Kategori'),
+        title: Text('Edit Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         actions: [
           if (_isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
             )
           else
             IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: _submitForm,
+              icon: const Icon(Icons.check_rounded),
+              onPressed: _submit,
               tooltip: 'Simpan',
             ),
         ],
@@ -177,132 +146,93 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
           children: [
-            // Stats Card
+            // ── Stats card ────────────────────────────────────
             Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.blue.shade200),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.border),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.blue.shade700),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Informasi Kategori',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade900,
-                        ),
-                      ),
-                    ],
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      widget.category['icon']?.toString() ?? '📝',
+                      style: const TextStyle(fontSize: 22),
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total Keluhan',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$complaintsCount',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade900,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (createdAt != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Dibuat',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${createdAt.day}/${createdAt.month}/${createdAt.year}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.blue.shade900,
-                              ),
-                            ),
-                          ],
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.category['name']?.toString() ?? '-',
+                          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          '$complaintsCount keluhan',
+                          style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ),
                   ),
+                  if (createdAt != null)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Dibuat', style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+                        Text(
+                          DateFormat('d MMM y').format(createdAt),
+                          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Name Field
+            // ── Nama ─────────────────────────────────────────
+            Text('Nama Kategori *', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            const SizedBox(height: 6),
             TextFormField(
               controller: _nameController,
+              style: GoogleFonts.nunito(fontSize: 14),
               decoration: InputDecoration(
-                labelText: 'Nama Kategori *',
                 hintText: 'Contoh: Fasilitas Umum',
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                ),
-                prefixIcon: const Icon(Icons.category),
+                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+                prefixIcon: const Icon(Icons.category_outlined, size: 20),
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Nama kategori harus diisi';
-                }
-                return null;
-              },
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama kategori harus diisi' : null,
             ),
             const SizedBox(height: 16),
 
-            // Slug Field
+            // ── Slug ─────────────────────────────────────────
+            Text('Slug (opsional)', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            const SizedBox(height: 6),
             TextFormField(
               controller: _slugController,
+              style: GoogleFonts.nunito(fontSize: 14),
               decoration: InputDecoration(
-                labelText: 'Slug (opsional)',
                 hintText: 'URL-friendly identifier',
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                ),
-                prefixIcon: const Icon(Icons.link),
+                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+                prefixIcon: const Icon(Icons.link_rounded, size: 20),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.refresh),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
                   onPressed: _generateSlug,
                   tooltip: 'Generate dari nama',
                 ),
@@ -310,107 +240,130 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Description Field
+            // ── Deskripsi ─────────────────────────────────────
+            Text('Deskripsi (opsional)', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            const SizedBox(height: 6),
             TextFormField(
               controller: _descriptionController,
+              style: GoogleFonts.nunito(fontSize: 14),
               decoration: InputDecoration(
-                labelText: 'Deskripsi (opsional)',
                 hintText: 'Jelaskan kategori ini...',
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+                prefixIcon: const Padding(
+                  padding: EdgeInsets.only(bottom: 60),
+                  child: Icon(Icons.description_outlined, size: 20),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                ),
-                prefixIcon: const Icon(Icons.description),
                 alignLabelWithHint: true,
               ),
               maxLines: 4,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Status Toggle
+            // ── Status toggle ─────────────────────────────────
             Container(
               decoration: BoxDecoration(
-                color: _isActive ? Colors.green.shade50 : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _isActive ? Colors.green.withValues(alpha: 0.3) : Colors.grey.shade200),
+                color: _isActive
+                    ? AppTheme.primary.withValues(alpha: 0.06)
+                    : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _isActive ? AppTheme.primary.withValues(alpha: 0.3) : AppTheme.border,
+                ),
               ),
               child: SwitchListTile(
-                title: const Text('Status Kategori'),
-                subtitle: Text(_isActive ? 'Aktif - Muncul di form pengaduan' : 'Nonaktif - Tidak muncul'),
+                title: Text('Status Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+                subtitle: Text(
+                  _isActive ? 'Aktif — muncul di form pengaduan' : 'Nonaktif — tidak muncul',
+                  style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                ),
                 value: _isActive,
-                onChanged: (value) => setState(() => _isActive = value),
+                onChanged: (v) => setState(() => _isActive = v),
+                activeTrackColor: AppTheme.primary,
                 secondary: Icon(
-                  _isActive ? Icons.check_circle : Icons.cancel,
-                  color: _isActive ? Colors.green : Colors.grey,
+                  _isActive ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                  color: _isActive ? AppTheme.primary : Colors.grey,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // Update Button
-            FilledButton.icon(
-              onPressed: _isLoading ? null : _submitForm,
+            // ── Save button ───────────────────────────────────
+            ElevatedButton.icon(
+              onPressed: _isLoading ? null : _submit,
               icon: _isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(_isLoading ? 'Menyimpan...' : 'Perbarui Kategori'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.save_rounded, size: 18),
+              label: Text(
+                _isLoading ? 'Menyimpan...' : 'Perbarui Kategori',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
             const SizedBox(height: 12),
 
-            // Delete Button
+            // ── Delete button ─────────────────────────────────
             OutlinedButton.icon(
               onPressed: _isLoading ? null : _deleteCategory,
-              icon: const Icon(Icons.delete),
-              label: const Text('Hapus Kategori'),
+              icon: const Icon(Icons.delete_outline_rounded, size: 18),
+              label: Text('Hapus Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
                 side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
-            const SizedBox(height: 8),
 
-            // Warning text
-            if (complaintsCount > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            // ── Warning if has complaints ─────────────────────
+            if (complaintsCount > 0) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.warning.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.warning.withValues(alpha: 0.3)),
+                ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.warning_amber, size: 16, color: Colors.orange[700]),
-                    const SizedBox(width: 8),
+                    Icon(Icons.warning_amber_rounded, size: 18, color: AppTheme.warning),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Perhatian: Kategori ini memiliki $complaintsCount keluhan. '
-                        'Pastikan untuk memindahkan keluhan ke kategori lain sebelum menghapus.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange[700],
-                          fontStyle: FontStyle.italic,
-                        ),
+                        'Kategori ini memiliki $complaintsCount keluhan. Pastikan memindahkan keluhan sebelum menghapus.',
+                        style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.warning),
                       ),
                     ),
                   ],
                 ),
               ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  bool _toBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) {
+      final s = value.toLowerCase();
+      return s == '1' || s == 'true' || s == 'yes' || s == 'aktif';
+    }
+    return false;
+  }
+
+  DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    return DateTime.tryParse(value.toString())?.toLocal();
   }
 }
