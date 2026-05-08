@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../models/user_model.dart';
+import '../../../theme/app_theme.dart';
 
 class EditAdminProfileScreen extends StatefulWidget {
   final User user;
@@ -22,10 +24,6 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
   late TextEditingController _rwController;
 
   bool _isLoading = false;
-
-  static const _gradientStart = Color(0xFF1A237E);
-  static const _gradientEnd = Color(0xFF3949AB);
-  static const _accentColor = Color(0xFF5C6BC0);
 
   @override
   void initState() {
@@ -51,25 +49,21 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
 
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
-
     try {
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.updateProfile(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        address: _addressController.text.trim(),
-        nik: _nikController.text.trim(),
-        rt: _rtController.text.trim(),
-        rw: _rwController.text.trim(),
-      );
-
+      await context.read<AuthProvider>().updateProfile(
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim(),
+            address: _addressController.text.trim(),
+            nik: _nikController.text.trim(),
+            rt: _rtController.text.trim(),
+            rw: _rwController.text.trim(),
+          );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profil berhasil diperbarui'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.primary,
           ),
         );
         Navigator.pop(context);
@@ -78,288 +72,281 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memperbarui profil: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text('Gagal memperbarui profil: $e'),
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: AppTheme.surface,
       body: Form(
         key: _formKey,
         child: CustomScrollView(
           slivers: [
-            // ── Gradient SliverAppBar ──────────────────────────
+            // ── SliverAppBar dark forest green ──────────────
             SliverAppBar(
-              expandedHeight: 160,
+              expandedHeight: 168,
               pinned: true,
-              backgroundColor: _gradientStart,
+              backgroundColor: AppTheme.bgDark,
               foregroundColor: Colors.white,
               elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
               flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [_gradientStart, _gradientEnd],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                background: Stack(
+                  children: [
+                    // Gradient background
+                    Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [AppTheme.bgDeep, AppTheme.bgDark],
+                        ),
+                      ),
                     ),
-                  ),
-                  child: SafeArea(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
-                        // Mini avatar
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Colors.white,
-                          child: CircleAvatar(
-                            radius: 28,
-                            backgroundColor:
-                                _accentColor.withValues(alpha: 0.15),
-                            child: Text(
-                              widget.user.name.substring(0, 1).toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: _gradientEnd,
+                    // Leaf decorations
+                    Positioned(
+                      top: 60, right: 20,
+                      child: Transform.rotate(
+                        angle: 0.3,
+                        child: Icon(Icons.eco_rounded, size: 36,
+                            color: AppTheme.primaryDark
+                                .withValues(alpha: 0.4)),
+                      ),
+                    ),
+                    Positioned(
+                      top: 80, left: 14,
+                      child: Transform.rotate(
+                        angle: -0.5,
+                        child: Icon(Icons.eco_rounded, size: 24,
+                            color: AppTheme.primaryDark
+                                .withValues(alpha: 0.35)),
+                      ),
+                    ),
+                    // Avatar + name
+                    Positioned.fill(
+                      child: SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 32),
+                            Container(
+                              width: 64, height: 64,
+                              decoration: BoxDecoration(
+                                color: AppTheme.secondary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: Colors.white, width: 2.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primary
+                                        .withValues(alpha: 0.4),
+                                    blurRadius: 16,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  widget.user.name.isNotEmpty
+                                      ? widget.user.name[0].toUpperCase()
+                                      : 'A',
+                                  style: GoogleFonts.nunito(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white),
+                                ),
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            Text(widget.user.name,
+                                style: GoogleFonts.nunito(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white),
+                                textAlign: TextAlign.center),
+                            const SizedBox(height: 2),
+                            Text(widget.user.email,
+                                style: GoogleFonts.nunito(
+                                    fontSize: 12,
+                                    color: Colors.white
+                                        .withValues(alpha: 0.7)),
+                                textAlign: TextAlign.center),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.user.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.user.email,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                title: const Text(
-                  'Edit Profil',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
+                title: Text('Edit Profil',
+                    style: GoogleFonts.nunito(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17)),
                 titlePadding:
                     const EdgeInsets.only(left: 56, bottom: 16),
                 collapseMode: CollapseMode.parallax,
               ),
             ),
 
-            // ── Form body ─────────────────────────────────────
+            // ── Form body ────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── Informasi Akun ──────────────────────
-                    _buildSectionCard(
-                      title: 'Informasi Akun',
-                      icon: Icons.manage_accounts_rounded,
-                      children: [
-                        _buildField(
-                          controller: _nameController,
-                          label: 'Nama Lengkap',
-                          icon: Icons.person_rounded,
-                          hint: 'Masukkan nama lengkap',
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty)
-                                  ? 'Nama tidak boleh kosong'
-                                  : null,
-                        ),
-                        const SizedBox(height: 14),
-                        // Email — read only
-                        _buildReadonlyField(
-                          value: widget.user.email,
-                          label: 'Email',
-                          icon: Icons.email_rounded,
-                        ),
-                        const SizedBox(height: 14),
-                        _buildField(
-                          controller: _phoneController,
-                          label: 'No. Telepon',
-                          icon: Icons.phone_rounded,
-                          hint: '08xxxxxxxxxx',
-                          keyboardType: TextInputType.phone,
-                          validator: (v) {
-                            if (v != null && v.isNotEmpty) {
-                              if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
-                                return 'Hanya boleh berisi angka';
-                              }
-                              if (v.length < 10) {
-                                return 'Minimal 10 digit';
-                              }
+                    _sectionLabel('Informasi Akun'),
+                    const SizedBox(height: 8),
+                    _buildCard([
+                      _buildField(
+                        controller: _nameController,
+                        label: 'Nama Lengkap',
+                        icon: Icons.person_rounded,
+                        hint: 'Masukkan nama lengkap',
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty)
+                                ? 'Nama tidak boleh kosong'
+                                : null,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildReadonlyField(
+                        value: widget.user.email,
+                        label: 'Email',
+                        icon: Icons.email_rounded,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildField(
+                        controller: _phoneController,
+                        label: 'No. Telepon',
+                        icon: Icons.phone_rounded,
+                        hint: '08xxxxxxxxxx',
+                        keyboardType: TextInputType.phone,
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty) {
+                            if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
+                              return 'Hanya boleh berisi angka';
                             }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
+                            if (v.length < 10) return 'Minimal 10 digit';
+                          }
+                          return null;
+                        },
+                      ),
+                    ]),
+                    const SizedBox(height: 20),
 
                     // ── Informasi Pribadi ───────────────────
-                    _buildSectionCard(
-                      title: 'Informasi Pribadi',
-                      icon: Icons.person_rounded,
-                      children: [
-                        _buildField(
-                          controller: _nikController,
-                          label: 'NIK',
-                          icon: Icons.badge_rounded,
-                          hint: '16 digit NIK',
-                          keyboardType: TextInputType.number,
-                          maxLength: 16,
-                          validator: (v) {
-                            if (v != null && v.isNotEmpty) {
-                              if (v.length != 16) return 'NIK harus 16 digit';
-                              if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
-                                return 'Hanya boleh berisi angka';
-                              }
+                    _sectionLabel('Informasi Pribadi'),
+                    const SizedBox(height: 8),
+                    _buildCard([
+                      _buildField(
+                        controller: _nikController,
+                        label: 'NIK',
+                        icon: Icons.badge_rounded,
+                        hint: '16 digit NIK',
+                        keyboardType: TextInputType.number,
+                        maxLength: 16,
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty) {
+                            if (v.length != 16) return 'NIK harus 16 digit';
+                            if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
+                              return 'Hanya boleh berisi angka';
                             }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 14),
-                        _buildField(
-                          controller: _addressController,
-                          label: 'Alamat',
-                          icon: Icons.home_rounded,
-                          hint: 'Alamat lengkap',
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 14),
-                        // RT & RW side by side
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildField(
-                                controller: _rtController,
-                                label: 'RT',
-                                icon: Icons.location_city_rounded,
-                                hint: '001',
-                                keyboardType: TextInputType.number,
-                                maxLength: 3,
-                                validator: (v) {
-                                  if (v != null && v.isNotEmpty) {
-                                    if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
-                                      return 'Hanya angka';
-                                    }
-                                  }
-                                  return null;
-                                },
-                              ),
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      _buildField(
+                        controller: _addressController,
+                        label: 'Alamat',
+                        icon: Icons.home_rounded,
+                        hint: 'Alamat lengkap',
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildField(
+                              controller: _rtController,
+                              label: 'RT',
+                              icon: Icons.location_city_rounded,
+                              hint: '001',
+                              keyboardType: TextInputType.number,
+                              maxLength: 3,
+                              validator: (v) {
+                                if (v != null &&
+                                    v.isNotEmpty &&
+                                    !RegExp(r'^[0-9]+$').hasMatch(v)) {
+                                  return 'Hanya angka';
+                                }
+                                return null;
+                              },
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildField(
-                                controller: _rwController,
-                                label: 'RW',
-                                icon: Icons.location_city_rounded,
-                                hint: '001',
-                                keyboardType: TextInputType.number,
-                                maxLength: 3,
-                                validator: (v) {
-                                  if (v != null && v.isNotEmpty) {
-                                    if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
-                                      return 'Hanya angka';
-                                    }
-                                  }
-                                  return null;
-                                },
-                              ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildField(
+                              controller: _rwController,
+                              label: 'RW',
+                              icon: Icons.location_city_rounded,
+                              hint: '001',
+                              keyboardType: TextInputType.number,
+                              maxLength: 3,
+                              validator: (v) {
+                                if (v != null &&
+                                    v.isNotEmpty &&
+                                    !RegExp(r'^[0-9]+$').hasMatch(v)) {
+                                  return 'Hanya angka';
+                                }
+                                return null;
+                              },
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ]),
                     const SizedBox(height: 28),
 
                     // ── Save button ─────────────────────────
                     SizedBox(
                       width: double.infinity,
-                      height: 52,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: _isLoading
-                              ? null
-                              : const LinearGradient(
-                                  colors: [_gradientStart, _gradientEnd],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _updateProfile,
+                        icon: _isLoading
+                            ? const SizedBox(
+                                width: 18, height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
-                          color: _isLoading ? Colors.grey.shade300 : null,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: _isLoading
-                              ? null
-                              : [
-                                  BoxShadow(
-                                    color:
-                                        _gradientEnd.withValues(alpha: 0.35),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                              )
+                            : const Icon(Icons.save_rounded, size: 18),
+                        label: Text(
+                          _isLoading ? 'Menyimpan...' : 'Simpan Perubahan',
+                          style: GoogleFonts.nunito(
+                              fontSize: 15, fontWeight: FontWeight.w700),
                         ),
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _updateProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            foregroundColor: Colors.white,
-                            shadowColor: Colors.transparent,
-                            disabledBackgroundColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14)),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.save_rounded, size: 18),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Simpan Perubahan',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -373,61 +360,25 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
+  Widget _sectionLabel(String label) => Text(
+        label,
+        style: GoogleFonts.nunito(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimary),
+      );
+
+  Widget _buildCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
       ),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Card header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _gradientEnd.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: _gradientEnd, size: 18),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A237E),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: children,
-            ),
-          ),
-        ],
+        children: children,
       ),
     );
   }
@@ -448,6 +399,7 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
       maxLines: maxLines,
       maxLength: maxLength,
       validator: validator,
+      style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -456,38 +408,40 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0F2FF),
+              color: AppTheme.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 16, color: _accentColor),
+            child: Icon(icon, size: 16, color: AppTheme.primary),
           ),
         ),
         filled: true,
-        fillColor: const Color(0xFFFAFAFF),
-        labelStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+        fillColor: Colors.white,
+        labelStyle: GoogleFonts.nunito(
+            fontSize: 13, color: AppTheme.textSecondary),
+        hintStyle: GoogleFonts.nunito(
+            fontSize: 13, color: AppTheme.textSecondary),
+        counterStyle: GoogleFonts.nunito(
+            fontSize: 11, color: AppTheme.textSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: _gradientEnd, width: 1.8),
+          borderSide: const BorderSide(color: AppTheme.primary, width: 1.8),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 1.2),
+          borderSide: const BorderSide(color: AppTheme.danger, width: 1.2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 1.8),
+          borderSide: const BorderSide(color: AppTheme.danger, width: 1.8),
         ),
-        counterStyle: TextStyle(color: Colors.grey[400], fontSize: 11),
       ),
     );
   }
@@ -498,11 +452,10 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
     required IconData icon,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F8),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
@@ -511,54 +464,41 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFFEEEEF5),
+                color: AppTheme.primary.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, size: 16, color: Colors.grey[500]),
+              child: Icon(icon, size: 16,
+                  color: AppTheme.textSecondary),
             ),
           ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Text(label,
+                    style: GoogleFonts.nunito(
+                        fontSize: 11, color: AppTheme.textSecondary)),
                 const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
-                ),
+                Text(value,
+                    style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary)),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Tidak dapat diubah',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[500],
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.border.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(8),
             ),
+            child: Text('Tidak dapat diubah',
+                style: GoogleFonts.nunito(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary)),
           ),
         ],
       ),
