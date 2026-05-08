@@ -342,11 +342,11 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                   style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary, fontSize: 13),
                 ),
                 const Spacer(),
-                _buildBulkBtn('Aktif', Colors.green, () => _bulkAction('activate')),
+                _buildBulkBtn('Aktif', Colors.green, Icons.check_circle_outline, () => _bulkAction('activate')),
                 const SizedBox(width: 6),
-                _buildBulkBtn('Nonaktif', Colors.orange, () => _bulkAction('deactivate')),
+                _buildBulkBtn('Nonaktif', Colors.orange, Icons.cancel_outlined, () => _bulkAction('deactivate')),
                 const SizedBox(width: 6),
-                _buildBulkBtn('Hapus', Colors.red, () => _bulkAction('delete')),
+                _buildBulkBtn('Hapus', Colors.red, Icons.delete_outline, () => _bulkAction('delete')),
                 const SizedBox(width: 6),
                 GestureDetector(
                   onTap: () => setState(() => _selectedIds.clear()),
@@ -387,7 +387,7 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
     );
   }
 
-  Widget _buildBulkBtn(String label, Color color, VoidCallback onTap) {
+  Widget _buildBulkBtn(String label, Color color, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -397,7 +397,14 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
-        child: Text(label, style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+            Text(label, style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+          ],
+        ),
       ),
     );
   }

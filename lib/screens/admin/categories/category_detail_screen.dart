@@ -194,7 +194,14 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: Text('Detail Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.category_rounded, size: 20),
+            const SizedBox(width: 8),
+            Text('Detail Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+          ],
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
           onPressed: () => Navigator.pop(context, _hasChanges),
@@ -323,6 +330,7 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                         const SizedBox(height: 24),
                         _buildSectionHeader(
                           'Keluhan Terbaru',
+                          icon: Icons.report_problem_outlined,
                           action: TextButton(
                             onPressed: _showAllComplaints,
                             style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
@@ -335,7 +343,7 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                             : _buildComplaintTile(latestComplaint),
 
                         const SizedBox(height: 24),
-                        _buildSectionHeader('Detail Kategori'),
+                        _buildSectionHeader('Detail Kategori', icon: Icons.info_outline_rounded),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.all(16),
@@ -360,7 +368,7 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                         ),
 
                         const SizedBox(height: 24),
-                        _buildSectionHeader('Aksi'),
+                        _buildSectionHeader('Aksi', icon: Icons.touch_app_rounded),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 10,
@@ -438,9 +446,20 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, {Widget? action}) {
+  Widget _buildSectionHeader(String title, {Widget? action, IconData? icon}) {
     return Row(
       children: [
+        if (icon != null) ...[
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: AppTheme.primary),
+          ),
+          const SizedBox(width: 8),
+        ],
         Text(title, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
         const Spacer(),
         if (action != null) action,
