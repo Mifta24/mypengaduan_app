@@ -227,6 +227,8 @@ class AuthProvider extends ChangeNotifier {
     String? nik,
     String? rt,
     String? rw,
+    String? avatarPath,
+    bool removeAvatar = false,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -239,6 +241,8 @@ class AuthProvider extends ChangeNotifier {
         nik: nik,
         rtNumber: rt,
         rwNumber: rw,
+        avatarPath: avatarPath,
+        removeAvatar: removeAvatar,
       );
 
       if (response['success'] == true && response['user'] != null) {

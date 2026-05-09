@@ -9,6 +9,7 @@ class User {
   final String? ktpUrl;
   final String? rtNumber;
   final String? rwNumber;
+  final String? avatar;
   final String role;
   final List<String> roles;
   final bool isEmailVerified;
@@ -27,6 +28,7 @@ class User {
     this.ktpUrl,
     this.rtNumber,
     this.rwNumber,
+    this.avatar,
     this.role = 'user',
     required this.roles,
     this.isEmailVerified = false,
@@ -64,6 +66,7 @@ class User {
         ktpUrl: userData['ktp_url']?.toString(),
         rtNumber: (userData['rt_number'] ?? userData['rt'])?.toString(),
         rwNumber: (userData['rw_number'] ?? userData['rw'])?.toString(),
+        avatar: userData['avatar']?.toString(),
         role: userData['role']?.toString() ?? 'user',
         roles: userData['roles'] != null 
             ? (userData['roles'] is List 
@@ -100,6 +103,7 @@ class User {
       'ktp_url': ktpUrl,
       'rt_number': rtNumber,
       'rw_number': rwNumber,
+      'avatar': avatar,
       'role': role,
       'roles': roles,
       'email_verified_at': isEmailVerified ? true : null,

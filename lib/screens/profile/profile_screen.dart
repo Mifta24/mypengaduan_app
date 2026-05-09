@@ -125,12 +125,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                        style: GoogleFonts.nunito(
-                            fontSize: 36, fontWeight: FontWeight.w800, color: Colors.white),
-                      ),
+                    child: ClipOval(
+                      child: user.avatar != null
+                          ? Image.network(
+                              user.avatar!,
+                              width: 90, height: 90,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Center(
+                                child: Text(
+                                  user.name.isNotEmpty
+                                      ? user.name[0].toUpperCase()
+                                      : 'U',
+                                  style: GoogleFonts.nunito(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white),
+                                ),
+                              ),
+                            )
+                          : Center(
+                              child: Text(
+                                user.name.isNotEmpty
+                                    ? user.name[0].toUpperCase()
+                                    : 'U',
+                                style: GoogleFonts.nunito(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white),
+                              ),
+                            ),
                     ),
                   ),
                   // Verified badge

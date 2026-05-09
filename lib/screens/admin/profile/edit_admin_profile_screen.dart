@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../models/user_model.dart';
@@ -24,6 +27,8 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
   late TextEditingController _rwController;
 
   bool _isLoading = false;
+  File? _profileImage;
+  bool _removeAvatar = false;
 
   @override
   void initState() {
@@ -47,6 +52,32 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickProfileImage() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() {
+          _profileImage = File(picked.path);
+          _removeAvatar = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memilih foto: $e'),
+          backgroundColor: AppTheme.danger,
+        ),
+      );
+    }
+  }
+
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
@@ -58,6 +89,8 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
             nik: _nikController.text.trim(),
             rt: _rtController.text.trim(),
             rw: _rwController.text.trim(),
+            avatarPath: _profileImage?.path,
+            removeAvatar: _removeAvatar,
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -156,16 +189,44 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                                   ),
                                 ],
                               ),
-                              child: Center(
-                                child: Text(
-                                  widget.user.name.isNotEmpty
-                                      ? widget.user.name[0].toUpperCase()
-                                      : 'A',
-                                  style: GoogleFonts.nunito(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white),
-                                ),
+                              child: ClipOval(
+                                child: _profileImage != null
+                                    ? Image.file(_profileImage!,
+                                        width: 64, height: 64,
+                                        fit: BoxFit.cover)
+                                    : (!_removeAvatar &&
+                                            widget.user.avatar != null
+                                        ? Image.network(
+                                            widget.user.avatar!,
+                                            width: 64, height: 64,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Center(
+                                                  child: Text(
+                                                    widget.user.name.isNotEmpty
+                                                        ? widget.user.name[0]
+                                                            .toUpperCase()
+                                                        : 'A',
+                                                    style: GoogleFonts.nunito(
+                                                        fontSize: 26,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color: Colors.white),
+                                                  ),
+                                                ),
+                                          )
+                                        : Center(
+                                            child: Text(
+                                              widget.user.name.isNotEmpty
+                                                  ? widget.user.name[0]
+                                                      .toUpperCase()
+                                                  : 'A',
+                                              style: GoogleFonts.nunito(
+                                                  fontSize: 26,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.white),
+                                            ),
+                                          )),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -206,6 +267,95 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── Foto Profil ─────────────────────────
+                    _sectionLabel('Foto Profil'),
+                    const SizedBox(height: 8),
+                    _buildCard([
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 32,
+                            backgroundColor:
+                                AppTheme.primary.withValues(alpha: 0.1),
+                            backgroundImage: _profileImage != null
+                                ? FileImage(_profileImage!) as ImageProvider
+                                : (!_removeAvatar && widget.user.avatar != null
+                                    ? NetworkImage(widget.user.avatar!)
+                                    : null),
+                            child: (_profileImage == null &&
+                                    (_removeAvatar ||
+                                        widget.user.avatar == null))
+                                ? Text(
+                                    widget.user.name.isNotEmpty
+                                        ? widget.user.name[0].toUpperCase()
+                                        : 'A',
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.primary,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: _pickProfileImage,
+                                  icon: const Icon(Icons.upload_file, size: 16),
+                                  label: Text(
+                                    _profileImage == null
+                                        ? 'Pilih Foto'
+                                        : 'Ganti Foto',
+                                    style: GoogleFonts.nunito(fontSize: 13),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.primary,
+                                    side: const BorderSide(
+                                        color: AppTheme.primary),
+                                  ),
+                                ),
+                                if (_profileImage != null ||
+                                    (!_removeAvatar &&
+                                        widget.user.avatar != null)) ...[
+                                  const SizedBox(height: 6),
+                                  OutlinedButton.icon(
+                                    onPressed: () => setState(() {
+                                      _profileImage = null;
+                                      _removeAvatar = true;
+                                    }),
+                                    icon: const Icon(Icons.delete_outline,
+                                        size: 16, color: AppTheme.danger),
+                                    label: Text(
+                                      'Hapus Foto',
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 13,
+                                          color: AppTheme.danger),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(
+                                          color: AppTheme.danger),
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  'JPG, JPEG, PNG hingga 2MB',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 11,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ]),
+                    const SizedBox(height: 20),
+
                     // ── Informasi Akun ──────────────────────
                     _sectionLabel('Informasi Akun'),
                     const SizedBox(height: 8),

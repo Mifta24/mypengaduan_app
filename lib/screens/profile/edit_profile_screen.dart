@@ -26,6 +26,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool _isLoading = false;
   File? _profileImage;
+  bool _removeAvatar = false;
 
   @override
   void initState() {
@@ -95,7 +96,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
         address: _addressController.text.trim(),
-        // NIK tidak boleh diubah setelah registrasi, jadi jangan kirim ke backend
         nik: null,
         rtNumber: _rtController.text.trim().isEmpty
             ? null
@@ -103,13 +103,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         rwNumber: _rwController.text.trim().isEmpty
             ? null
             : _rwController.text.trim(),
+        avatarPath: _profileImage?.path,
+        removeAvatar: _removeAvatar,
       );
 
       if (mounted) {
         setState(() => _isLoading = false);
 
         if (result['success']) {
-          // Update provider
           await context.read<AuthProvider>().getProfile();
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -266,7 +267,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Foto Profil (placeholder, belum bisa diubah dari app)
+            // Foto Profil
             Text(
               'Foto Profil',
               style: GoogleFonts.nunito(
@@ -282,66 +283,77 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               elevation: 1,
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 28,
-                          backgroundColor:
-                              Theme.of(context).primaryColor.withOpacity(0.1),
-                          backgroundImage: _profileImage != null
-                              ? FileImage(_profileImage!)
-                              : null,
-                          child: _profileImage == null
-                              ? Text(
-                                  (user?.name.isNotEmpty == true
-                                          ? user!.name[0].toUpperCase()
-                                          : 'U')
-                                      .toString(),
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: _pickProfileImage,
-                                icon: const Icon(Icons.upload_file),
-                                label: Text(
-                                  _profileImage == null
-                                      ? 'Pilih Foto Profil'
-                                      : 'Ganti Foto Profil',
-                                ),
+                    // Avatar preview
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor:
+                          Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                      backgroundImage: _profileImage != null
+                          ? FileImage(_profileImage!) as ImageProvider
+                          : (!_removeAvatar && user?.avatar != null
+                              ? NetworkImage(user!.avatar!)
+                              : null),
+                      child: (_profileImage == null &&
+                              (_removeAvatar || user?.avatar == null))
+                          ? Text(
+                              (user?.name.isNotEmpty == true
+                                      ? user!.name[0].toUpperCase()
+                                      : 'U')
+                                  .toString(),
+                              style: GoogleFonts.nunito(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'JPG, JPEG, PNG hingga 2MB',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Catatan: saat ini foto profil hanya disimpan di sisi aplikasi, belum diunggah ke server.',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 11,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() => _removeAvatar = false);
+                              _pickProfileImage();
+                            },
+                            icon: const Icon(Icons.upload_file),
+                            label: Text(
+                              _profileImage == null
+                                  ? 'Pilih Foto Profil'
+                                  : 'Ganti Foto Profil',
+                            ),
                           ),
-                        ),
-                      ],
+                          if (_profileImage != null ||
+                              (!_removeAvatar && user?.avatar != null)) ...[
+                            const SizedBox(height: 6),
+                            OutlinedButton.icon(
+                              onPressed: () => setState(() {
+                                _profileImage = null;
+                                _removeAvatar = true;
+                              }),
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.red),
+                              label: const Text('Hapus Foto',
+                                  style: TextStyle(color: Colors.red)),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 4),
+                          Text(
+                            'JPG, JPEG, PNG hingga 2MB',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

@@ -153,6 +153,8 @@ class AuthService {
     String? nik,
     String? rtNumber,
     String? rwNumber,
+    String? avatarPath,
+    bool removeAvatar = false,
   }) async {
     try {
       final token = await getToken();
@@ -163,17 +165,43 @@ class AuthService {
         };
       }
 
-      final response = await _dio.put(
-        'auth/profile',
-        data: {
+      dynamic requestData;
+      Options requestOptions;
+
+      if (avatarPath != null || removeAvatar) {
+        final fields = <String, dynamic>{
           'name': name,
           'phone': phone,
           'address': address,
           if (nik != null && nik.isNotEmpty) 'nik': nik,
           if (rtNumber != null && rtNumber.isNotEmpty) 'rt_number': rtNumber,
           if (rwNumber != null && rwNumber.isNotEmpty) 'rw_number': rwNumber,
-        },
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+          if (removeAvatar) 'remove_avatar': '1',
+        };
+        if (avatarPath != null) {
+          fields['avatar'] = await MultipartFile.fromFile(
+            avatarPath,
+            filename: avatarPath.split('/').last,
+          );
+        }
+        requestData = FormData.fromMap(fields);
+        requestOptions = Options(headers: {'Authorization': 'Bearer $token'});
+      } else {
+        requestData = {
+          'name': name,
+          'phone': phone,
+          'address': address,
+          if (nik != null && nik.isNotEmpty) 'nik': nik,
+          if (rtNumber != null && rtNumber.isNotEmpty) 'rt_number': rtNumber,
+          if (rwNumber != null && rwNumber.isNotEmpty) 'rw_number': rwNumber,
+        };
+        requestOptions = Options(headers: {'Authorization': 'Bearer $token'});
+      }
+
+      final response = await _dio.put(
+        'auth/profile',
+        data: requestData,
+        options: requestOptions,
       );
 
       if (response.data['success']) {
@@ -196,6 +224,47 @@ class AuthService {
           'success': false,
           'message': e.response!.data['message'] ?? 'Failed to update profile',
           'errors': e.response!.data['errors'],
+        };
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}',
+      };
+    }
+  }
+
+  // Delete Avatar
+  Future<Map<String, dynamic>> deleteAvatar() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        return {'success': false, 'message': 'User not authenticated'};
+      }
+
+      final response = await _dio.delete(
+        'auth/profile/avatar',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.data['success']) {
+        final user = User.fromJson(response.data['data']);
+        await _saveUser(user);
+        return {
+          'success': true,
+          'message': response.data['message'] ?? 'Avatar deleted',
+          'user': user,
+        };
+      }
+
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Failed to delete avatar',
+      };
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return {
+          'success': false,
+          'message': e.response!.data['message'] ?? 'Failed to delete avatar',
         };
       }
       return {
