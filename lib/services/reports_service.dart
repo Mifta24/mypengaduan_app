@@ -90,6 +90,27 @@ class ReportsService {
     return const [];
   }
 
+  Future<List<Map<String, dynamic>>> fetchExportData({
+    required String type,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    String? status,
+    int? categoryId,
+    int? userId,
+    String? role,
+  }) async {
+    final raw = await _adminService.getReportExport(
+      type: type,
+      dateFrom: _asApiDate(dateFrom),
+      dateTo: _asApiDate(dateTo),
+      status: status,
+      categoryId: categoryId,
+      userId: userId,
+      role: role,
+    );
+    return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
   Future<List<Map<String, dynamic>>> fetchComplaintsByUser(int userId) async {
     final rows = <Map<String, dynamic>>[];
     var page = 1;

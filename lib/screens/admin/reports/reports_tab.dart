@@ -28,35 +28,10 @@ class _AdminReportsTabState extends State<AdminReportsTab>
 
   Map<String, dynamic>? get _overview => _reportsProvider.overview;
   Map<String, dynamic>? get _complaintsReport => _reportsProvider.complaintsReport;
-  Map<String, dynamic>? get _usersReport => _reportsProvider.usersReport;
   Map<String, dynamic>? get _statistics => _reportsProvider.statistics;
 
   List<Map<String, dynamic>> get _filteredComplaintItems => _reportsProvider.filteredComplaintItems;
   List<Map<String, dynamic>> get _filteredUserItems => _reportsProvider.filteredUserItems;
-
-  DateTime? get _complaintFromDate => _reportsProvider.complaintFromDate;
-  set _complaintFromDate(DateTime? value) => _reportsProvider.complaintFromDate = value;
-
-  DateTime? get _complaintToDate => _reportsProvider.complaintToDate;
-  set _complaintToDate(DateTime? value) => _reportsProvider.complaintToDate = value;
-
-  String get _complaintStatusFilter => _reportsProvider.complaintStatusFilter;
-  set _complaintStatusFilter(String value) => _reportsProvider.complaintStatusFilter = value;
-
-  String get _complaintCategoryFilter => _reportsProvider.complaintCategoryFilter;
-  set _complaintCategoryFilter(String value) => _reportsProvider.complaintCategoryFilter = value;
-
-  DateTime? get _userFromDate => _reportsProvider.userFromDate;
-  set _userFromDate(DateTime? value) => _reportsProvider.userFromDate = value;
-
-  DateTime? get _userToDate => _reportsProvider.userToDate;
-  set _userToDate(DateTime? value) => _reportsProvider.userToDate = value;
-
-  String get _userStatusFilter => _reportsProvider.userStatusFilter;
-  set _userStatusFilter(String value) => _reportsProvider.userStatusFilter = value;
-
-  String get _userSearchQuery => _reportsProvider.userSearchQuery;
-  set _userSearchQuery(String value) => _reportsProvider.userSearchQuery = value;
 
   bool get _hasLoadedData => _reportsProvider.hasLoadedData;
 
@@ -135,14 +110,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
         SnackBar(content: Text('Gagal export: $e'), backgroundColor: Colors.red),
       );
     }
-  }
-
-  Future<void> _applyComplaintFilter() {
-    return _reportsProvider.applyComplaintFilter();
-  }
-
-  Future<void> _applyUserFilter() {
-    return _reportsProvider.applyUserFilter();
   }
 
   @override
@@ -492,190 +459,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
-                tooltip: 'Opsi Laporan',
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.more_vert, color: AppTheme.primary),
-                ),
-                onSelected: (value) {
-                  switch (value) {
-                    case 'export_pdf':
-                      _exportReport('complaints', 'pdf');
-                      break;
-                    case 'export_excel':
-                      _exportReport('complaints', 'excel');
-                      break;
-                    case 'export_selected_pdf':
-                      _exportSelectedComplaints('pdf');
-                      break;
-                    case 'export_selected_excel':
-                      _exportSelectedComplaints('excel');
-                      break;
-                    case 'select_all':
-                      _reportsProvider.selectAllFilteredComplaints();
-                      break;
-                    case 'clear_selection':
-                      _reportsProvider.clearSelectedComplaints();
-                      break;
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'export_pdf', child: Text('Export Semua (PDF)')),
-                  const PopupMenuItem(value: 'export_excel', child: Text('Export Semua (Excel)')),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: 'select_all',
-                    enabled: _filteredComplaintItems.isNotEmpty,
-                    child: const Text('Pilih Semua (Filter Saat Ini)'),
-                  ),
-                  PopupMenuItem(
-                    value: 'clear_selection',
-                    enabled: _reportsProvider.hasSelectedComplaints,
-                    child: const Text('Hapus Pilihan'),
-                  ),
-                  if (_reportsProvider.hasSelectedComplaints) ...[
-                    const PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: 'export_selected_pdf',
-                      child: Text('Export Dipilih (${_reportsProvider.selectedComplaintCount}) - PDF'),
-                    ),
-                    PopupMenuItem(
-                      value: 'export_selected_excel',
-                      child: Text('Export Dipilih (${_reportsProvider.selectedComplaintCount}) - Excel'),
-                    ),
-                  ],
-                ],
-              ),
             ],
-          ),
-          const SizedBox(height: 12),
-          _buildFilterPanel(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _dateRow(
-                  fromLabel: 'Dari Tanggal',
-                  toLabel: 'Sampai Tanggal',
-                  fromDate: _complaintFromDate,
-                  toDate: _complaintToDate,
-                  onPickFrom: () async {
-                    final picked = await _pickDate(_complaintFromDate);
-                    if (picked == null) return;
-                    setState(() => _complaintFromDate = picked);
-                  },
-                  onPickTo: () async {
-                    final picked = await _pickDate(_complaintToDate);
-                    if (picked == null) return;
-                    setState(() => _complaintToDate = picked);
-                  },
-                ),
-                const SizedBox(height: 8),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isNarrow = constraints.maxWidth < 620;
-                    if (isNarrow) {
-                      return Column(
-                        children: [
-                          DropdownButtonFormField<String>(
-                            key: ValueKey('complaint_status_$_complaintStatusFilter'),
-                            initialValue: _complaintStatusFilter,
-                            decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
-                            items: const [
-                              DropdownMenuItem(value: 'all', child: Text('Semua Status')),
-                              DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                              DropdownMenuItem(value: 'in_progress', child: Text('Dalam Proses')),
-                              DropdownMenuItem(value: 'resolved', child: Text('Selesai')),
-                              DropdownMenuItem(value: 'rejected', child: Text('Ditolak')),
-                            ],
-                            onChanged: (value) => setState(() => _complaintStatusFilter = value ?? 'all'),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            key: ValueKey('complaint_category_$_complaintCategoryFilter'),
-                            initialValue: _complaintCategoryFilter,
-                            decoration: const InputDecoration(labelText: 'Kategori', border: OutlineInputBorder()),
-                            items: [
-                              const DropdownMenuItem(value: 'all', child: Text('Semua Kategori')),
-                              ..._allComplaintCategories().map(
-                                (cat) => DropdownMenuItem(value: cat.toLowerCase(), child: Text(cat)),
-                              ),
-                            ],
-                            onChanged: (value) => setState(() => _complaintCategoryFilter = value ?? 'all'),
-                          ),
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            key: ValueKey('complaint_status_$_complaintStatusFilter'),
-                            initialValue: _complaintStatusFilter,
-                            decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
-                            items: const [
-                              DropdownMenuItem(value: 'all', child: Text('Semua Status')),
-                              DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                              DropdownMenuItem(value: 'in_progress', child: Text('Dalam Proses')),
-                              DropdownMenuItem(value: 'resolved', child: Text('Selesai')),
-                              DropdownMenuItem(value: 'rejected', child: Text('Ditolak')),
-                            ],
-                            onChanged: (value) => setState(() => _complaintStatusFilter = value ?? 'all'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            key: ValueKey('complaint_category_$_complaintCategoryFilter'),
-                            initialValue: _complaintCategoryFilter,
-                            decoration: const InputDecoration(labelText: 'Kategori', border: OutlineInputBorder()),
-                            items: [
-                              const DropdownMenuItem(value: 'all', child: Text('Semua Kategori')),
-                              ..._allComplaintCategories().map(
-                                (cat) => DropdownMenuItem(value: cat.toLowerCase(), child: Text(cat)),
-                              ),
-                            ],
-                            onChanged: (value) => setState(() => _complaintCategoryFilter = value ?? 'all'),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () async {
-                        final now = DateTime.now();
-                        setState(() {
-                          _complaintFromDate = now.subtract(const Duration(days: 31));
-                          _complaintToDate = now;
-                          _complaintStatusFilter = 'all';
-                          _complaintCategoryFilter = 'all';
-                          _reportsProvider.clearSelectedComplaints();
-                        });
-                        await _applyComplaintFilter();
-                      },
-                      child: const Text('Reset'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await _applyComplaintFilter();
-                      },
-                      child: const Text('Filter'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: 12),
           LayoutBuilder(
@@ -749,145 +533,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
-                tooltip: 'Opsi Laporan',
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.more_vert, color: AppTheme.primary),
-                ),
-                onSelected: (value) {
-                  switch (value) {
-                    case 'export_pdf':
-                      _exportReport('users', 'pdf');
-                      break;
-                    case 'export_excel':
-                      _exportReport('users', 'excel');
-                      break;
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'export_pdf', child: Text('Export PDF')),
-                  const PopupMenuItem(value: 'export_excel', child: Text('Export Excel')),
-                ],
-              ),
             ],
-          ),
-          const SizedBox(height: 12),
-          _buildFilterPanel(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _dateRow(
-                  fromLabel: 'Dari Tanggal',
-                  toLabel: 'Sampai Tanggal',
-                  fromDate: _userFromDate,
-                  toDate: _userToDate,
-                  onPickFrom: () async {
-                    final picked = await _pickDate(_userFromDate);
-                    if (picked == null) return;
-                    setState(() => _userFromDate = picked);
-                  },
-                  onPickTo: () async {
-                    final picked = await _pickDate(_userToDate);
-                    if (picked == null) return;
-                    setState(() => _userToDate = picked);
-                  },
-                ),
-                const SizedBox(height: 8),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isNarrow = constraints.maxWidth < 620;
-                    if (isNarrow) {
-                      return Column(
-                        children: [
-                          DropdownButtonFormField<String>(
-                            key: ValueKey('user_status_$_userStatusFilter'),
-                            initialValue: _userStatusFilter,
-                            decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
-                            items: const [
-                              DropdownMenuItem(value: 'all', child: Text('Semua Status')),
-                              DropdownMenuItem(value: 'active', child: Text('Aktif')),
-                              DropdownMenuItem(value: 'inactive', child: Text('Tidak Aktif')),
-                            ],
-                            onChanged: (value) => setState(() => _userStatusFilter = value ?? 'all'),
-                          ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            initialValue: _userSearchQuery,
-                            decoration: const InputDecoration(
-                              labelText: 'Cari',
-                              hintText: 'Nama atau email...',
-                              border: OutlineInputBorder(),
-                            ),
-                            onChanged: (value) => _userSearchQuery = value,
-                          ),
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            key: ValueKey('user_status_$_userStatusFilter'),
-                            initialValue: _userStatusFilter,
-                            decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
-                            items: const [
-                              DropdownMenuItem(value: 'all', child: Text('Semua Status')),
-                              DropdownMenuItem(value: 'active', child: Text('Aktif')),
-                              DropdownMenuItem(value: 'inactive', child: Text('Tidak Aktif')),
-                            ],
-                            onChanged: (value) => setState(() => _userStatusFilter = value ?? 'all'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextFormField(
-                            initialValue: _userSearchQuery,
-                            decoration: const InputDecoration(
-                              labelText: 'Cari',
-                              hintText: 'Nama atau email...',
-                              border: OutlineInputBorder(),
-                            ),
-                            onChanged: (value) => _userSearchQuery = value,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () async {
-                        final now = DateTime.now();
-                        setState(() {
-                          _userFromDate = now.subtract(const Duration(days: 31));
-                          _userToDate = now;
-                          _userStatusFilter = 'all';
-                          _userSearchQuery = '';
-                        });
-                        await _applyUserFilter();
-                      },
-                      child: const Text('Reset'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await _applyUserFilter();
-                      },
-                      child: const Text('Filter'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: 12),
           LayoutBuilder(
@@ -920,130 +566,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
             )
           else
             ..._filteredUserItems.map(_userReportCard),
-        ],
-      ),
-    );
-  }
-
-  Widget _dateRow({
-    required String fromLabel,
-    required String toLabel,
-    required DateTime? fromDate,
-    required DateTime? toDate,
-    required VoidCallback onPickFrom,
-    required VoidCallback onPickTo,
-  }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 620;
-        if (isNarrow) {
-          return Column(
-            children: [
-              _dateField(fromLabel, fromDate, onPickFrom),
-              const SizedBox(height: 8),
-              _dateField(toLabel, toDate, onPickTo),
-            ],
-          );
-        }
-
-        return Row(
-          children: [
-            Expanded(child: _dateField(fromLabel, fromDate, onPickFrom)),
-            const SizedBox(width: 8),
-            Expanded(child: _dateField(toLabel, toDate, onPickTo)),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _dateField(String label, DateTime? value, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: InputDecorator(
-        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-        child: Text(value == null ? '-' : DateFormat('MM/dd/yyyy').format(value)),
-      ),
-    );
-  }
-
-  Widget _buildFilterPanel({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-
-  Widget _summarySectionCard({required Widget child}) {
-    return AdminInfoCard(
-      padding: const EdgeInsets.all(16),
-      child: child,
-    );
-  }
-
-  Widget _overviewCard(String title, String value, String subtitle) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _activityCard(String value, String label) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
-      ),
-      child: Column(
-        children: [
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-          const SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
         ],
       ),
     );
@@ -1108,11 +630,10 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     final location = _firstString(complaint, ['address', 'location', 'full_address'], fallback: '-');
     final priority = _firstString(complaint, ['priority'], fallback: 'Sedang');
     final created = _parseDate(complaint['created_at']);
-    final selected = _reportsProvider.isComplaintSelected(complaint);
 
     return AdminInfoCard(
       margin: const EdgeInsets.only(bottom: 12),
-      borderColor: selected ? AppTheme.primary.withValues(alpha: 0.5) : Colors.grey.withValues(alpha: 0.1),
+      borderColor: Colors.grey.withValues(alpha: 0.1),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1120,12 +641,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Checkbox(
-                value: selected,
-                onChanged: (_) => _reportsProvider.toggleComplaintSelection(complaint),
-                activeColor: AppTheme.primary,
-              ),
-              const SizedBox(width: 4),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1251,7 +766,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     final phone = user['phone']?.toString() ?? '';
     final isActive = _toBool(user['is_active']);
     final complaintsCount = _toInt(user['complaints_count']);
-    final userId = _toInt(user['id']);
     final created = _parseDate(user['created_at']);
     final lastLogin = _parseDate(user['last_login_at']);
     final emailVerified = _toBool(user['is_email_verified']) || user['email_verified_at'] != null;
@@ -1388,81 +902,18 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           const SizedBox(height: 12),
           Align(
             alignment: Alignment.centerRight,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton(
-                  onPressed: () => _showUserDetailInline(user),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    minimumSize: const Size(0, 32),
-                  ),
-                  child: const Text('Detail', style: TextStyle(fontSize: 12)),
-                ),
-                OutlinedButton.icon(
-                  onPressed: userId > 0 ? () => _exportComplaintsByUser(user, 'pdf') : null,
-                  icon: const Icon(Icons.picture_as_pdf, size: 14),
-                  label: const Text('PDF', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    minimumSize: const Size(0, 32),
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: userId > 0 ? () => _exportComplaintsByUser(user, 'excel') : null,
-                  icon: const Icon(Icons.table_chart, size: 14),
-                  label: const Text('Excel', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    minimumSize: const Size(0, 32),
-                  ),
-                ),
-              ],
+            child: OutlinedButton(
+              onPressed: () => _showUserDetailInline(user),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: const Size(0, 32),
+              ),
+              child: const Text('Detail', style: TextStyle(fontSize: 12)),
             ),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _exportSelectedComplaints(String format) async {
-    try {
-      final message = await _reportsProvider.exportSelectedComplaints(format);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.green),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal export pilihan: $e'), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  Future<void> _exportComplaintsByUser(Map<String, dynamic> user, String format) async {
-    final userId = _toInt(user['id']);
-    if (userId <= 0) return;
-
-    final userName = user['name']?.toString() ?? 'User_$userId';
-
-    try {
-      final message = await _reportsProvider.exportComplaintsByUser(
-        userId: userId,
-        userName: userName,
-        format: format,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.green),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal export keluhan user: $e'), backgroundColor: Colors.red),
-      );
-    }
   }
 
   void _showUserDetailInline(Map<String, dynamic> user) {
@@ -1488,19 +939,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
         ],
       ),
     );
-  }
-
-  Future<DateTime?> _pickDate(DateTime? initial) async {
-    return showDatePicker(
-      context: context,
-      initialDate: initial ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-  }
-
-  List<String> _allComplaintCategories() {
-    return _reportsProvider.allComplaintCategories();
   }
 
   String _complaintCategoryName(Map<String, dynamic> complaint) {

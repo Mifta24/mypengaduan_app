@@ -889,5 +889,36 @@ class AdminService {
       rethrow;
     }
   }
+
+  /// Export report data – returns JSON array ready for PDF/Excel generation
+  Future<List<dynamic>> getReportExport({
+    required String type,
+    String? dateFrom,
+    String? dateTo,
+    String? status,
+    int? categoryId,
+    int? userId,
+    String? role,
+  }) async {
+    try {
+      await _setAuthHeader();
+      final response = await _dio.get(
+        'admin/reports/export',
+        queryParameters: {
+          'type': type,
+          if (dateFrom != null) 'date_from': dateFrom,
+          if (dateTo != null) 'date_to': dateTo,
+          if (status != null) 'status': status,
+          if (categoryId != null) 'category_id': categoryId,
+          if (userId != null) 'user_id': userId,
+          if (role != null) 'role': role,
+        },
+      );
+      if (response.data is List) return response.data as List;
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 

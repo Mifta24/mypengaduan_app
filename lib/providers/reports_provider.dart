@@ -213,7 +213,17 @@ class ReportsProvider extends ChangeNotifier {
   }
 
   Future<String> exportReport(String type, String format) async {
-    final rows = _buildReportRows(type);
+    List<Map<String, dynamic>> items;
+    try {
+      items = await _reportsService.fetchExportData(type: type);
+    } catch (_) {
+      // Fallback ke data in-memory jika API gagal
+      items = type == 'complaints' ? filteredComplaintItems : filteredUserItems;
+    }
+
+    final List<List<String>> rows = type == 'complaints'
+        ? _buildComplaintRowsFromList(items)
+        : _buildUserRowsFromList(items);
     final title = _reportTitle(type);
     final headers = _buildReportHeaders(type);
     return _reportsService.exportReport(
@@ -395,34 +405,26 @@ class ReportsProvider extends ChangeNotifier {
     }
   }
 
-  List<List<String>> _buildReportRows(String type) {
-    if (type == 'complaints') {
-      return _buildComplaintRowsFromList(filteredComplaintItems);
-    }
+  List<List<String>> _buildUserRowsFromList(List<Map<String, dynamic>> source) {
+    return source.asMap().entries.map((entry) {
+      final index = entry.key + 1;
+      final user = entry.value;
+      final created = _parseDate(user['created_at']);
+      final lastLogin = _parseDate(user['last_login_at']);
+      final emailVerified = _toBool(user['is_email_verified']) || user['email_verified_at'] != null;
 
-    if (type == 'users') {
-      return filteredUserItems.asMap().entries.map((entry) {
-        final index = entry.key + 1;
-        final user = entry.value;
-        final created = _parseDate(user['created_at']);
-        final lastLogin = _parseDate(user['last_login_at']);
-        final emailVerified = _toBool(user['is_email_verified']) || user['email_verified_at'] != null;
-
-        return [
-          '$index',
-          user['name']?.toString() ?? '-',
-          user['email']?.toString() ?? '-',
-          user['phone']?.toString() ?? '-',
-          _toBool(user['is_active']) ? 'Aktif' : 'Tidak Aktif',
-          '${toInt(user['complaints_count'])}',
-          created == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(created),
-          lastLogin == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(lastLogin),
-          emailVerified ? 'Terverifikasi' : 'Belum',
-        ];
-      }).toList();
-    }
-
-    return [];
+      return [
+        '$index',
+        user['name']?.toString() ?? '-',
+        user['email']?.toString() ?? '-',
+        user['phone']?.toString() ?? '-',
+        _toBool(user['is_active']) ? 'Aktif' : 'Tidak Aktif',
+        '${toInt(user['complaints_count'])}',
+        created == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(created),
+        lastLogin == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(lastLogin),
+        emailVerified ? 'Terverifikasi' : 'Belum',
+      ];
+    }).toList();
   }
 
   List<List<String>> _buildComplaintRowsFromList(List<Map<String, dynamic>> source) {
