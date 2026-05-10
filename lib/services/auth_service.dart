@@ -131,6 +131,10 @@ class AuthService {
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
+      print('=== getProfile RESPONSE ===');
+      print('Data: ${response.data}');
+      print('===========================');
+
       if (response.data['success']) {
         final userData = _extractUserData(response.data);
         if (userData == null) return await getUserFromStorage();
@@ -204,8 +208,27 @@ class AuthService {
         options: requestOptions,
       );
 
-      if (response.data['success']) {
-        final user = User.fromJson(response.data['data']);
+      print('=== updateProfile RESPONSE ===');
+      print('Status: ${response.statusCode}');
+      print('Data: ${response.data}');
+      print('Data[data]: ${response.data['data']}');
+      print('==============================');
+
+      if (response.data['success'] == true) {
+        // Support both response.data['data'] and response.data['user']
+        final rawUser = response.data['data'] ?? response.data['user'];
+        if (rawUser == null) {
+          // No user in response, fetch fresh from server
+          final freshUser = await getProfile();
+          if (freshUser != null) {
+            return {
+              'success': true,
+              'message': response.data['message'] ?? 'Profile updated successfully',
+              'user': freshUser,
+            };
+          }
+        }
+        final user = User.fromJson(rawUser as Map<String, dynamic>);
         await _saveUser(user);
         return {
           'success': true,

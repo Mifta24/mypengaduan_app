@@ -27,7 +27,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
   late final TabController _tabController;
 
   Map<String, dynamic>? get _overview => _reportsProvider.overview;
-  Map<String, dynamic>? get _complaintsReport => _reportsProvider.complaintsReport;
   Map<String, dynamic>? get _statistics => _reportsProvider.statistics;
 
   List<Map<String, dynamic>> get _filteredComplaintItems => _reportsProvider.filteredComplaintItems;
@@ -47,6 +46,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
   }
 
   bool _hasLoadedOnce = false;
+  String _periodFilter = 'all'; // 'week' | 'month' | 'all'
 
   @override
   void didChangeDependencies() {
@@ -84,7 +84,27 @@ class _AdminReportsTabState extends State<AdminReportsTab>
 
   Future<void> _loadReports({bool forceRefresh = false}) async {
     try {
-      await _reportsProvider.loadReports(forceRefresh: forceRefresh);
+      final now = DateTime.now();
+      DateTime? from;
+      DateTime? to;
+
+      if (_periodFilter == 'week') {
+        from = now.subtract(Duration(days: now.weekday - 1));
+        from = DateTime(from.year, from.month, from.day);
+        to   = now;
+      } else if (_periodFilter == 'month') {
+        from = DateTime(now.year, now.month, 1);
+        to   = now;
+      } else {
+        from = null;
+        to   = null;
+      }
+
+      await _reportsProvider.loadReports(
+        forceRefresh: forceRefresh,
+        dateFrom: from,
+        dateTo: to,
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +115,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
 
   Future<void> _exportReport(String type, String format) async {
     try {
-      final message = await _reportsProvider.exportReport(type, format);
+      final message = await _reportsProvider.exportReport(type, format, period: _periodFilter);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -162,10 +182,18 @@ class _AdminReportsTabState extends State<AdminReportsTab>
 
   Widget _buildHeader() {
     final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekEnd   = weekStart.add(const Duration(days: 6));
     final fmt = DateFormat('d MMM', 'id_ID');
-    final dateLabel = '${fmt.format(weekStart)} – ${fmt.format(weekEnd)} ${weekEnd.year}';
+
+    String dateLabel;
+    if (_periodFilter == 'week') {
+      final weekStart = now.subtract(Duration(days: now.weekday - 1));
+      final weekEnd   = weekStart.add(const Duration(days: 6));
+      dateLabel = '${fmt.format(weekStart)} – ${fmt.format(weekEnd)} ${weekEnd.year}';
+    } else if (_periodFilter == 'month') {
+      dateLabel = DateFormat('MMMM yyyy', 'id_ID').format(now);
+    } else {
+      dateLabel = 'Semua Data';
+    }
 
     return Container(
       color: Colors.white,
@@ -181,15 +209,19 @@ class _AdminReportsTabState extends State<AdminReportsTab>
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: 'week',
+                value: _periodFilter,
                 style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary),
                 icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
                 items: [
-                  DropdownMenuItem(value: 'week', child: Text('Minggu Ini', style: GoogleFonts.nunito(fontSize: 13))),
-                  DropdownMenuItem(value: 'month', child: Text('Bulan Ini', style: GoogleFonts.nunito(fontSize: 13))),
-                  DropdownMenuItem(value: 'all', child: Text('Semua', style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(value: 'week',  child: Text('Minggu Ini', style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(value: 'month', child: Text('Bulan Ini',  style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(value: 'all',   child: Text('Semua',      style: GoogleFonts.nunito(fontSize: 13))),
                 ],
-                onChanged: (_) => _loadReports(forceRefresh: true),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => _periodFilter = value);
+                  _loadReports(forceRefresh: true);
+                },
               ),
             ),
           ),
@@ -493,9 +525,30 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           Text('Total $total keluhan ditemukan'),
           const SizedBox(height: 8),
           if (_filteredComplaintItems.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 18),
-              child: Text('Belum ada data keluhan untuk filter ini.'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  Text(
+                    _periodFilter == 'all'
+                        ? 'Belum ada data keluhan.'
+                        : 'Tidak ada keluhan pada periode ini.',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                  if (_periodFilter != 'all') ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _periodFilter = 'all');
+                        _loadReports(forceRefresh: true);
+                      },
+                      child: const Text('Tampilkan Semua Data'),
+                    ),
+                  ],
+                ],
+              ),
             )
           else
             ..._filteredComplaintItems.map(_complaintReportCard),
@@ -560,9 +613,30 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           Text('Total $total pengguna ditemukan'),
           const SizedBox(height: 8),
           if (_filteredUserItems.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 18),
-              child: Text('Belum ada data pengguna untuk filter ini.'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  Icon(Icons.people_outline, size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  Text(
+                    _periodFilter == 'all'
+                        ? 'Belum ada data pengguna.'
+                        : 'Tidak ada pengguna terdaftar pada periode ini.',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                  if (_periodFilter != 'all') ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _periodFilter = 'all');
+                        _loadReports(forceRefresh: true);
+                      },
+                      child: const Text('Tampilkan Semua Data'),
+                    ),
+                  ],
+                ],
+              ),
             )
           else
             ..._filteredUserItems.map(_userReportCard),
@@ -577,7 +651,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.08), width: 1.5),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.08), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -604,23 +678,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     return widget;
   }
 
-  Widget _statusRow(String label, int count, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(label)),
-          Text('$count', style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
   Widget _complaintReportCard(Map<String, dynamic> complaint) {
     final title = complaint['title']?.toString() ?? complaint['description']?.toString() ?? '-';
     final status = _statusText(_normalizeComplaintStatus(complaint['status']?.toString() ?? ''));
@@ -984,8 +1041,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
   }
 
   double _extractAvgResponseHours() {
-    final stats = (_complaintsReport?['statistics'] as Map<String, dynamic>?) ??
-        ((_overview?['data'] as Map<String, dynamic>?) ?? {});
+    final stats = (_overview?['data'] as Map<String, dynamic>?) ?? {};
 
     final raw = stats['avg_response_time'] ?? stats['average_response_time'] ?? stats['avg_response_hours'];
     if (raw == null) return 0;

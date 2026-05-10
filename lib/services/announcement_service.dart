@@ -27,6 +27,7 @@ class AnnouncementService {
     String? priority,
   }) async {
     try {
+      await _setAuthHeader();
       final response = await _dio.get(
         'announcements',
         queryParameters: {
@@ -55,6 +56,7 @@ class AnnouncementService {
   /// Get urgent announcements
   Future<List<Announcement>> getUrgentAnnouncements() async {
     try {
+      await _setAuthHeader();
       final response = await _dio.get('announcements/urgent');
 
       final data = response.data['data'] as List;
@@ -67,6 +69,7 @@ class AnnouncementService {
   /// Get latest announcements
   Future<List<Announcement>> getLatestAnnouncements({int limit = 5}) async {
     try {
+      await _setAuthHeader();
       final response = await _dio.get(
         'announcements/latest',
         queryParameters: {'limit': limit},
@@ -82,6 +85,7 @@ class AnnouncementService {
   /// Get announcement detail
   Future<Announcement> getAnnouncementDetail(String idOrSlug) async {
     try {
+      await _setAuthHeader();
       final response = await _dio.get('announcements/$idOrSlug');
 
       return Announcement.fromJson(response.data['data']);

@@ -66,7 +66,7 @@ class User {
         ktpUrl: userData['ktp_url']?.toString(),
         rtNumber: (userData['rt_number'] ?? userData['rt'])?.toString(),
         rwNumber: (userData['rw_number'] ?? userData['rw'])?.toString(),
-        avatar: userData['avatar']?.toString(),
+        avatar: (userData['avatar'] ?? userData['avatar_url'])?.toString(),
         role: userData['role']?.toString() ?? 'user',
         roles: userData['roles'] != null 
             ? (userData['roles'] is List 

@@ -893,6 +893,7 @@ class AdminService {
   /// Export report data – returns JSON array ready for PDF/Excel generation
   Future<List<dynamic>> getReportExport({
     required String type,
+    String? period,
     String? dateFrom,
     String? dateTo,
     String? status,
@@ -906,6 +907,7 @@ class AdminService {
         'admin/reports/export',
         queryParameters: {
           'type': type,
+          if (period != null) 'period': period,
           if (dateFrom != null) 'date_from': dateFrom,
           if (dateTo != null) 'date_to': dateTo,
           if (status != null) 'status': status,
@@ -914,7 +916,16 @@ class AdminService {
           if (role != null) 'role': role,
         },
       );
-      if (response.data is List) return response.data as List;
+      // Response: {"success":true,"data":{"data":[...],"exported_at":"..."}}
+      final body = response.data;
+      if (body is Map) {
+        final outer = body['data'];
+        if (outer is List) return outer;
+        if (outer is Map) {
+          final inner = outer['data'];
+          if (inner is List) return inner;
+        }
+      }
       return [];
     } catch (e) {
       rethrow;

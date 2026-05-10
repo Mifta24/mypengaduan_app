@@ -14,20 +14,61 @@ class ReportsService {
   ReportsService({AdminService? adminService})
       : _adminService = adminService ?? AdminService();
 
-  Future<Map<String, dynamic>> fetchReportsData() async {
-    final overview = await _adminService.getReportOverview();
+  Future<Map<String, dynamic>> fetchReportsData({
+    String? dateFrom,
+    String? dateTo,
+  }) async {
+    final overview   = await _adminService.getReportOverview();
     final statistics = await _adminService.getComplaintStatistics();
-    final reports = await Future.wait([
-      _adminService.getComplaintsReport(),
-      _adminService.getUsersReport(),
-    ]);
+
+    final complaintItems = await _fetchAllPages(
+      fetcher: (page) => _adminService.getComplaintsReport(
+        dateFrom: dateFrom, dateTo: dateTo, perPage: 100, page: page,
+      ),
+    );
+    final userItems = await _fetchAllPages(
+      fetcher: (page) => _adminService.getUsersReport(
+        dateFrom: dateFrom, dateTo: dateTo, perPage: 100, page: page,
+      ),
+    );
 
     return {
-      'overview': overview,
-      'statistics': statistics,
-      'complaintsReport': reports[0],
-      'usersReport': reports[1],
+      'overview':         overview,
+      'statistics':       statistics,
+      'complaintItems':   complaintItems,
+      'userItems':        userItems,
     };
+  }
+
+  /// Fetches all pages from a paginated endpoint, returns flat List of items.
+  Future<List<Map<String, dynamic>>> _fetchAllPages({
+    required Future<Map<String, dynamic>> Function(int page) fetcher,
+  }) async {
+    final allItems = <Map<String, dynamic>>[];
+    var page = 1;
+    var lastPage = 1;
+
+    do {
+      final response = await fetcher(page);
+      final items = extractItems(response);
+      allItems.addAll(items);
+
+      // Parse pagination meta (handles both top-level and nested meta)
+      final meta = response['meta'] as Map?;
+      final lastPageRaw = meta?['last_page'] ?? response['last_page'];
+      final currentPageRaw = meta?['current_page'] ?? response['current_page'];
+
+      final currentPage = currentPageRaw is num
+          ? currentPageRaw.toInt()
+          : int.tryParse(currentPageRaw?.toString() ?? '$page') ?? page;
+      lastPage = lastPageRaw is num
+          ? lastPageRaw.toInt()
+          : int.tryParse(lastPageRaw?.toString() ?? '$currentPage') ?? currentPage;
+
+      page = currentPage + 1;
+    } while (page <= lastPage);
+
+    return allItems;
   }
 
   Future<Map<String, dynamic>> fetchComplaintsReport({
@@ -92,6 +133,7 @@ class ReportsService {
 
   Future<List<Map<String, dynamic>>> fetchExportData({
     required String type,
+    String? period,
     DateTime? dateFrom,
     DateTime? dateTo,
     String? status,
@@ -101,6 +143,7 @@ class ReportsService {
   }) async {
     final raw = await _adminService.getReportExport(
       type: type,
+      period: period,
       dateFrom: _asApiDate(dateFrom),
       dateTo: _asApiDate(dateTo),
       status: status,
