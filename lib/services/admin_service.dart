@@ -600,7 +600,8 @@ class AdminService {
       final response = await _dio.get('admin/announcements', queryParameters: {
         'page': page,
         'per_page': perPage,
-        if (status != null) 'status': status,
+        if (status == 'published') 'is_active': 1,
+        if (status == 'draft') 'is_active': 0,
         if (search != null) 'search': search,
       });
       return response.data;

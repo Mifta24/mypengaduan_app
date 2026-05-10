@@ -202,11 +202,11 @@ class AuthService {
         requestOptions = Options(headers: {'Authorization': 'Bearer $token'});
       }
 
-      final response = await _dio.put(
-        'auth/profile',
-        data: requestData,
-        options: requestOptions,
-      );
+      // Use POST for multipart (file upload) because PHP only populates $_FILES for POST.
+      // The backend has a POST alias for auth/profile to support this.
+      final response = (avatarPath != null || removeAvatar)
+          ? await _dio.post('auth/profile', data: requestData, options: requestOptions)
+          : await _dio.put('auth/profile', data: requestData, options: requestOptions);
 
       print('=== updateProfile RESPONSE ===');
       print('Status: ${response.statusCode}');

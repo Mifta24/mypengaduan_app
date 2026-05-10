@@ -216,10 +216,10 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
       final matchSearch = q.isEmpty || title.contains(q);
 
       if (_selectedStatus == null) return matchSearch;
-      final isActive =
-          a['is_active'] == true || a['is_active'] == 1;
-      if (_selectedStatus == 'published') return matchSearch && isActive;
-      if (_selectedStatus == 'draft') return matchSearch && !isActive;
+      // Use computed `status` field from API ('published' | 'unpublished')
+      final status = a['status']?.toString() ?? '';
+      if (_selectedStatus == 'published') return matchSearch && status == 'published';
+      if (_selectedStatus == 'draft') return matchSearch && status != 'published';
       return matchSearch;
     }).toList();
 
@@ -354,13 +354,14 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
   }
 
   Widget _buildAnnouncementCard(dynamic a) {
-    final isActive =
-        a['is_active'] == true || a['is_active'] == 1;
+    final status   = a['status']?.toString() ?? '';
+    final isPublished = status == 'published';
     final priority =
         a['priority']?.toString().toLowerCase() ?? 'medium';
     final priorityColor = _priorityColor(priority);
     final priorityLabel = _priorityLabel(priority);
 
+    final viewsCount = (a['views_count'] as num?)?.toInt() ?? 0;
     final title = a['title']?.toString() ?? 'Tanpa Judul';
     final publishedAt = a['published_at']?.toString() ??
         a['created_at']?.toString() ??
@@ -459,27 +460,46 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
                                 ),
                               ),
                             const SizedBox(height: 6),
-                            // Status chip
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? AppTheme.primary
-                                        .withValues(alpha: 0.1)
-                                    : Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                isActive ? 'Aktif' : 'Draft',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: isActive
-                                      ? AppTheme.primary
-                                      : Colors.grey.shade600,
+                            Row(
+                              children: [
+                                // Status chip
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: isPublished
+                                        ? AppTheme.primary.withValues(alpha: 0.1)
+                                        : Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    isPublished ? 'Published' : 'Draft',
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: isPublished
+                                          ? AppTheme.primary
+                                          : Colors.grey.shade600,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(width: 6),
+                                // Views count
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.visibility_outlined,
+                                        size: 11, color: Colors.grey.shade400),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '$viewsCount',
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 10,
+                                          color: Colors.grey.shade500),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ],
                         ),
