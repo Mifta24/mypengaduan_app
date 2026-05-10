@@ -285,7 +285,7 @@ class ReportsProvider extends ChangeNotifier {
         return ['No', 'Judul', 'Status', 'Kategori', 'Pelapor', 'Lokasi', 'Prioritas', 'Dibuat'];
       case 'users':
         return ['No', 'Nama', 'Email', 'Telepon', 'Status', 'Jumlah Keluhan',
-                'Bergabung', 'Login Terakhir', 'Verifikasi Email'];
+                'Bergabung', 'Verifikasi Email'];
       default:
         return ['No', 'Data'];
     }
@@ -313,7 +313,6 @@ class ReportsProvider extends ChangeNotifier {
     return source.asMap().entries.map((entry) {
       final u             = entry.value;
       final created       = _parseDate(u['created_at']);
-      final lastLogin     = _parseDate(u['last_login_at']);
       final emailVerified = _toBool(u['is_email_verified']) || u['email_verified_at'] != null;
       return [
         '${entry.key + 1}',
@@ -322,8 +321,7 @@ class ReportsProvider extends ChangeNotifier {
         u['phone']?.toString() ?? '-',
         _toBool(u['is_active']) ? 'Aktif' : 'Tidak Aktif',
         '${_toInt(u['complaints_count'])}',
-        created   == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(created),
-        lastLogin == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(lastLogin),
+        created == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(created),
         emailVerified ? 'Terverifikasi' : 'Belum',
       ];
     }).toList();

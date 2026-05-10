@@ -824,7 +824,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     final isActive = _toBool(user['is_active']);
     final complaintsCount = _toInt(user['complaints_count']);
     final created = _parseDate(user['created_at']);
-    final lastLogin = _parseDate(user['last_login_at']);
     final emailVerified = _toBool(user['is_email_verified']) || user['email_verified_at'] != null;
 
     final initials = _initials(name);
@@ -948,11 +947,6 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                     ),
                   ],
                 ),
-              ),
-              const Spacer(),
-              Text(
-                lastLogin == null ? 'Belum pernah login' : 'Login: ${DateFormat('dd/MM/yy HH:mm').format(lastLogin)}',
-                style: TextStyle(color: Colors.grey[500], fontSize: 11),
               ),
             ],
           ),

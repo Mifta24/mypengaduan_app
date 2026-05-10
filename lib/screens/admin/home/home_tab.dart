@@ -28,6 +28,12 @@ class _AdminHomeTabState extends State<AdminHomeTab>
   int _resolved = 0;
   List<dynamic> _recent = [];
   List<int> _chartData = List.filled(7, 0);
+  List<Map<String, dynamic>> _dailyData = List.generate(7, (_) => {'date': '', 'count': 0, 'pending': 0, 'resolved': 0});
+  int _todayNew = 0;
+  int _yesterdayNew = 0;
+  int _resolvedToday = 0;
+  int _pendingToday = 0;
+  int? _selectedBarIndex;
   bool _isLoading = false;
   bool _hasLoaded = false;
 
@@ -66,19 +72,25 @@ class _AdminHomeTabState extends State<AdminHomeTab>
           _resolved = complaintsData['resolved'] ?? 0;
           _recent = recentList is List ? recentList.take(5).toList() : [];
 
-          // Build chart from recent complaints (count per day last 7 days)
-          final counts = List.filled(7, 0);
-          final now = DateTime.now();
-          for (final item in (recentList is List ? recentList : [])) {
-            if (item is Map && item['created_at'] != null) {
-              final dt = DateTime.tryParse(item['created_at'].toString());
-              if (dt != null) {
-                final diff = now.difference(dt).inDays;
-                if (diff >= 0 && diff < 7) counts[6 - diff]++;
-              }
-            }
+          // Parse daily_complaints from API
+          final daily = d['daily_complaints'];
+          if (daily is List && daily.length == 7) {
+            _dailyData = daily
+                .whereType<Map>()
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList();
+            _chartData = _dailyData.map((e) => (e['count'] as num?)?.toInt() ?? 0).toList();
           }
-          _chartData = counts;
+
+          // Parse today vs yesterday stats
+          final todayStats = d['today_stats'];
+          if (todayStats is Map) {
+            _todayNew     = (todayStats['new_today']      as num?)?.toInt() ?? 0;
+            _yesterdayNew = (todayStats['new_yesterday']  as num?)?.toInt() ?? 0;
+            _resolvedToday = (todayStats['resolved_today'] as num?)?.toInt() ?? 0;
+            _pendingToday  = (todayStats['pending_today']  as num?)?.toInt() ?? 0;
+          }
+
           _isLoading = false;
         });
       }
@@ -118,13 +130,15 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             childAspectRatio: 1.3,
             children: [
               _statCard('Total Pengaduan', _total, Icons.assignment_rounded,
-                  AppTheme.primary, '+12 dari kemarin'),
+                  AppTheme.primary, _deltaText(_todayNew, _yesterdayNew)),
               _statCard('Menunggu', _pending, Icons.schedule_rounded,
-                  const Color(0xFFD97706), '+5 dari kemarin'),
+                  const Color(0xFFD97706),
+                  _pendingToday > 0 ? '$_pendingToday baru hari ini' : 'tidak ada baru hari ini'),
               _statCard('Diproses', _processing, Icons.sync_rounded,
-                  const Color(0xFF0891B2), '+8 dari kemarin'),
+                  const Color(0xFF0891B2), 'sedang ditangani'),
               _statCard('Selesai', _resolved, Icons.check_circle_rounded,
-                  AppTheme.primaryLight, '+15 dari kemarin'),
+                  AppTheme.primaryLight,
+                  _resolvedToday > 0 ? '$_resolvedToday selesai hari ini' : 'belum ada hari ini'),
             ],
           ),
           const SizedBox(height: 24),
@@ -274,6 +288,8 @@ class _AdminHomeTabState extends State<AdminHomeTab>
   }
 
   Widget _buildBarChart() {
+    final maxVal = _chartData.isEmpty ? 1 : _chartData.reduce(math.max);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -290,39 +306,168 @@ class _AdminHomeTabState extends State<AdminHomeTab>
               Text('Pengaduan 7 Hari Terakhir',
                   style: GoogleFonts.nunito(
                       fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.border),
-                ),
-                child: Text('7 Hari Terakhir',
-                    style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
-              ),
+              Text('Ketuk bar untuk detail',
+                  style: GoogleFonts.nunito(fontSize: 10, color: AppTheme.textSecondary)),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 120,
-            child: CustomPaint(
-              size: const Size(double.infinity, 120),
-              painter: _BarChartPainter(data: _chartData),
+            height: 130,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(7, (i) {
+                final count = i < _chartData.length ? _chartData[i] : 0;
+                final ratio = maxVal == 0 ? 0.0 : count / maxVal;
+                final isSelected = _selectedBarIndex == i;
+                final barHeight = math.max(ratio * 100.0, count > 0 ? 6.0 : 0.0);
+
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => _showBarDetail(i),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (count > 0)
+                          Text('$count',
+                              style: GoogleFonts.nunito(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: isSelected ? AppTheme.primary : AppTheme.textSecondary)),
+                        const SizedBox(height: 2),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          height: barHeight,
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppTheme.primary
+                                : AppTheme.primary.withValues(alpha: 0.65),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
-          const SizedBox(height: 8),
-          // X-axis labels (last 7 days)
+          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(7, (i) {
               final date = DateTime.now().subtract(Duration(days: 6 - i));
-              return Text('${date.day} ${_monthShort(date.month)}',
-                  style: GoogleFonts.nunito(fontSize: 10, color: AppTheme.textSecondary));
+              final isSelected = _selectedBarIndex == i;
+              return Text(
+                '${date.day} ${_monthShort(date.month)}',
+                style: GoogleFonts.nunito(
+                    fontSize: 10,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                    color: isSelected ? AppTheme.primary : AppTheme.textSecondary),
+              );
             }),
           ),
         ],
       ),
     );
+  }
+
+  void _showBarDetail(int index) {
+    setState(() => _selectedBarIndex = index);
+
+    final dayData = index < _dailyData.length ? _dailyData[index] : <String, dynamic>{};
+    final date = DateTime.tryParse(dayData['date']?.toString() ?? '');
+    final count    = (dayData['count']    as num?)?.toInt() ?? 0;
+    final pending  = (dayData['pending']  as num?)?.toInt() ?? 0;
+    final resolved = (dayData['resolved'] as num?)?.toInt() ?? 0;
+    final other    = math.max(0, count - pending - resolved);
+
+    final isToday = date != null &&
+        date.year == DateTime.now().year &&
+        date.month == DateTime.now().month &&
+        date.day == DateTime.now().day;
+
+    final dateLabel = date == null
+        ? '-'
+        : isToday
+            ? 'Hari Ini (${date.day} ${_monthShort(date.month)} ${date.year})'
+            : '${date.day} ${_monthShort(date.month)} ${date.year}';
+
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+        contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(dateLabel,
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15)),
+            Text(
+              count == 0 ? 'Tidak ada pengaduan masuk' : '$count pengaduan masuk',
+              style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+        content: count == 0
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text('Tidak ada data untuk hari ini.',
+                    style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _detailRow('Total masuk',  count,    AppTheme.primary),
+                  _detailRow('Menunggu',     pending,  const Color(0xFFD97706)),
+                  _detailRow('Selesai',      resolved, const Color(0xFF059669)),
+                  if (other > 0)
+                    _detailRow('Lainnya',   other,    const Color(0xFF0891B2)),
+                ],
+              ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _selectedBarIndex = null);
+              Navigator.pop(context);
+            },
+            child: Text('Tutup', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    ).then((_) {
+      if (mounted) setState(() => _selectedBarIndex = null);
+    });
+  }
+
+  Widget _detailRow(String label, int count, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Container(
+            width: 10, height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(label,
+                style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary)),
+          ),
+          Text('$count',
+              style: GoogleFonts.nunito(
+                  fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+        ],
+      ),
+    );
+  }
+
+  String _deltaText(int today, int yesterday) {
+    final diff = today - yesterday;
+    if (diff > 0) return '+$diff dari kemarin';
+    if (diff < 0) return '$diff dari kemarin';
+    return 'sama seperti kemarin';
   }
 
   String _monthShort(int m) {
@@ -552,45 +697,3 @@ class _AdminHomeTabState extends State<AdminHomeTab>
   }
 }
 
-// ─── Bar Chart Painter ────────────────────────────────────────────────────────
-class _BarChartPainter extends CustomPainter {
-  final List<int> data;
-  const _BarChartPainter({required this.data});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
-    final maxVal = data.reduce(math.max).toDouble();
-    if (maxVal == 0) return;
-
-    final barW = (size.width - (data.length - 1) * 8) / data.length;
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    // Y-axis guide lines
-    final guidePaint = Paint()
-      ..color = Colors.grey.shade100
-      ..strokeWidth = 1;
-    for (int i = 0; i <= 4; i++) {
-      final y = size.height * (1 - i / 4);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), guidePaint);
-    }
-
-    for (int i = 0; i < data.length; i++) {
-      final barH = (data[i] / maxVal) * size.height;
-      final x = i * (barW + 8);
-      final y = size.height - barH;
-
-      final rect = RRect.fromRectAndCorners(
-        Rect.fromLTWH(x, y, barW, barH),
-        topLeft: const Radius.circular(4),
-        topRight: const Radius.circular(4),
-      );
-
-      paint.color = AppTheme.primary.withValues(alpha: 0.85);
-      canvas.drawRRect(rect, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _BarChartPainter old) => old.data != data;
-}
