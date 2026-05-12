@@ -298,6 +298,18 @@ class FCMService {
     return prefs.getString(AppConfig.fcmTokenKey);
   }
 
+  // Re-register FCM token ke backend setelah login
+  Future<void> reRegisterToken() async {
+    final token = await getFCMToken();
+    if (token != null) {
+      debugPrint('🔄 [FCMService] Re-registering FCM token after login...');
+      final success = await _notificationService.registerFCMToken(token);
+      debugPrint(success
+          ? '✅ FCM Token re-registered successfully'
+          : '⚠️ FCM Token re-registration failed');
+    }
+  }
+
   // Cek notifikasi unread setelah login dan tampilkan sebagai local notification
   // Dipanggil dari AuthProvider setelah login berhasil
   Future<void> checkUnreadAndNotify() async {

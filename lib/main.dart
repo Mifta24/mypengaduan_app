@@ -117,7 +117,10 @@ class _MyAppState extends State<MyApp> {
           authProvider.addListener(() {
             if (authProvider.isAuthenticated) {
               // Delay sedikit agar token backend sudah terdaftar
-              Future.delayed(const Duration(seconds: 2), () {
+              Future.delayed(const Duration(seconds: 2), () async {
+                // Re-register FCM token setelah login (penting untuk release APK
+                // karena token registration saat startup bisa gagal jika belum login)
+                await _fcmService?.reRegisterToken();
                 _fcmService?.checkUnreadAndNotify();
               });
             }

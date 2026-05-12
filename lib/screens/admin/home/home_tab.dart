@@ -10,6 +10,7 @@ import '../announcements/add_announcement_screen.dart';
 import '../categories/categories_tab.dart';
 import '../reports/reports_tab.dart';
 import '../users/users_tab.dart';
+import '../dashboard/admin_dashboard_screen.dart';
 
 class AdminHomeTab extends StatefulWidget {
   const AdminHomeTab({super.key});
@@ -155,7 +156,9 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                   style: GoogleFonts.nunito(
                       fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  AdminTabNavigator.of(context)?.switchTab(1);
+                },
                 style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 0),
@@ -578,18 +581,7 @@ class _AdminHomeTabState extends State<AdminHomeTab>
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
       (Icons.verified_user_rounded, 'Verifikasi\nPending', const Color(0xFFEA580C), () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => Scaffold(
-            backgroundColor: AppTheme.surface,
-            appBar: AppBar(
-              backgroundColor: AppTheme.bgDark,
-              title: Text('Manajemen Pengguna',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white)),
-              iconTheme: const IconThemeData(color: Colors.white),
-            ),
-            body: const AdminUsersTab(),
-          ),
-        ));
+        AdminTabNavigator.of(context)?.switchTab(3);
       }),
       (Icons.add_box_rounded, 'Tambah\nPengumuman', AppTheme.primary, () async {
         await Navigator.push(context,

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#072314</color>
     <!-- Warna aksen notifikasi FCM - hijau forest sesuai branding app -->
     <color name="notification_color">#1E6B3A</color>
 </resources>

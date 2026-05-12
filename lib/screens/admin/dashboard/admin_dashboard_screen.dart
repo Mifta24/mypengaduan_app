@@ -55,8 +55,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final notif  = Provider.of<NotificationProvider>(context);
     final user   = auth.user;
 
-    return Scaffold(
-      backgroundColor: AppTheme.surface,
+    return AdminTabNavigator(
+      switchTab: (i) {
+        setState(() {
+          _selectedIndex = i;
+          _initializedTabs[i] = true;
+        });
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.surface,
       // ── AppBar dark green ──────────────────────────────────
       appBar: AppBar(
         backgroundColor: AppTheme.bgDark,
@@ -196,6 +203,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
