@@ -124,6 +124,8 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   Widget build(BuildContext context) {
     final complaintsCount = widget.category['complaints_count'] ?? 0;
     final createdAt = _parseDate(widget.category['created_at']);
+    final creatorUser = widget.category['user'];
+    final creatorName = (creatorUser is Map) ? creatorUser['name']?.toString() : null;
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
@@ -190,17 +192,26 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                       ],
                     ),
                   ),
-                  if (createdAt != null)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (createdAt != null) ...[
                         Text('Dibuat', style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
                         Text(
                           DateFormat('d MMM y').format(createdAt),
                           style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                         ),
                       ],
-                    ),
+                      if (creatorName != null) ...[
+                        const SizedBox(height: 4),
+                        Text('Oleh', style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+                        Text(
+                          creatorName,
+                          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ),

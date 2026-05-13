@@ -412,6 +412,10 @@ class _AdminAnnouncementDetailScreenState
                               const Divider(height: 20),
                               _detailRow('Terakhir Update',
                                   _formatDateTime(_detail['updated_at'])),
+                              if (_extractUpdaterName() != null) ...[
+                                const Divider(height: 20),
+                                _detailRow('Diperbarui oleh', _extractUpdaterName()!),
+                              ],
                             ],
                           ),
                         ),
@@ -815,6 +819,12 @@ class _AdminAnnouncementDetailScreenState
     if (value is int) return value;
     if (value is String) return int.tryParse(value) ?? 0;
     return 0;
+  }
+
+  String? _extractUpdaterName() {
+    final updatedBy = _detail['updated_by'];
+    if (updatedBy is Map) return updatedBy['name']?.toString();
+    return null;
   }
 
   Color _priorityColor(String priority) {

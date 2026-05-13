@@ -191,6 +191,12 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
     final isActive = _toBool(_category['is_active']);
     final latestComplaint = _complaints.isNotEmpty ? _complaints.first : null;
 
+    // Creator & updater info dari API
+    final creatorName = _extractUserName(_category['user']);
+    final updaterName = _extractUserName(_category['updated_by'] is Map
+        ? _category['updated_by']
+        : _category['updated_by_user']);
+
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
@@ -363,6 +369,14 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                               _detailRow(Icons.calendar_today_outlined, 'Dibuat', _formatDate(_category['created_at'])),
                               const Divider(height: 20),
                               _detailRow(Icons.update_rounded, 'Diperbarui', _formatDate(_category['updated_at'])),
+                              if (creatorName != '-') ...[
+                                const Divider(height: 20),
+                                _detailRow(Icons.person_outline_rounded, 'Dibuat oleh', creatorName),
+                              ],
+                              if (updaterName != '-') ...[
+                                const Divider(height: 20),
+                                _detailRow(Icons.edit_outlined, 'Diperbarui oleh', updaterName),
+                              ],
                             ],
                           ),
                         ),
@@ -625,6 +639,11 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
     if (value is int) return value;
     if (value is String) return int.tryParse(value) ?? 0;
     return 0;
+  }
+
+  String _extractUserName(dynamic userObj) {
+    if (userObj is Map) return userObj['name']?.toString() ?? '-';
+    return '-';
   }
 }
 
