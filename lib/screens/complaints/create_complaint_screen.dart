@@ -144,7 +144,8 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
 
     setState(() => _isLoading = true);
     try {
-      await context.read<ComplaintProvider>().createComplaint(
+      final provider = context.read<ComplaintProvider>();
+      final success = await provider.createComplaint(
         categoryId: _selectedCategoryId!,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -154,8 +155,12 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
         videos: _videos.map((f) => f.path).toList(),
       );
       if (mounted) {
-        _showSnack('Pengaduan berhasil dibuat');
-        Navigator.pop(context, true);
+        if (success) {
+          _showSnack('Pengaduan berhasil dibuat');
+          Navigator.pop(context, true);
+        } else {
+          _showSnack(provider.errorMessage ?? 'Gagal membuat pengaduan', isError: true);
+        }
       }
     } catch (e) {
       if (mounted) _showSnack('Gagal membuat pengaduan: $e', isError: true);
@@ -175,7 +180,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isVerified = context.watch<AuthProvider>().user?.isUserVerified ?? true;
+    final isVerified = context.watch<AuthProvider>().user?.isUserVerified ?? false;
 
     return Scaffold(
       backgroundColor: Colors.white,

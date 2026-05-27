@@ -21,10 +21,6 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   final AdminService _adminService = AdminService();
   final TextEditingController _searchController = TextEditingController();
 
-  // Static cache for global state persistence
-  static bool _hasLoadedDataGlobally = false;
-  static List<dynamic> _cachedUsers = [];
-
   List<dynamic> _users = [];
   bool _hasLoadedData = false;
   String? _selectedRole;
@@ -38,14 +34,6 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     super.initState();
     debugPrint(
         '👥 [AdminUsersTab] Screen initialized - will load after visible');
-
-    // Use cached data if available
-    if (_hasLoadedDataGlobally && _cachedUsers.isNotEmpty) {
-      debugPrint(
-          '👥 [AdminUsersTab] Using cached data (${_cachedUsers.length} items)');
-      _users = _cachedUsers;
-      _hasLoadedData = true;
-    }
   }
 
   bool _hasLoadedOnce = false;
@@ -57,7 +45,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     if (!_hasLoadedOnce) {
       _hasLoadedOnce = true;
       Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted && !_hasLoadedDataGlobally) {
+        if (mounted) {
           debugPrint('👥 [AdminUsersTab] Screen visible - loading users now');
           _loadUsers();
         }
@@ -72,11 +60,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   }
 
   Future<void> _loadUsers({bool forceRefresh = false}) async {
-    // Skip loading if already loaded globally and not forcing refresh
-    if (_hasLoadedDataGlobally && !forceRefresh) {
-      debugPrint('Admin Users: Already loaded globally, skipping...');
-      return;
-    }
+    if (_hasLoadedData && !forceRefresh) return;
 
     debugPrint('Admin Users: Loading users... (forceRefresh: $forceRefresh)');
     try {
@@ -100,8 +84,6 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
         setState(() {
           _users = filteredUsers;
-          _cachedUsers = _users; // Update cache
-          _hasLoadedDataGlobally = true; // Mark as loaded globally
           _hasLoadedData = true;
         });
       }

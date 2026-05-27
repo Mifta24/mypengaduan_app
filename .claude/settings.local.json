@@ -7,7 +7,12 @@
       "Bash(xargs grep:*)",
       "Bash(grep -n \"views_count\\\\|views\\\\|views_count\" /c/laragon/www/mypengaduan/database/migrations/*.php)",
       "Read(//c/laragon/www/mypengaduan/**)",
-      "Bash(python.exe)"
+      "Bash(python.exe)",
+      "Bash(dart analyze *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Aplikasi-Mobile\\\\mypengaduan_app\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(find \"c:\\\\\\\\Aplikasi-Mobile\\\\\\\\mypengaduan_app\\\\\\\\lib\" -type f -name \"*.dart\")"
     ],
     "additionalDirectories": [
       "C:\\laragon\\www\\mypengaduan\\app\\Http\\Controllers\\Api",

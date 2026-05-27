@@ -348,6 +348,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Banner verifikasi KTP
+                    if (!(auth.user?.isUserVerified ?? true)) ...[
+                      _buildVerificationBanner(context),
+                      const SizedBox(height: 20),
+                    ],
+
                     // Alert konfirmasi
                     if (waiting > 0) ...[
                       _buildWaitingAlert(context, waiting),
@@ -737,6 +743,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildVerificationBanner(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFFFFFBEB), Color(0xFFFEF3C7)]),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFCD34D), width: 1.2),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD97706).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.pending_actions_rounded, color: Color(0xFFD97706), size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Akun Belum Terverifikasi',
+                    style: GoogleFonts.nunito(
+                        fontSize: 14, fontWeight: FontWeight.w700,
+                        color: const Color(0xFF92400E))),
+                const SizedBox(height: 4),
+                Text(
+                  'KTP Anda sedang menunggu verifikasi admin. Fitur pengaduan akan aktif setelah diverifikasi.',
+                  style: GoogleFonts.nunito(
+                      fontSize: 12, color: const Color(0xFF92400E), height: 1.4),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

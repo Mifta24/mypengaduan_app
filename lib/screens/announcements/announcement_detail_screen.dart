@@ -4,9 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/announcement_model.dart';
 import '../../models/comment_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/announcement_service.dart';
 import '../../services/file_download_service.dart';
 
@@ -358,7 +360,10 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           ),
 
           // Comment Input (sticky at bottom)
-          if (widget.announcement.allowComments) _buildCommentInput(),
+          if (widget.announcement.allowComments)
+            _buildCommentInput(
+              context.watch<AuthProvider>().user?.isUserVerified ?? false,
+            ),
         ],
       ),
     );
@@ -910,7 +915,30 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     );
   }
 
-  Widget _buildCommentInput() {
+  Widget _buildCommentInput(bool isVerified) {
+    if (!isVerified) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFBEB),
+          border: Border(top: BorderSide(color: const Color(0xFFFCD34D))),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.lock_rounded, size: 18, color: Color(0xFFD97706)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Verifikasi akun diperlukan untuk berkomentar.',
+                style: GoogleFonts.nunito(
+                    fontSize: 13, color: const Color(0xFF92400E)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(

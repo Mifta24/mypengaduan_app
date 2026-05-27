@@ -17,8 +17,7 @@ dependencies:
   
   # State Management
   provider: ^6.1.2
-  get: ^4.6.6
-  
+
   # Navigation
   go_router: ^14.6.2
   
