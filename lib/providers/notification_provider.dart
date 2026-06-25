@@ -39,8 +39,8 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('🔄 [NotificationProvider] Loading notifications...');
-      print('🔑 User requesting notifications (check auth_service for user details)');
+      debugPrint('🔄 [NotificationProvider] Loading notifications...');
+      debugPrint('🔑 User requesting notifications (check auth_service for user details)');
       
       final response = await _notificationService.getNotifications(
         page: page,
@@ -48,15 +48,15 @@ class NotificationProvider extends ChangeNotifier {
         type: type,
       );
 
-      print('✅ [NotificationProvider] Received ${response.data.length} notifications');
-      print('📊 Metadata: currentPage=${response.meta.currentPage}, total=${response.meta.total}');
+      debugPrint('✅ [NotificationProvider] Received ${response.data.length} notifications');
+      debugPrint('📊 Metadata: currentPage=${response.meta.currentPage}, total=${response.meta.total}');
 
       if (response.meta.total == 0) {
-        print('⚠️ [NotificationProvider] ZERO notifications found for this user!');
-        print('💡 Possible reasons:');
-        print('   1. No notifications created for this user_id in database');
-        print('   2. User ID mismatch between app and backend');
-        print('   3. Data not inserted yet - try creating a test notification');
+        debugPrint('⚠️ [NotificationProvider] ZERO notifications found for this user!');
+        debugPrint('💡 Possible reasons:');
+        debugPrint('   1. No notifications created for this user_id in database');
+        debugPrint('   2. User ID mismatch between app and backend');
+        debugPrint('   3. Data not inserted yet - try creating a test notification');
       }
 
       if (page == 1 || refresh) {
@@ -71,20 +71,20 @@ class NotificationProvider extends ChangeNotifier {
       // Count unread notifications
       _unreadCount = _notifications.where((n) => !n.isRead).length;
       
-      print('✅ [NotificationProvider] Total notifications: ${_notifications.length}');
-      print('🔔 Unread count: $_unreadCount');
+      debugPrint('✅ [NotificationProvider] Total notifications: ${_notifications.length}');
+      debugPrint('🔔 Unread count: $_unreadCount');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('❌ [NotificationProvider] Error loading notifications: $e');
+      debugPrint('❌ [NotificationProvider] Error loading notifications: $e');
       
       // Check if it's authentication error
       if (e.toString().contains('Token expired') || 
           e.toString().contains('Sesi Anda telah berakhir') ||
           e.toString().contains('401')) {
         _errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
-        print('🚨 TOKEN EXPIRED - Need to logout user');
+        debugPrint('🚨 TOKEN EXPIRED - Need to logout user');
       } else {
         _errorMessage = e.toString();
       }
@@ -212,6 +212,6 @@ class NotificationProvider extends ChangeNotifier {
     _currentPage = 1;
     _hasMorePages = false;
     notifyListeners();
-    print('✅ [NotificationProvider] State cleared');
+    debugPrint('✅ [NotificationProvider] State cleared');
   }
 }

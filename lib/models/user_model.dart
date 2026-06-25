@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class User {
   final int id;
   final String name;
@@ -39,12 +41,16 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     try {
-      print('User.fromJson input: $json');
       // Handle nested user object (e.g., {user: {...}})
-      final userData = json.containsKey('user') ? json['user'] as Map<String, dynamic> : json;
-      print('userData after check: $userData');
-      print('userData role: ${userData['role']}');
-      
+      final userData = json.containsKey('user') && json['user'] is Map<String, dynamic>
+          ? json['user'] as Map<String, dynamic>
+          : json;
+      if (kDebugMode) {
+        debugPrint('User.fromJson input: $json');
+        debugPrint('userData after check: $userData');
+        debugPrint('userData role: ${userData['role']}');
+      }
+
       // Safe int parsing for id
       int userId;
       if (userData['id'] is int) {
@@ -85,8 +91,8 @@ class User {
             : DateTime.now(),
       );
     } catch (e) {
-      print('Error parsing User from JSON: $e');
-      print('JSON data: $json');
+      debugPrint('Error parsing User from JSON: $e');
+      debugPrint('JSON data: $json');
       rethrow;
     }
   }

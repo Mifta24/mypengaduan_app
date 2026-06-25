@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class Complaint {
   final int id;
   final int? userId; // Made nullable
@@ -109,9 +111,9 @@ class Complaint {
             : null,
       );
     } catch (e, stackTrace) {
-      print('Error parsing Complaint: $e');
-      print('Stack trace: $stackTrace');
-      print('JSON data: $json');
+      debugPrint('Error parsing Complaint: $e');
+      debugPrint('Stack trace: $stackTrace');
+      debugPrint('JSON data: $json');
       rethrow;
     }
   }
@@ -214,8 +216,8 @@ class Category {
             json['is_active'] == null,
       );
     } catch (e) {
-      print('Error parsing Category: $e');
-      print('JSON: $json');
+      debugPrint('Error parsing Category: $e');
+      debugPrint('JSON: $json');
       rethrow;
     }
   }
@@ -260,8 +262,8 @@ class Attachment {
         mimeType: json['mime_type']?.toString(),
       );
     } catch (e) {
-      print('Error parsing Attachment: $e');
-      print('JSON: $json');
+      debugPrint('Error parsing Attachment: $e');
+      debugPrint('JSON: $json');
       rethrow;
     }
   }

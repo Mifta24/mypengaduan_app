@@ -29,7 +29,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    print(
+    debugPrint(
         '📋 [ComplaintListScreen] Screen initialized - will load after visible');
   }
 
@@ -41,7 +41,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
       _hasLoadedOnce = true;
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
-          print(
+          debugPrint(
               '📋 [ComplaintListScreen] Screen visible - loading complaints now');
           _loadComplaintsIfNeeded();
         }

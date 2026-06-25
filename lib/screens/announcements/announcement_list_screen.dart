@@ -33,7 +33,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
   @override
   void initState() {
     super.initState();
-    print('📢 [AnnouncementListScreen] Screen initialized - will load after visible');
+    debugPrint('📢 [AnnouncementListScreen] Screen initialized - will load after visible');
   }
 
   @override
@@ -50,7 +50,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       _hasLoadedOnce = true;
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted && !_hasLoadedDataGlobally) {
-          print('📢 [AnnouncementListScreen] Screen visible - loading announcements now');
+          debugPrint('📢 [AnnouncementListScreen] Screen visible - loading announcements now');
           _loadAnnouncements();
         }
       });

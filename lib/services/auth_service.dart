@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 import '../models/user_model.dart';
@@ -95,17 +96,21 @@ class AuthService {
         'password': password,
       });
 
-      print('=== AUTH SERVICE DEBUG ===');
-      print('Response data: ${response.data}');
-      print('User data: ${response.data['data']?['user']}');
-      print('User role: ${response.data['data']?['user']?['role']}');
-      
+      if (kDebugMode) {
+        debugPrint('=== AUTH SERVICE DEBUG ===');
+        debugPrint('Response data: ${response.data}');
+        debugPrint('User data: ${response.data['data']?['user']}');
+        debugPrint('User role: ${response.data['data']?['user']?['role']}');
+      }
+
       final authResponse = AuthResponse.fromJson(response.data);
-      
-      print('Parsed user: ${authResponse.data?.user.name}');
-      print('Parsed role: ${authResponse.data?.user.role}');
-      print('=== END DEBUG ===');
-      
+
+      if (kDebugMode) {
+        debugPrint('Parsed user: ${authResponse.data?.user.name}');
+        debugPrint('Parsed role: ${authResponse.data?.user.role}');
+        debugPrint('=== END DEBUG ===');
+      }
+
       if (authResponse.success && authResponse.data != null) {
         await _saveToken(authResponse.data!.token);
         await _saveUser(authResponse.data!.user);
@@ -131,9 +136,11 @@ class AuthService {
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
-      print('=== getProfile RESPONSE ===');
-      print('Data: ${response.data}');
-      print('===========================');
+      if (kDebugMode) {
+        debugPrint('=== getProfile RESPONSE ===');
+        debugPrint('Data: ${response.data}');
+        debugPrint('===========================');
+      }
 
       if (response.data['success']) {
         final userData = _extractUserData(response.data);
@@ -145,6 +152,7 @@ class AuthService {
       }
       return await getUserFromStorage();
     } catch (e) {
+      debugPrint('AuthService.getProfile error: $e');
       return await getUserFromStorage();
     }
   }
@@ -208,11 +216,13 @@ class AuthService {
           ? await _dio.post('auth/profile', data: requestData, options: requestOptions)
           : await _dio.put('auth/profile', data: requestData, options: requestOptions);
 
-      print('=== updateProfile RESPONSE ===');
-      print('Status: ${response.statusCode}');
-      print('Data: ${response.data}');
-      print('Data[data]: ${response.data['data']}');
-      print('==============================');
+      if (kDebugMode) {
+        debugPrint('=== updateProfile RESPONSE ===');
+        debugPrint('Status: ${response.statusCode}');
+        debugPrint('Data: ${response.data}');
+        debugPrint('Data[data]: ${response.data['data']}');
+        debugPrint('==============================');
+      }
 
       if (response.data['success'] == true) {
         // Support both response.data['data'] and response.data['user']
@@ -424,6 +434,7 @@ class AuthService {
       await _clearStorage();
       return true;
     } catch (e) {
+      debugPrint('AuthService.logout error (proceeding with local cleanup): $e');
       await _clearStorage();
       return true;
     }
@@ -441,7 +452,8 @@ class AuthService {
       }
       await _clearStorage();
       return true;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('AuthService.logoutAll error (proceeding with local cleanup): $e');
       await _clearStorage();
       return true;
     }
@@ -474,6 +486,7 @@ class AuthService {
       final userMap = jsonDecode(userJson) as Map<String, dynamic>;
       return User.fromJson(userMap);
     } catch (e) {
+      debugPrint('AuthService.getUserFromStorage error: $e');
       return null;
     }
   }

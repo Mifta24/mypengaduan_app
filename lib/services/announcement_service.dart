@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 import '../models/announcement_model.dart';
 import '../models/comment_model.dart';
@@ -40,7 +41,7 @@ class AnnouncementService {
       // Check if response is HTML (token expired)
       if (response.data is String &&
           (response.data as String).contains('<!DOCTYPE html>')) {
-        print('❌ getAnnouncements: Received HTML response - Token expired!');
+        debugPrint('❌ getAnnouncements: Received HTML response - Token expired!');
         throw Exception('Token expired - Please login again');
       }
 

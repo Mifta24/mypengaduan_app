@@ -38,11 +38,11 @@ class Comment {
       userName: json['user_name'] as String? ?? json['user']?['name'] as String? ?? 'Anonymous',
       userAvatar: json['user_avatar'] as String? ?? json['user']?['avatar'] as String?,
       content: json['content'] as String? ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at'] as String) 
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at'] as String) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
     );
   }

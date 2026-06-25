@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service untuk caching data dengan TTL (Time To Live)
@@ -23,7 +24,7 @@ class CacheService {
       
       await prefs.setString('$_prefix$key', jsonEncode(cacheData));
     } catch (e) {
-      print('Cache set error: $e');
+      debugPrint('Cache set error: $e');
     }
   }
 
@@ -46,7 +47,7 @@ class CacheService {
       
       return cacheData['data'];
     } catch (e) {
-      print('Cache get error: $e');
+      debugPrint('Cache get error: $e');
       return null;
     }
   }
@@ -57,7 +58,7 @@ class CacheService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('$_prefix$key');
     } catch (e) {
-      print('Cache remove error: $e');
+      debugPrint('Cache remove error: $e');
     }
   }
 
@@ -70,7 +71,7 @@ class CacheService {
         await prefs.remove(key);
       }
     } catch (e) {
-      print('Cache clear error: $e');
+      debugPrint('Cache clear error: $e');
     }
   }
 

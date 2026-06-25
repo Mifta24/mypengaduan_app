@@ -12,8 +12,7 @@
     <application
         android:label="MyPengaduan"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
+        android:icon="@mipmap/ic_launcher">
 
         <!-- FCM: pakai channel high_importance agar notifikasi muncul dengan benar di background -->
         <meta-data

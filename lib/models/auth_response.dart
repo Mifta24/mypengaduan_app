@@ -13,8 +13,8 @@ class AuthResponse {
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
-      success: json['success'] as bool,
-      message: json['message'] as String,
+      success: json['success'] == true || json['success'] == 1,
+      message: json['message']?.toString() ?? '',
       data: json['data'] != null ? AuthData.fromJson(json['data']) : null,
     );
   }
@@ -32,7 +32,7 @@ class AuthData {
   factory AuthData.fromJson(Map<String, dynamic> json) {
     return AuthData(
       user: User.fromJson(json['user']),
-      token: json['token'] as String,
+      token: json['token']?.toString() ?? '',
     );
   }
 }

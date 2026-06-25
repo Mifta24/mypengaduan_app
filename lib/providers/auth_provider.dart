@@ -142,7 +142,7 @@ class AuthProvider extends ChangeNotifier {
 
   // Logout
   Future<void> logout() async {
-    print('🚪 [AuthProvider] Logout started - clearing data immediately');
+    debugPrint('🚪 [AuthProvider] Logout started - clearing data immediately');
     
     // Clear state FIRST before calling service
     _user = null;
@@ -151,14 +151,14 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     
-    print('✅ [AuthProvider] State cleared, now calling logout service');
+    debugPrint('✅ [AuthProvider] State cleared, now calling logout service');
     
     // Then call logout service (async in background)
     try {
       await _authService.logout();
-      print('✅ [AuthProvider] Logout service completed');
+      debugPrint('✅ [AuthProvider] Logout service completed');
     } catch (e) {
-      print('⚠️ [AuthProvider] Logout service error (ignored): $e');
+      debugPrint('⚠️ [AuthProvider] Logout service error (ignored): $e');
       // Ignore errors - user already logged out from app perspective
     }
   }

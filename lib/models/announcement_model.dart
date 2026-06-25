@@ -79,11 +79,13 @@ class Announcement {
     }
 
     return Announcement(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      slug: json['slug'] as String,
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      title: json['title']?.toString() ?? '',
+      slug: json['slug']?.toString() ?? '',
       summary: json['summary'] as String?,
-      content: json['content'] as String,
+      content: json['content']?.toString() ?? '',
       priority: json['priority'] as String? ?? 'medium',
       coverImage: json['cover_image'] as String? ?? json['image_url'] as String? ?? json['image'] as String?,
       targetAudience: targetAudience,

@@ -45,7 +45,7 @@ class AnnouncementProvider extends ChangeNotifier {
       _homeAnnouncements = result.data;
     } catch (e) {
       // Silently fail – home should not block on this
-      print('⚠️ [AnnouncementProvider] loadPublicAnnouncements error: $e');
+      debugPrint('⚠️ [AnnouncementProvider] loadPublicAnnouncements error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -335,6 +335,6 @@ class AnnouncementProvider extends ChangeNotifier {
     _currentPage = 1;
     _hasMorePages = false;
     notifyListeners();
-    print('✅ [AnnouncementProvider] State cleared');
+    debugPrint('✅ [AnnouncementProvider] State cleared');
   }
 }

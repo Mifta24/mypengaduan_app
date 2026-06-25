@@ -61,15 +61,15 @@ class ComplaintProvider extends ChangeNotifier {
       _currentPage = page;
       _hasMorePages = response.meta.hasMorePages;
 
-      print('Complaints loaded in provider: ${_complaints.length}');
+      debugPrint('Complaints loaded in provider: ${_complaints.length}');
       for (var c in _complaints) {
-        print('Complaint: ${c.id} - ${c.title} - ${c.status}');
+        debugPrint('Complaint: ${c.id} - ${c.title} - ${c.status}');
       }
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('Error in loadComplaints provider: $e');
+      debugPrint('Error in loadComplaints provider: $e');
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
@@ -353,6 +353,6 @@ class ComplaintProvider extends ChangeNotifier {
     _currentPage = 1;
     _hasMorePages = false;
     notifyListeners();
-    print('✅ [ComplaintProvider] State cleared');
+    debugPrint('✅ [ComplaintProvider] State cleared');
   }
 }

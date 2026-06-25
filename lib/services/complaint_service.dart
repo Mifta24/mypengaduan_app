@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import '../config/app_config.dart';
 import '../models/api_response.dart';
 import '../models/complaint_model.dart';
@@ -45,15 +46,15 @@ class ComplaintService {
         options: options,
       );
 
-      print('Get complaints response: ${response.data}');
-      print('Total complaints: ${response.data['data']?.length ?? 0}');
+      debugPrint('Get complaints response: ${response.data}');
+      debugPrint('Total complaints: ${response.data['data']?.length ?? 0}');
 
       return PaginatedResponse.fromJson(
         response.data,
         (item) => Complaint.fromJson(item),
       );
     } on DioException catch (e) {
-      print('Error loading complaints: ${e.response?.data ?? e.message}');
+      debugPrint('Error loading complaints: ${e.response?.data ?? e.message}');
       if (e.response != null) {
         throw Exception(
             e.response!.data['message'] ?? 'Failed to load complaints');
@@ -125,7 +126,7 @@ class ComplaintService {
 
       // Add attachments if any
       if (attachments != null && attachments.isNotEmpty) {
-        print('📎 Uploading ${attachments.length} attachments...');
+        debugPrint('📎 Uploading ${attachments.length} attachments...');
 
         for (int i = 0; i < attachments.length; i++) {
           String fileName = attachments[i].split('/').last;
@@ -135,20 +136,20 @@ class ComplaintService {
           ));
         }
       } else {
-        print('📎 No attachments to upload');
+        debugPrint('📎 No attachments to upload');
       }
 
       // Add video URLs (already uploaded to Cloudinary directly)
       if (videoUrls != null && videoUrls.isNotEmpty) {
-        print('🎥 Attaching ${videoUrls.length} Cloudinary video URLs...');
+        debugPrint('🎥 Attaching ${videoUrls.length} Cloudinary video URLs...');
         for (final url in videoUrls) {
           formData.fields.add(MapEntry('video_urls[]', url));
         }
       }
 
-      print('📤 Sending request to backend...');
-      print('📤 Content-Type: multipart/form-data');
-      print('📤 Endpoint: complaints');
+      debugPrint('📤 Sending request to backend...');
+      debugPrint('📤 Content-Type: multipart/form-data');
+      debugPrint('📤 Endpoint: complaints');
 
       final response = await _dio.post(
         'complaints',
@@ -162,10 +163,10 @@ class ComplaintService {
         ),
       );
 
-      print('✅ Create complaint response: ${response.data}');
-      print(
+      debugPrint('✅ Create complaint response: ${response.data}');
+      debugPrint(
           '📎 Response has attachments field: ${response.data['data']?.containsKey('attachments')}');
-      print(
+      debugPrint(
           '📎 Response attachments value: ${response.data['data']?['attachments']}');
 
       return ApiResponse.fromJson(
@@ -173,9 +174,9 @@ class ComplaintService {
         (json) => Complaint.fromJson(json),
       );
     } on DioException catch (e) {
-      print('❌ Error creating complaint: ${e.message}');
-      print('❌ Error response: ${e.response?.data}');
-      print('❌ Error status: ${e.response?.statusCode}');
+      debugPrint('❌ Error creating complaint: ${e.message}');
+      debugPrint('❌ Error response: ${e.response?.data}');
+      debugPrint('❌ Error status: ${e.response?.statusCode}');
       if (e.response != null) {
         return ApiResponse.fromJson(e.response!.data, null);
       }
@@ -208,7 +209,7 @@ class ComplaintService {
 
       // Add new attachments if any (existing ones are kept by backend)
       if (attachments != null && attachments.isNotEmpty) {
-        print('📎 Updating with ${attachments.length} new attachments...');
+        debugPrint('📎 Updating with ${attachments.length} new attachments...');
         for (int i = 0; i < attachments.length; i++) {
           String fileName = attachments[i].split('/').last;
           formData.files.add(MapEntry(
@@ -220,13 +221,13 @@ class ComplaintService {
 
       // Add video URLs (already uploaded to Cloudinary directly)
       if (videoUrls != null && videoUrls.isNotEmpty) {
-        print('🎥 Attaching ${videoUrls.length} Cloudinary video URLs...');
+        debugPrint('🎥 Attaching ${videoUrls.length} Cloudinary video URLs...');
         for (final url in videoUrls) {
           formData.fields.add(MapEntry('video_urls[]', url));
         }
       }
 
-      print('✏️ Updating complaint #$id...');
+      debugPrint('✏️ Updating complaint #$id...');
       final response = await _dio.post(
         'complaints/$id',
         data: formData,
@@ -239,16 +240,16 @@ class ComplaintService {
         ),
       );
 
-      print('✅ Update complaint response: ${response.data}');
+      debugPrint('✅ Update complaint response: ${response.data}');
 
       return ApiResponse.fromJson(
         response.data,
         (json) => Complaint.fromJson(json),
       );
     } on DioException catch (e) {
-      print('❌ Error updating complaint: ${e.message}');
-      print('❌ Error response: ${e.response?.data}');
-      print('❌ Error status: ${e.response?.statusCode}');
+      debugPrint('❌ Error updating complaint: ${e.message}');
+      debugPrint('❌ Error response: ${e.response?.data}');
+      debugPrint('❌ Error status: ${e.response?.statusCode}');
       if (e.response != null) {
         return ApiResponse.fromJson(e.response!.data, null);
       }
@@ -280,13 +281,13 @@ class ComplaintService {
       'folder': sig['folder'].toString(),
     });
 
-    print('🎥 Uploading video directly to Cloudinary: $fileName');
+    debugPrint('🎥 Uploading video directly to Cloudinary: $fileName');
     final response = await uploadDio.post(
       sig['upload_url'].toString(),
       data: formData,
     );
     final url = response.data['secure_url'] as String;
-    print('✅ Cloudinary video URL: $url');
+    debugPrint('✅ Cloudinary video URL: $url');
     return url;
   }
 
@@ -356,16 +357,16 @@ class ComplaintService {
     final endpoint = 'complaints/$complaintId/responses';
     try {
       final options = await _getOptions();
-      print('📤 [ComplaintService] POST $endpoint');
+      debugPrint('📤 [ComplaintService] POST $endpoint');
       final response = await _dio.post(
         endpoint,
         data: data,
         options: options,
       );
-      print('✅ [ComplaintService] addResponse status: ${response.statusCode}');
+      debugPrint('✅ [ComplaintService] addResponse status: ${response.statusCode}');
       return ApiResponse.fromJson(response.data, null);
     } on DioException catch (e) {
-      print('❌ [ComplaintService] addResponse failed: ${e.response?.statusCode} ${e.requestOptions.path}');
+      debugPrint('❌ [ComplaintService] addResponse failed: ${e.response?.statusCode} ${e.requestOptions.path}');
       if (e.response?.statusCode == 404) {
         return ApiResponse(
           success: false,
