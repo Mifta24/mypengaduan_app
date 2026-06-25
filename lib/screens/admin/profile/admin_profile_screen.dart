@@ -183,6 +183,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                         _buildSectionLabel('Status Akun'),
                         const SizedBox(height: 8),
                         _buildStatusCard(user),
+                        const SizedBox(height: 20),
+                        _buildSectionLabel('Pengaturan'),
+                        const SizedBox(height: 8),
+                        _buildSettingsCard(),
                         const SizedBox(height: 28),
                         _buildActions(user),
                       ],
@@ -327,18 +331,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             angle: -0.5,
             child: Icon(Icons.eco_rounded, size: 28,
                 color: AppTheme.primaryDark.withValues(alpha: 0.35)),
-          ),
-        ),
-        // Settings icon
-        Positioned(
-          top: 48,
-          right: 8,
-          child: SafeArea(
-            child: IconButton(
-              icon: const Icon(Icons.settings_rounded,
-                  color: Colors.white70, size: 22),
-              onPressed: () {},
-            ),
           ),
         ),
       ],
@@ -521,6 +513,62 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        children: [
+          _actionTile(
+            icon: Icons.notifications_outlined,
+            label: 'Pengaturan Notifikasi',
+            onTap: () => context.push(AppRouter.notificationSettings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionTile({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Icon(icon, size: 18, color: AppTheme.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label,
+                  style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary)),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                size: 20, color: Colors.grey.shade400),
           ],
         ),
       ),
