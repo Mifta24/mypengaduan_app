@@ -1,15 +1,12 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../routes/app_router.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../complaints/complaint_detail_screen.dart';
-import '../announcements/add_announcement_screen.dart';
-import '../categories/categories_tab.dart';
-import '../reports/reports_tab.dart';
-import '../users/users_tab.dart';
 import '../dashboard/admin_dashboard_screen.dart';
 
 class AdminHomeTab extends StatefulWidget {
@@ -499,13 +496,7 @@ class _AdminHomeTabState extends State<AdminHomeTab>
       onTap: () {
         final id = item['id'];
         if (id != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ComplaintDetailScreen(
-                  complaintId: id is int ? id : int.tryParse(id.toString())),
-            ),
-          );
+          context.push('/complaint/$id');
         }
       },
       child: Container(
@@ -584,36 +575,13 @@ class _AdminHomeTabState extends State<AdminHomeTab>
         AdminTabNavigator.of(context)?.switchTab(3);
       }),
       (Icons.add_box_rounded, 'Tambah\nPengumuman', AppTheme.primary, () async {
-        await Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const AddAnnouncementScreen()));
+        await context.push(AppRouter.adminAnnouncementsAdd);
       }),
       (Icons.category_rounded, 'Kelola\nKategori', const Color(0xFF6366F1), () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => Scaffold(
-            backgroundColor: AppTheme.surface,
-            appBar: AppBar(
-              backgroundColor: AppTheme.bgDark,
-              title: Text('Kelola Kategori',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white)),
-              iconTheme: const IconThemeData(color: Colors.white),
-            ),
-            body: const AdminCategoriesTab(),
-          ),
-        ));
+        context.push(AppRouter.adminCategoriesManage);
       }),
       (Icons.bar_chart_rounded, 'Laporan &\nStatistik', AppTheme.secondary, () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => Scaffold(
-            backgroundColor: AppTheme.surface,
-            appBar: AppBar(
-              backgroundColor: AppTheme.bgDark,
-              title: Text('Laporan & Statistik',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white)),
-              iconTheme: const IconThemeData(color: Colors.white),
-            ),
-            body: const AdminReportsTab(),
-          ),
-        ));
+        context.push(AppRouter.adminReports);
       }),
     ];
 

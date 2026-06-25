@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../routes/app_router.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../../models/complaint_model.dart';
-import '../../complaints/complaint_detail_screen.dart';
-import 'resolve_complaint_screen.dart';
-import 'trash_complaints_screen.dart';
+import '../../../widgets/admin/admin_confirm_dialog.dart';
+import '../../../widgets/admin/admin_empty_state.dart';
 
 class AdminComplaintsTab extends StatefulWidget {
   const AdminComplaintsTab({super.key});
@@ -122,7 +122,7 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Status berhasil diupdate'),
-              backgroundColor: Colors.green),
+              backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
@@ -130,13 +130,19 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Gagal update status: $e'),
-              backgroundColor: Colors.red),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
   }
 
   Future<void> _deleteComplaintToTrash(int id) async {
+    final confirmed = await showAdminConfirmDialog(
+      context,
+      title: 'Pindahkan ke Trash',
+      message: 'Pindahkan pengaduan ini ke trash?',
+    );
+    if (!confirmed) return;
     try {
       await _adminService.deleteComplaint(id);
       await _loadComplaints(forceRefresh: true);
@@ -144,7 +150,7 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Pengaduan dipindahkan ke trash'),
-              backgroundColor: Colors.green),
+              backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
@@ -152,7 +158,7 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Gagal hapus pengaduan: $e'),
-              backgroundColor: Colors.red),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -197,6 +203,12 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                       onPressed: id <= 0
                           ? null
                           : () async {
+                              final confirmed = await showAdminConfirmDialog(
+                                context,
+                                title: 'Hapus Attachment',
+                                message: 'Hapus "$name" dari pengaduan ini?',
+                              );
+                              if (!confirmed) return;
                               try {
                                 await _adminService
                                     .deleteComplaintAttachment(id);
@@ -209,7 +221,7 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                                     const SnackBar(
                                       content:
                                           Text('Attachment berhasil dihapus'),
-                                      backgroundColor: Colors.green,
+                                      backgroundColor: AppTheme.success,
                                     ),
                                   );
                                 }
@@ -221,13 +233,13 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                                     SnackBar(
                                         content:
                                             Text('Gagal hapus attachment: $e'),
-                                        backgroundColor: Colors.red),
+                                        backgroundColor: AppTheme.danger),
                                   );
                                 }
                               }
                             },
                       child: const Text('Hapus',
-                          style: TextStyle(color: Colors.red)),
+                          style: TextStyle(color: AppTheme.danger)),
                     ),
                   ],
                 );
@@ -266,7 +278,7 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
   Color _statusColor(String s) {
     switch (s) {
       case 'pending':
-        return const Color(0xFFD97706);
+        return AppTheme.warning;
       case 'in_progress':
       case 'processing':
         return const Color(0xFF0891B2);
@@ -276,7 +288,7 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
       case 'completed':
         return AppTheme.primary;
       case 'rejected':
-        return const Color(0xFFDC2626);
+        return AppTheme.danger;
       default:
         return Colors.grey;
     }
@@ -342,19 +354,15 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                   const SizedBox(width: 10),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  const AdminTrashComplaintsScreen()));
+                      await context.push(AppRouter.adminComplaintsTrash);
                       _loadComplaints(forceRefresh: true);
                     },
                     icon: const Icon(Icons.delete_sweep, size: 16),
                     label: Text('Trash',
                         style: GoogleFonts.nunito(fontSize: 13)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: AppTheme.danger,
+                      side: const BorderSide(color: AppTheme.danger),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 10),
                     ),
@@ -408,18 +416,9 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
               ? const Center(
                   child: CircularProgressIndicator(color: AppTheme.primary))
               : filtered.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.report_outlined,
-                              size: 56, color: Colors.grey.shade300),
-                          const SizedBox(height: 12),
-                          Text('Tidak ada pengaduan',
-                              style: GoogleFonts.nunito(
-                                  color: AppTheme.textSecondary)),
-                        ],
-                      ),
+                  ? const AdminEmptyState(
+                      icon: Icons.report_outlined,
+                      title: 'Tidak ada pengaduan',
                     )
                   : RefreshIndicator(
                       onRefresh: () => _loadComplaints(forceRefresh: true),
@@ -508,13 +507,8 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
     return GestureDetector(
       onTap: () async {
         try {
-          final complaintModel = Complaint.fromJson(item);
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ComplaintDetailScreen(complaint: complaintModel),
-            ),
-          );
+          final id = _toInt(item['id']);
+          await context.push('/complaint/$id');
           await _loadComplaints(forceRefresh: true);
         } catch (e) {
           if (mounted) {
@@ -672,12 +666,9 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
               ElevatedButton.icon(
                 onPressed: () async {
                   Navigator.pop(context);
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ResolveComplaintScreen(complaint: item),
-                    ),
+                  final result = await context.push(
+                    AppRouter.adminComplaintsResolve,
+                    extra: item,
                   );
                   if (result == true) {
                     await _loadComplaints(forceRefresh: true);
@@ -703,8 +694,8 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                 label: Text('Tandai Diproses',
                     style: GoogleFonts.nunito()),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.blue,
-                  side: const BorderSide(color: Colors.blue),
+                  foregroundColor: _statusColor('in_progress'),
+                  side: BorderSide(color: _statusColor('in_progress')),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
@@ -718,8 +709,8 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                 icon: const Icon(Icons.cancel_outlined, size: 18),
                 label: Text('Tolak', style: GoogleFonts.nunito()),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
+                  foregroundColor: AppTheme.danger,
+                  side: const BorderSide(color: AppTheme.danger),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
@@ -748,8 +739,8 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                 },
                 icon: const Icon(Icons.delete_sweep, size: 18),
                 label: Text('Pindah Trash',
-                    style: GoogleFonts.nunito(color: Colors.red)),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    style: GoogleFonts.nunito(color: AppTheme.danger)),
+                style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
               ),
               const SizedBox(height: 4),
             ],

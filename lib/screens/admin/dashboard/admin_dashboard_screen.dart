@@ -11,8 +11,6 @@ import '../../../routes/app_router.dart';
 import '../home/home_tab.dart';
 import '../complaints/complaints_tab.dart';
 import '../announcements/announcements_tab.dart';
-import '../announcements/add_announcement_screen.dart';
-import '../profile/admin_profile_screen.dart';
 import '../users/users_tab.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -146,8 +144,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       floatingActionButton: _selectedIndex == 2
           ? FloatingActionButton.extended(
               onPressed: () async {
-                final result = await Navigator.push<bool>(context,
-                    MaterialPageRoute(builder: (_) => const AddAnnouncementScreen()));
+                final result = await context.push<bool>(AppRouter.adminAnnouncementsAdd);
                 if (result == true && context.mounted) {
                   final tab = _pages[2] as AdminAnnouncementsTab;
                   tab.reload();
@@ -209,7 +206,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Future<void> _handleMenu(String value, BuildContext ctx, AuthProvider auth) async {
     if (value == 'profile') {
-      Navigator.push(ctx, MaterialPageRoute(builder: (_) => const AdminProfileScreen()));
+      ctx.push(AppRouter.adminProfile);
     } else if (value == 'logout') {
       final confirm = await showDialog<bool>(
         context: ctx,

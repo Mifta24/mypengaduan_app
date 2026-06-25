@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../services/admin_service.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/admin/admin_confirm_dialog.dart';
+import '../../../widgets/admin/admin_empty_state.dart';
 
 class AdminTrashComplaintsScreen extends StatefulWidget {
   const AdminTrashComplaintsScreen({super.key});
@@ -99,56 +103,55 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
         _isLoadingMore = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat trash complaints: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Gagal memuat trash complaints: $e'), backgroundColor: AppTheme.danger),
       );
     }
   }
 
   Future<void> _restore(int id) async {
+    final confirmed = await showAdminConfirmDialog(
+      context,
+      title: 'Restore Pengaduan',
+      message: 'Kembalikan pengaduan ini dari trash?',
+      confirmText: 'Restore',
+      confirmColor: AppTheme.primary,
+    );
+    if (!confirmed) return;
     try {
       await _adminService.restoreComplaint(id);
       await _loadTrashedComplaints(reset: true);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengaduan berhasil direstore'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Pengaduan berhasil direstore'), backgroundColor: AppTheme.success),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal restore: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Gagal restore: $e'), backgroundColor: AppTheme.danger),
       );
     }
   }
 
   Future<void> _forceDelete(int id) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Permanen'),
-        content: const Text('Data akan dihapus permanen dan tidak bisa dikembalikan. Lanjutkan?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus Permanen', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+    final confirmed = await showAdminConfirmDialog(
+      context,
+      title: 'Hapus Permanen',
+      message: 'Data akan dihapus permanen dan tidak bisa dikembalikan. Lanjutkan?',
+      confirmText: 'Hapus Permanen',
     );
-
-    if (confirm != true) return;
+    if (!confirmed) return;
 
     try {
       await _adminService.forceDeleteComplaint(id);
       await _loadTrashedComplaints(reset: true);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengaduan dihapus permanen'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Pengaduan dihapus permanen'), backgroundColor: AppTheme.success),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal hapus permanen: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Gagal hapus permanen: $e'), backgroundColor: AppTheme.danger),
       );
     }
   }
@@ -156,12 +159,15 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Trash Complaints'),
+        title: Text('Trash Complaints',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
       ),
       body: Column(
         children: [
-          Padding(
+          Container(
+            color: Colors.white,
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
@@ -170,9 +176,26 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        decoration: const InputDecoration(
+                        style: GoogleFonts.nunito(fontSize: 14),
+                        decoration: InputDecoration(
                           hintText: 'Cari complaint di trash...',
-                          prefixIcon: Icon(Icons.search),
+                          hintStyle: GoogleFonts.nunito(
+                              fontSize: 14, color: Colors.grey.shade400),
+                          prefixIcon: const Icon(Icons.search, size: 20),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: AppTheme.border)),
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: AppTheme.border)),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                  color: AppTheme.primary, width: 1.5)),
                         ),
                         onSubmitted: (value) {
                           setState(() => _searchQuery = value.trim());
@@ -183,7 +206,13 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                     const SizedBox(width: 8),
                     OutlinedButton(
                       onPressed: () => _loadTrashedComplaints(reset: true),
-                      child: const Text('Refresh'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primary,
+                        side: const BorderSide(color: AppTheme.primary),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: Text('Refresh', style: GoogleFonts.nunito()),
                     ),
                   ],
                 ),
@@ -192,17 +221,23 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Halaman $_activePage/$_lastPage • Total $_totalItems data',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                    style: GoogleFonts.nunito(
+                        color: AppTheme.textSecondary, fontSize: 12),
                   ),
                 ),
               ],
             ),
           ),
+          Divider(height: 1, color: AppTheme.border),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppTheme.primary))
                 : _items.isEmpty
-                    ? const Center(child: Text('Trash complaints kosong'))
+                    ? const AdminEmptyState(
+                        icon: Icons.delete_outline,
+                        title: 'Trash complaints kosong',
+                      )
                     : ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.all(16),
@@ -231,21 +266,46 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                           final id = _toInt(item['id']);
                           final title = item['title']?.toString() ?? item['description']?.toString() ?? 'Tanpa Judul';
 
-                          return Card(
+                          return Container(
                             margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppTheme.border),
+                            ),
                             child: ListTile(
-                              title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              subtitle: Text('ID: $id'),
+                              title: Text(title,
+                                  style: GoogleFonts.nunito(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: AppTheme.textPrimary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis),
+                              subtitle: Text('ID: $id',
+                                  style: GoogleFonts.nunito(
+                                      fontSize: 11, color: AppTheme.textSecondary)),
                               trailing: Wrap(
                                 spacing: 8,
                                 children: [
                                   OutlinedButton(
                                     onPressed: id > 0 ? () => _restore(id) : null,
-                                    child: const Text('Restore'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppTheme.primary,
+                                      side: const BorderSide(color: AppTheme.primary),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                    child: Text('Restore', style: GoogleFonts.nunito(fontSize: 12)),
                                   ),
                                   OutlinedButton(
                                     onPressed: id > 0 ? () => _forceDelete(id) : null,
-                                    child: const Text('Hapus Permanen'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppTheme.danger,
+                                      side: const BorderSide(color: AppTheme.danger),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                    child: Text('Hapus Permanen', style: GoogleFonts.nunito(fontSize: 12)),
                                   ),
                                 ],
                               ),

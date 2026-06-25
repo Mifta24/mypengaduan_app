@@ -19,6 +19,20 @@ import '../screens/faq/faq_screen.dart';
 import '../screens/contact/contact_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/notifications/notification_settings_screen.dart';
+import '../models/user_model.dart';
+import '../screens/admin/profile/admin_profile_screen.dart';
+import '../screens/admin/profile/edit_admin_profile_screen.dart';
+import '../screens/admin/categories/categories_tab.dart';
+import '../screens/admin/categories/add_category_screen.dart';
+import '../screens/admin/categories/edit_category_screen.dart';
+import '../screens/admin/categories/category_detail_screen.dart';
+import '../screens/admin/announcements/add_announcement_screen.dart';
+import '../screens/admin/announcements/edit_announcement_screen.dart';
+import '../screens/admin/announcements/announcement_detail_screen.dart';
+import '../screens/admin/complaints/trash_complaints_screen.dart';
+import '../screens/admin/complaints/resolve_complaint_screen.dart';
+import '../screens/admin/reports/reports_tab.dart';
+import '../screens/admin/users/user_detail_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -38,6 +52,36 @@ class AppRouter {
   static const String contact = '/contact';
   static const String forgotPassword = '/forgot-password';
   static const String notificationSettings = '/notification-settings';
+  static const String adminProfile = '/admin/profile';
+  static const String adminProfileEdit = '/admin/profile/edit';
+  static const String adminCategoriesManage = '/admin/categories';
+  static const String adminCategoriesAdd = '/admin/categories/add';
+  static const String adminCategoriesEdit = '/admin/categories/edit';
+  static const String adminCategoryDetail = '/admin/categories/detail';
+  static const String adminCategoryComplaints = '/admin/categories/complaints';
+  static const String adminAnnouncementsAdd = '/admin/announcements/add';
+  static const String adminAnnouncementsEdit = '/admin/announcements/edit';
+  static const String adminAnnouncementDetail = '/admin/announcements/detail';
+  static const String adminAnnouncementImage = '/admin/announcements/image';
+  static const String adminComplaintsTrash = '/admin/complaints/trash';
+  static const String adminComplaintsResolve = '/admin/complaints/resolve';
+  static const String adminReports = '/admin/reports';
+  static const String adminUserDetail = '/admin/users/detail';
+  static const String adminUserComplaints = '/admin/users/complaints';
+
+  static CustomTransitionPage _adminSlidePage(GoRouterState state, Widget child) {
+    return CustomTransitionPage(
+      key: state.pageKey,
+      child: child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        var tween = Tween(begin: begin, end: end)
+            .chain(CurveTween(curve: Curves.easeInOut));
+        return SlideTransition(position: animation.drive(tween), child: child);
+      },
+    );
+  }
 
   static GoRouter createRouter(
     AuthProvider authProvider, {
@@ -329,6 +373,172 @@ class AppRouter {
                   .chain(CurveTween(curve: Curves.easeInOut));
               return SlideTransition(position: animation.drive(tween), child: child);
             },
+          ),
+        ),
+        // ── Admin sub-screens ──────────────────────────────────
+        GoRoute(
+          path: adminProfile,
+          name: 'adminProfile',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            const AdminProfileScreen(),
+          ),
+        ),
+        GoRoute(
+          path: adminProfileEdit,
+          name: 'adminProfileEdit',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            EditAdminProfileScreen(user: state.extra as User),
+          ),
+        ),
+        GoRoute(
+          path: adminCategoriesManage,
+          name: 'adminCategoriesManage',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            Scaffold(
+              backgroundColor: AppTheme.surface,
+              appBar: AppBar(
+                backgroundColor: AppTheme.bgDark,
+                title: Text('Kelola Kategori',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, color: Colors.white)),
+                iconTheme: const IconThemeData(color: Colors.white),
+              ),
+              body: const AdminCategoriesTab(),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: adminCategoriesAdd,
+          name: 'adminCategoriesAdd',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            const AddCategoryScreen(),
+          ),
+        ),
+        GoRoute(
+          path: adminCategoriesEdit,
+          name: 'adminCategoriesEdit',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            EditCategoryScreen(category: state.extra),
+          ),
+        ),
+        GoRoute(
+          path: adminCategoryDetail,
+          name: 'adminCategoryDetail',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            AdminCategoryDetailScreen(
+                category: state.extra as Map<String, dynamic>),
+          ),
+        ),
+        GoRoute(
+          path: adminCategoryComplaints,
+          name: 'adminCategoryComplaints',
+          pageBuilder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>;
+            return _adminSlidePage(
+              state,
+              CategoryComplaintsScreen(
+                categoryName: extra['categoryName'] as String,
+                complaints:
+                    extra['complaints'] as List<Map<String, dynamic>>,
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: adminAnnouncementsAdd,
+          name: 'adminAnnouncementsAdd',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            const AddAnnouncementScreen(),
+          ),
+        ),
+        GoRoute(
+          path: adminAnnouncementsEdit,
+          name: 'adminAnnouncementsEdit',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            EditAnnouncementScreen(
+                announcement: state.extra as Map<String, dynamic>),
+          ),
+        ),
+        GoRoute(
+          path: adminAnnouncementDetail,
+          name: 'adminAnnouncementDetail',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            AdminAnnouncementDetailScreen(
+                announcement: state.extra as Map<String, dynamic>),
+          ),
+        ),
+        GoRoute(
+          path: adminAnnouncementImage,
+          name: 'adminAnnouncementImage',
+          pageBuilder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>;
+            return _adminSlidePage(
+              state,
+              AnnouncementImageViewerScreen(
+                imageUrl: extra['imageUrl'] as String,
+                title: extra['title'] as String,
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: adminComplaintsTrash,
+          name: 'adminComplaintsTrash',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            const AdminTrashComplaintsScreen(),
+          ),
+        ),
+        GoRoute(
+          path: adminComplaintsResolve,
+          name: 'adminComplaintsResolve',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            ResolveComplaintScreen(complaint: state.extra),
+          ),
+        ),
+        GoRoute(
+          path: adminReports,
+          name: 'adminReports',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            Scaffold(
+              backgroundColor: AppTheme.surface,
+              appBar: AppBar(
+                backgroundColor: AppTheme.bgDark,
+                title: Text('Laporan & Statistik',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, color: Colors.white)),
+                iconTheme: const IconThemeData(color: Colors.white),
+              ),
+              body: const AdminReportsTab(),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: adminUserDetail,
+          name: 'adminUserDetail',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            AdminUserDetailScreen(args: state.extra as AdminUserDetailArgs),
+          ),
+        ),
+        GoRoute(
+          path: adminUserComplaints,
+          name: 'adminUserComplaints',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            AdminUserComplaintsScreen(
+                args: state.extra as AdminUserComplaintsArgs),
           ),
         ),
       ],

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../../../models/complaint_model.dart';
+import '../../../routes/app_router.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../complaints/complaint_detail_screen.dart';
-import 'edit_category_screen.dart';
+import '../../../widgets/admin/admin_confirm_dialog.dart';
 
 class AdminCategoryDetailScreen extends StatefulWidget {
   final Map<String, dynamic> category;
@@ -102,9 +102,9 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
   }
 
   Future<void> _editCategory() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => EditCategoryScreen(category: _category)),
+    final result = await context.push(
+      AppRouter.adminCategoriesEdit,
+      extra: _category,
     );
     if (result == true && mounted) {
       _hasChanges = true;
@@ -113,33 +113,24 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
   }
 
   Future<void> _deleteCategory() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Kategori'),
-        content: const Text('Apakah Anda yakin ingin menghapus kategori ini?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+    final confirmed = await showAdminConfirmDialog(
+      context,
+      title: 'Hapus Kategori',
+      message: 'Apakah Anda yakin ingin menghapus kategori ini?',
     );
-    if (confirm != true) return;
+    if (!confirmed) return;
     try {
       await _adminService.deleteCategory(_toInt(_category['id']));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal hapus kategori: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal hapus kategori: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -157,27 +148,25 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Status berhasil diubah'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Status berhasil diubah'), backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal ubah status: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal ubah status: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
   }
 
   Future<void> _showAllComplaints() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _CategoryComplaintsScreen(
-          categoryName: _category['name']?.toString() ?? 'Kategori',
-          complaints: _complaints,
-        ),
-      ),
+    await context.push(
+      AppRouter.adminCategoryComplaints,
+      extra: {
+        'categoryName': _category['name']?.toString() ?? 'Kategori',
+        'complaints': _complaints,
+      },
     );
   }
 
@@ -529,10 +518,8 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () async {
-        try {
-          final model = Complaint.fromJson(complaint);
-          await Navigator.push(context, MaterialPageRoute(builder: (_) => ComplaintDetailScreen(complaint: model)));
-        } catch (_) {}
+        final id = _toInt(complaint['id']);
+        if (id > 0) await context.push('/complaint/$id');
       },
       child: Container(
         width: double.infinity,
@@ -649,11 +636,12 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
 
 // ─── Halaman semua keluhan ──────────────────────────────────────────────────
 
-class _CategoryComplaintsScreen extends StatelessWidget {
+class CategoryComplaintsScreen extends StatelessWidget {
   final String categoryName;
   final List<Map<String, dynamic>> complaints;
 
-  const _CategoryComplaintsScreen({
+  const CategoryComplaintsScreen({
+    super.key,
     required this.categoryName,
     required this.complaints,
   });
@@ -733,10 +721,8 @@ class _CategoryComplaintsScreen extends StatelessWidget {
         return InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () async {
-            try {
-              final model = Complaint.fromJson(complaint);
-              await Navigator.push(ctx, MaterialPageRoute(builder: (_) => ComplaintDetailScreen(complaint: model)));
-            } catch (_) {}
+            final id = complaint['id'];
+            if (id != null) await ctx.push('/complaint/$id');
           },
           child: Container(
             padding: const EdgeInsets.all(14),

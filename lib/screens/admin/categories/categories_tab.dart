@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../routes/app_router.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import 'add_category_screen.dart';
-import 'category_detail_screen.dart';
-import 'edit_category_screen.dart';
+import '../../../widgets/admin/admin_confirm_dialog.dart';
+import '../../../widgets/admin/admin_empty_state.dart';
 
 class AdminCategoriesTab extends StatefulWidget {
   const AdminCategoriesTab({super.key});
@@ -107,47 +108,37 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
       await _loadCategories(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Status berhasil diubah'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Status berhasil diubah'), backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal ubah status: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal ubah status: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
   }
 
   Future<void> _deleteCategory(int id) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: const Text('Apakah Anda yakin ingin menghapus kategori ini?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
+    final confirmed = await showAdminConfirmDialog(
+      context,
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus kategori ini?',
     );
-    if (confirm != true) return;
+    if (!confirmed) return;
     try {
       await _adminService.deleteCategory(id);
       await _loadCategories(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal hapus: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal hapus: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -156,21 +147,12 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
   Future<void> _bulkAction(String action) async {
     if (_selectedIds.isEmpty) return;
     if (action == 'delete') {
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Hapus Massal'),
-          content: Text('Hapus ${_selectedIds.length} kategori sekaligus? Tindakan ini tidak dapat dibatalkan.'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        ),
+      final confirmed = await showAdminConfirmDialog(
+        context,
+        title: 'Hapus Massal',
+        message: 'Hapus ${_selectedIds.length} kategori sekaligus? Tindakan ini tidak dapat dibatalkan.',
       );
-      if (confirm != true) return;
+      if (!confirmed) return;
     }
     try {
       await _adminService.bulkActionCategories(ids: _selectedIds.toList(), action: action);
@@ -178,12 +160,12 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
       if (!mounted) return;
       setState(() => _selectedIds.clear());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil dijalankan'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Berhasil dijalankan'), backgroundColor: AppTheme.success),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -268,10 +250,7 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
               const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AddCategoryScreen()),
-                  );
+                  final result = await context.push(AppRouter.adminCategoriesAdd);
                   if (result == true) _loadCategories(forceRefresh: true);
                 },
                 icon: const Icon(Icons.add, size: 16),
@@ -342,11 +321,11 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                   style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary, fontSize: 13),
                 ),
                 const Spacer(),
-                _buildBulkBtn('Aktif', Colors.green, Icons.check_circle_outline, () => _bulkAction('activate')),
+                _buildBulkBtn('Aktif', AppTheme.success, Icons.check_circle_outline, () => _bulkAction('activate')),
                 const SizedBox(width: 6),
-                _buildBulkBtn('Nonaktif', Colors.orange, Icons.cancel_outlined, () => _bulkAction('deactivate')),
+                _buildBulkBtn('Nonaktif', AppTheme.warning, Icons.cancel_outlined, () => _bulkAction('deactivate')),
                 const SizedBox(width: 6),
-                _buildBulkBtn('Hapus', Colors.red, Icons.delete_outline, () => _bulkAction('delete')),
+                _buildBulkBtn('Hapus', AppTheme.danger, Icons.delete_outline, () => _bulkAction('delete')),
                 const SizedBox(width: 6),
                 GestureDetector(
                   onTap: () => setState(() => _selectedIds.clear()),
@@ -363,15 +342,9 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
           child: !_hasLoadedData && _categories.isEmpty
               ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
               : _categories.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.category_outlined, size: 56, color: Colors.grey.shade300),
-                          const SizedBox(height: 12),
-                          Text('Tidak ada kategori', style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
-                        ],
-                      ),
+                  ? const AdminEmptyState(
+                      icon: Icons.category_outlined,
+                      title: 'Tidak ada kategori',
                     )
                   : RefreshIndicator(
                       onRefresh: () => _loadCategories(forceRefresh: true),
@@ -420,13 +393,9 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
 
     return GestureDetector(
       onTap: () async {
-        final changed = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AdminCategoryDetailScreen(
-              category: Map<String, dynamic>.from(category as Map),
-            ),
-          ),
+        final changed = await context.push(
+          AppRouter.adminCategoryDetail,
+          extra: Map<String, dynamic>.from(category as Map),
         );
         if (changed == true) _loadCategories(forceRefresh: true);
       },
@@ -521,9 +490,9 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
               onSelected: (value) async {
                 switch (value) {
                   case 'edit':
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => EditCategoryScreen(category: category)),
+                    final result = await context.push(
+                      AppRouter.adminCategoriesEdit,
+                      extra: category,
                     );
                     if (result == true) _loadCategories(forceRefresh: true);
                     break;
@@ -546,7 +515,7 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                     Icon(
                       isActive ? Icons.toggle_off_outlined : Icons.toggle_on_outlined,
                       size: 16,
-                      color: isActive ? Colors.orange : Colors.green,
+                      color: isActive ? AppTheme.warning : AppTheme.success,
                     ),
                     const SizedBox(width: 8),
                     Text(isActive ? 'Nonaktifkan' : 'Aktifkan'),
@@ -555,9 +524,9 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(children: [
-                    Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                    Icon(Icons.delete_outline, size: 16, color: AppTheme.danger),
                     SizedBox(width: 8),
-                    Text('Hapus', style: TextStyle(color: Colors.red)),
+                    Text('Hapus', style: TextStyle(color: AppTheme.danger)),
                   ]),
                 ),
               ],

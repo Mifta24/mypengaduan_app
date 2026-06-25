@@ -2,13 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/complaint_model.dart';
 import '../../../providers/reports_provider.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/admin/admin_info_card.dart';
-import '../../complaints/complaint_detail_screen.dart';
 
 class AdminReportsTab extends StatefulWidget {
   const AdminReportsTab({super.key});
@@ -791,19 +790,16 @@ class _AdminReportsTabState extends State<AdminReportsTab>
             alignment: Alignment.centerRight,
             child: OutlinedButton(
               onPressed: () async {
-                try {
-                  final model = Complaint.fromJson(complaint);
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => ComplaintDetailScreen(complaint: model)),
-                  );
-                } catch (_) {
+                final id = complaint['id'];
+                if (id == null) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Detail keluhan tidak tersedia')),
                     );
                   }
+                  return;
                 }
+                await context.push('/complaint/$id');
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../routes/app_router.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
-import 'announcement_detail_screen.dart';
-import 'edit_announcement_screen.dart';
+import '../../../widgets/admin/admin_confirm_dialog.dart';
+import '../../../widgets/admin/admin_empty_state.dart';
 
 class AdminAnnouncementsTab extends StatefulWidget {
   const AdminAnnouncementsTab({super.key});
@@ -118,58 +120,38 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
     }
   }
 
-  Future<void> _toggleStatus(int id) async {
+  Future<void> _deleteAnnouncement(int id) async {
+    final confirmed = await showAdminConfirmDialog(
+      context,
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus pengumuman ini? Tindakan ini tidak dapat dibatalkan.',
+    );
+    if (!confirmed) return;
     try {
-      await _adminService.toggleAnnouncementStatus(id);
-      _loadAnnouncements(forceRefresh: true);
+      await _adminService.deleteAnnouncement(id);
+      await _loadAnnouncements(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Status berhasil diubah'),
-              backgroundColor: Colors.green),
+              content: Text('Pengumuman berhasil dihapus'),
+              backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Gagal ubah status: $e'),
-              backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  Future<void> _publishAnnouncement(int id) async {
-    try {
-      await _adminService.publishAnnouncement(id);
-      _loadAnnouncements(forceRefresh: true);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Pengumuman berhasil dipublikasi'),
-              backgroundColor: Colors.green),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Gagal publikasi: $e'),
-              backgroundColor: Colors.red),
+              content: Text('Gagal hapus: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
   }
 
   void _showAnnouncementDetailDialog(dynamic announcement) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AdminAnnouncementDetailScreen(
-          announcement: Map<String, dynamic>.from(announcement as Map),
-        ),
-      ),
+    context.push(
+      AppRouter.adminAnnouncementDetail,
+      extra: Map<String, dynamic>.from(announcement as Map),
     ).then((changed) {
       if (changed == true) {
         _loadAnnouncements(forceRefresh: true);
@@ -196,13 +178,13 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
     switch (priority) {
       case 'urgent':
       case 'high':
-        return Colors.red;
+        return AppTheme.danger;
       case 'medium':
-        return Colors.orange;
+        return AppTheme.warning;
       case 'low':
-        return Colors.green;
+        return AppTheme.success;
       default:
-        return Colors.blue;
+        return AppTheme.info;
     }
   }
 
@@ -286,18 +268,9 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
                   child:
                       CircularProgressIndicator(color: AppTheme.primary))
               : filtered.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.announcement_outlined,
-                              size: 56, color: Colors.grey.shade300),
-                          const SizedBox(height: 12),
-                          Text('Tidak ada pengumuman',
-                              style: GoogleFonts.nunito(
-                                  color: AppTheme.textSecondary)),
-                        ],
-                      ),
+                  ? const AdminEmptyState(
+                      icon: Icons.announcement_outlined,
+                      title: 'Tidak ada pengumuman',
                     )
                   : RefreshIndicator(
                       onRefresh: () =>
@@ -512,19 +485,16 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
                         children: [
                           TextButton(
                             onPressed: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditAnnouncementScreen(
-                                      announcement: a),
-                                ),
+                              final result = await context.push(
+                                AppRouter.adminAnnouncementsEdit,
+                                extra: a,
                               );
                               if (result == true) {
                                 _loadAnnouncements(forceRefresh: true);
                               }
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.blue,
+                              foregroundColor: AppTheme.primary,
                               minimumSize: Size.zero,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
@@ -541,10 +511,10 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
                               height: 14,
                               color: Colors.grey.shade300),
                           TextButton(
-                            onPressed: () => _toggleStatus(
+                            onPressed: () => _deleteAnnouncement(
                                 _toInt(a['id'])),
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
+                              foregroundColor: AppTheme.danger,
                               minimumSize: Size.zero,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),

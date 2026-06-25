@@ -9,7 +9,6 @@ import '../../../providers/announcement_provider.dart';
 import '../../../models/user_model.dart';
 import '../../../routes/app_router.dart';
 import '../../../theme/app_theme.dart';
-import 'edit_admin_profile_screen.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
@@ -583,11 +582,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           width: double.infinity,
           height: 50,
           child: ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => EditAdminProfileScreen(user: user)),
-            ).then((_) => _loadProfile()),
+            onPressed: () => context
+                .push(AppRouter.adminProfileEdit, extra: user)
+                .then((_) => _loadProfile()),
             icon: const Icon(Icons.edit_rounded, size: 18),
             label: Text('Edit Profil',
                 style: GoogleFonts.nunito(

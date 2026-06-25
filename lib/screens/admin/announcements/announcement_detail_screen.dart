@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../routes/app_router.dart';
 import '../../../services/admin_service.dart';
 import '../../../services/file_download_service.dart';
 import '../../../theme/app_theme.dart';
-import 'edit_announcement_screen.dart';
 
 class AdminAnnouncementDetailScreen extends StatefulWidget {
   final Map<String, dynamic> announcement;
@@ -60,11 +61,9 @@ class _AdminAnnouncementDetailScreenState
   }
 
   Future<void> _editAnnouncement() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EditAnnouncementScreen(announcement: _detail),
-      ),
+    final result = await context.push(
+      AppRouter.adminAnnouncementsEdit,
+      extra: _detail,
     );
 
     if (result == true) {
@@ -590,14 +589,9 @@ class _AdminAnnouncementDetailScreenState
                   onTap: url.isEmpty
                       ? null
                       : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => _AnnouncementImageViewerScreen(
-                                imageUrl: url,
-                                title: name,
-                              ),
-                            ),
+                          context.push(
+                            AppRouter.adminAnnouncementImage,
+                            extra: {'imageUrl': url, 'title': name},
                           );
                         },
                   child: Container(
@@ -850,11 +844,12 @@ class _AdminAnnouncementDetailScreenState
   }
 }
 
-class _AnnouncementImageViewerScreen extends StatelessWidget {
+class AnnouncementImageViewerScreen extends StatelessWidget {
   final String imageUrl;
   final String title;
 
-  const _AnnouncementImageViewerScreen({
+  const AnnouncementImageViewerScreen({
+    super.key,
     required this.imageUrl,
     required this.title,
   });
