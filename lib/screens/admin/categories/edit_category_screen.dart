@@ -69,7 +69,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil diperbarui'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Kategori berhasil diperbarui'), backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
@@ -77,7 +77,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memperbarui: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal memperbarui: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -93,7 +93,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
             child: const Text('Hapus'),
           ),
         ],
@@ -106,7 +106,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       await _adminService.deleteCategory(widget.category['id']);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
@@ -114,7 +114,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menghapus: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal menghapus: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -223,9 +223,8 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             TextFormField(
               controller: _nameController,
               style: GoogleFonts.nunito(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Contoh: Fasilitas Umum',
-                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+              decoration: AppTheme.inputDecoration(
+                hint: 'Contoh: Fasilitas Umum',
                 prefixIcon: const Icon(Icons.category_outlined, size: 20),
               ),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama kategori harus diisi' : null,
@@ -238,9 +237,8 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             TextFormField(
               controller: _slugController,
               style: GoogleFonts.nunito(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'URL-friendly identifier',
-                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+              decoration: AppTheme.inputDecoration(
+                hint: 'URL-friendly identifier',
                 prefixIcon: const Icon(Icons.link_rounded, size: 20),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.refresh_rounded, size: 18),
@@ -257,14 +255,12 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             TextFormField(
               controller: _descriptionController,
               style: GoogleFonts.nunito(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Jelaskan kategori ini...',
-                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+              decoration: AppTheme.inputDecoration(
+                hint: 'Jelaskan kategori ini...',
                 prefixIcon: const Padding(
                   padding: EdgeInsets.only(bottom: 60),
                   child: Icon(Icons.description_outlined, size: 20),
                 ),
-                alignLabelWithHint: true,
               ),
               maxLines: 4,
             ),
@@ -324,8 +320,8 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
               icon: const Icon(Icons.delete_outline_rounded, size: 18),
               label: Text('Hapus Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
+                foregroundColor: AppTheme.danger,
+                side: const BorderSide(color: AppTheme.danger),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),

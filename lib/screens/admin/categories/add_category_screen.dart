@@ -57,7 +57,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil ditambahkan'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Kategori berhasil ditambahkan'), backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
@@ -65,7 +65,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambahkan: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal menambahkan: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -125,9 +125,8 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             TextFormField(
               controller: _nameController,
               style: GoogleFonts.nunito(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Contoh: Fasilitas Umum',
-                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+              decoration: AppTheme.inputDecoration(
+                hint: 'Contoh: Fasilitas Umum',
                 prefixIcon: const Icon(Icons.category_outlined, size: 20),
               ),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama kategori harus diisi' : null,
@@ -143,9 +142,8 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             TextFormField(
               controller: _slugController,
               style: GoogleFonts.nunito(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Otomatis dari nama',
-                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+              decoration: AppTheme.inputDecoration(
+                hint: 'Otomatis dari nama',
                 prefixIcon: const Icon(Icons.link_rounded, size: 20),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.refresh_rounded, size: 18),
@@ -162,14 +160,12 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             TextFormField(
               controller: _descriptionController,
               style: GoogleFonts.nunito(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Jelaskan kategori ini...',
-                hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
+              decoration: AppTheme.inputDecoration(
+                hint: 'Jelaskan kategori ini...',
                 prefixIcon: const Padding(
                   padding: EdgeInsets.only(bottom: 60),
                   child: Icon(Icons.description_outlined, size: 20),
                 ),
-                alignLabelWithHint: true,
               ),
               maxLines: 4,
             ),

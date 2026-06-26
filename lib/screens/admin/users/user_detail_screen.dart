@@ -449,7 +449,7 @@ class AdminUserDetailScreen extends StatelessWidget {
                           if (isEmailVerified)
                             _buildBadge(
                               'Email Verified',
-                              Colors.blue,
+                              AppTheme.primary,
                               Icons.verified_rounded,
                             ),
                         ],
@@ -627,8 +627,8 @@ class AdminUserDetailScreen extends StatelessWidget {
                           ),
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: isEmailVerified ? AppTheme.warning : Colors.blue,
-                              side: BorderSide(color: isEmailVerified ? AppTheme.warning : Colors.blue),
+                              foregroundColor: isEmailVerified ? AppTheme.warning : AppTheme.primary,
+                              side: BorderSide(color: isEmailVerified ? AppTheme.warning : AppTheme.primary),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () {
@@ -676,8 +676,8 @@ class AdminUserDetailScreen extends StatelessWidget {
                             icon: const Icon(Icons.lock_reset_rounded, size: 18),
                             label: Text('Reset Password', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.blueGrey,
-                              side: const BorderSide(color: Colors.blueGrey),
+                              foregroundColor: AppTheme.textSecondary,
+                              side: const BorderSide(color: AppTheme.textSecondary),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),

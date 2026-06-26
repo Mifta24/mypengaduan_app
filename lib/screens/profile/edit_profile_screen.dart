@@ -77,7 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal memilih foto profil: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
         ),
       );
     }
@@ -116,7 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message'] ?? 'Profil berhasil diperbarui'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.success,
             ),
           );
 
@@ -125,7 +125,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message'] ?? 'Gagal memperbarui profil'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.danger,
             ),
           );
         }
@@ -136,7 +136,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Terjadi kesalahan: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
@@ -179,7 +179,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               'Kelola informasi profil dan pengaturan akun Anda',
               style: GoogleFonts.nunito(
                 fontSize: 13,
-                color: Colors.grey[600],
+                color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -197,7 +197,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               'Update informasi profil dan alamat email Anda.',
               style: GoogleFonts.nunito(
                 fontSize: 13,
-                color: Colors.grey[600],
+                color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 12),
@@ -212,12 +212,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     TextFormField(
                       controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Nama Lengkap *',
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Nama Lengkap *',
                         prefixIcon: const Icon(Icons.person),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -230,25 +227,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     TextFormField(
                       initialValue: user?.email ?? '',
                       enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Email',
                         prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        helperText:
-                            'Alamat email tidak dapat diubah dari aplikasi',
+                        helperText: 'Alamat email tidak dapat diubah dari aplikasi',
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _phoneController,
-                      decoration: InputDecoration(
-                        labelText: 'Nomor Telepon',
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Nomor Telepon',
                         prefixIcon: const Icon(Icons.phone),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (value) {
@@ -288,8 +278,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     // Avatar preview
                     CircleAvatar(
                       radius: 32,
-                      backgroundColor:
-                          Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                      backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
                       backgroundImage: _profileImage != null
                           ? FileImage(_profileImage!) as ImageProvider
                           : (!_removeAvatar && user?.avatar != null
@@ -305,7 +294,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               style: GoogleFonts.nunito(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
+                                color: AppTheme.primary,
                               ),
                             )
                           : null,
@@ -336,11 +325,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 _removeAvatar = true;
                               }),
                               icon: const Icon(Icons.delete_outline,
-                                  color: Colors.red),
+                                  color: AppTheme.danger),
                               label: const Text('Hapus Foto',
-                                  style: TextStyle(color: Colors.red)),
+                                  style: TextStyle(color: AppTheme.danger)),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Colors.red),
+                                side: const BorderSide(color: AppTheme.danger),
                               ),
                             ),
                           ],
@@ -349,7 +338,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             'JPG, JPEG, PNG hingga 2MB',
                             style: GoogleFonts.nunito(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -383,12 +372,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     TextFormField(
                       controller: _nikController,
                       enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'NIK (Nomor Induk Kependudukan)',
+                      decoration: AppTheme.inputDecoration(
+                        label: 'NIK (Nomor Induk Kependudukan)',
                         prefixIcon: const Icon(Icons.credit_card),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
                         helperText: 'NIK tidak dapat diubah setelah registrasi',
                       ),
                     ),
@@ -427,7 +413,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 8),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.badge, color: Colors.green),
+                        leading: const Icon(Icons.badge, color: AppTheme.success),
                         title: Text(
                           'KTP ${user.name}',
                           style: GoogleFonts.nunito(
@@ -444,7 +430,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   : 'Belum terverifikasi oleh admin.',
                               style: GoogleFonts.nunito(
                                 fontSize: 12,
-                                color: Colors.grey[700],
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -452,7 +438,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               'Klik untuk melihat lebih besar',
                               style: GoogleFonts.nunito(
                                 fontSize: 12,
-                                color: Theme.of(context).primaryColor,
+                                color: AppTheme.primary,
                               ),
                             ),
                           ],
@@ -489,12 +475,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _rtController,
-                            decoration: InputDecoration(
-                              labelText: 'RT (Rukun Tetangga)',
+                            decoration: AppTheme.inputDecoration(
+                              label: 'RT (Rukun Tetangga)',
                               prefixIcon: const Icon(Icons.home),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
                             ),
                             keyboardType: TextInputType.number,
                             maxLength: 3,
@@ -504,12 +487,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _rwController,
-                            decoration: InputDecoration(
-                              labelText: 'RW (Rukun Warga)',
+                            decoration: AppTheme.inputDecoration(
+                              label: 'RW (Rukun Warga)',
                               prefixIcon: const Icon(Icons.home),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
                             ),
                             keyboardType: TextInputType.number,
                             maxLength: 3,
@@ -520,12 +500,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _addressController,
-                      decoration: InputDecoration(
-                        labelText: 'Alamat Lengkap',
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Alamat Lengkap',
                         prefixIcon: const Icon(Icons.location_on),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
                       ),
                       maxLines: 3,
                       validator: (value) {
@@ -545,10 +522,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _updateProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: _isLoading

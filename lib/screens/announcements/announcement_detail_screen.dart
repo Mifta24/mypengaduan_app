@@ -165,7 +165,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 ? 'Pengumuman disimpan'
                 : 'Pengumuman dihapus dari simpanan',
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.success,
         ),
       );
       return;
@@ -191,7 +191,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Teks disalin ke clipboard!'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.success,
             ),
           );
         }
@@ -240,7 +240,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Komentar berhasil dikirim!'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.success,
               duration: Duration(seconds: 2),
             ),
           );
@@ -251,7 +251,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Gagal: ${response.message}'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.danger,
             ),
           );
         }
@@ -262,7 +262,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }

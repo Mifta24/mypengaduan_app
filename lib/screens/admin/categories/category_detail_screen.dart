@@ -315,8 +315,8 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                               children: [
                                 SizedBox(width: itemW, child: _buildStatCard('Total', '${_complaints.length}', Icons.report_problem_outlined, AppTheme.primary)),
                                 SizedBox(width: itemW, child: _buildStatCard('Pending', '$_pendingCount', Icons.pending_actions_rounded, AppTheme.warning)),
-                                SizedBox(width: itemW, child: _buildStatCard('Dalam Proses', '$_inProgressCount', Icons.autorenew_rounded, Colors.blue)),
-                                SizedBox(width: itemW, child: _buildStatCard('Selesai', '$_resolvedCount', Icons.task_alt_rounded, Colors.green)),
+                                SizedBox(width: itemW, child: _buildStatCard('Dalam Proses', '$_inProgressCount', Icons.autorenew_rounded, AppTheme.info)),
+                                SizedBox(width: itemW, child: _buildStatCard('Selesai', '$_resolvedCount', Icons.task_alt_rounded, AppTheme.success)),
                               ],
                             );
                           },
@@ -393,8 +393,8 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                               icon: Icon(isActive ? Icons.block_rounded : Icons.check_circle_rounded, size: 18),
                               label: Text(isActive ? 'Nonaktifkan' : 'Aktifkan', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: isActive ? Colors.orange : AppTheme.primary,
-                                side: BorderSide(color: isActive ? Colors.orange : AppTheme.primary),
+                                foregroundColor: isActive ? AppTheme.warning : AppTheme.primary,
+                                side: BorderSide(color: isActive ? AppTheme.warning : AppTheme.primary),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                             ),
@@ -413,8 +413,8 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
                               icon: const Icon(Icons.delete_outline_rounded, size: 18),
                               label: Text('Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
+                                foregroundColor: AppTheme.danger,
+                                side: const BorderSide(color: AppTheme.danger),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                             ),
@@ -582,10 +582,10 @@ class _AdminCategoryDetailScreenState extends State<AdminCategoryDetailScreen> {
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'pending': return Colors.orange;
-      case 'processing': case 'in_progress': return Colors.blue;
-      case 'resolved': case 'completed': return Colors.green;
-      default: return Colors.grey;
+      case 'pending': return AppTheme.warning;
+      case 'processing': case 'in_progress': return AppTheme.info;
+      case 'resolved': case 'completed': return AppTheme.success;
+      default: return AppTheme.textSecondary;
     }
   }
 
@@ -771,10 +771,10 @@ class CategoryComplaintsScreen extends StatelessWidget {
 
   Color _statusColor(String s) {
     final n = s.toLowerCase();
-    if (n == 'pending') return Colors.orange;
-    if (n == 'processing' || n == 'in_progress') return Colors.blue;
-    if (n == 'resolved' || n == 'completed') return Colors.green;
-    return Colors.grey;
+    if (n == 'pending') return AppTheme.warning;
+    if (n == 'processing' || n == 'in_progress') return AppTheme.info;
+    if (n == 'resolved' || n == 'completed') return AppTheme.success;
+    return AppTheme.textSecondary;
   }
 
   String _statusLabel(String s) {

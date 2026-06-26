@@ -34,6 +34,35 @@ class AppTheme {
   static const List<Color> splashGradient = [bgDeep, bgDark, bgMid];
   static const List<Color> primaryGradient = [primary, primaryDark];
 
+  // ─── Shared form field decoration ──────────────────────────────────────────
+  // Used by admin/edit forms across the app (filled grey background + radius
+  // 10 + colored focus/error borders) so input boxes look the same everywhere.
+  static InputDecoration inputDecoration({
+    String? label,
+    String? hint,
+    String? helperText,
+    String? errorText,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      helperText: helperText,
+      errorText: errorText,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: border)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: border)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: primary, width: 1.5)),
+      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.red.shade400)),
+      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.red.shade400, width: 1.5)),
+    );
+  }
+
   // ─── Light Theme ───────────────────────────────────────────────────────────
   static ThemeData get light {
     final base = ThemeData(

@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../services/admin_service.dart';
+import '../../../theme/app_theme.dart';
 
 class ResolveComplaintScreen extends StatefulWidget {
   final dynamic complaint;
@@ -156,9 +158,9 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Keluhan berhasil diselesaikan'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Keluhan berhasil diselesaikan'),
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context, true);
@@ -169,7 +171,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal menyelesaikan keluhan: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
@@ -210,13 +212,13 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue.shade700),
+                        Icon(Icons.info_outline, color: AppTheme.primary),
                         const SizedBox(width: 8),
                         Text(
                           'Informasi Keluhan',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade900,
+                            color: AppTheme.primary,
                           ),
                         ),
                       ],
@@ -224,7 +226,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
                     const SizedBox(height: 12),
                     Text(
                       widget.complaint['title'] ?? 'No Title',
-                      style: const TextStyle(
+                      style: GoogleFonts.nunito(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -232,7 +234,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
                     const SizedBox(height: 8),
                     Text(
                       widget.complaint['description'] ?? '',
-                      style: TextStyle(
+                      style: GoogleFonts.nunito(
                         color: Colors.grey[700],
                         fontSize: 14,
                       ),
@@ -246,7 +248,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
             // Resolution Response Field
             Text(
               'Respon Penyelesaian',
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[800],
@@ -255,14 +257,8 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _resolutionController,
-              decoration: InputDecoration(
-                hintText: 'Jelaskan bagaimana keluhan ini diselesaikan...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: Colors.grey[50],
-                alignLabelWithHint: true,
+              decoration: AppTheme.inputDecoration(
+                hint: 'Jelaskan bagaimana keluhan ini diselesaikan...',
               ),
               maxLines: 5,
               validator: (value) {
@@ -277,7 +273,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
             // Documentation Photos Section
             Text(
               'Foto Dokumentasi Penyelesaian (Opsional)',
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[800],
@@ -309,8 +305,8 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Upload foto dokumentasi atau drag & drop di sini',
-                      style: TextStyle(
-                        color: Colors.green[700],
+                      style: GoogleFonts.nunito(
+                        color: AppTheme.success,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -319,7 +315,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'PNG, JPG, JPEG hingga 2MB (Maksimal $_maxImages foto)',
-                      style: TextStyle(
+                      style: GoogleFonts.nunito(
                         color: Colors.grey[600],
                         fontSize: 12,
                       ),
@@ -362,7 +358,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
-                              color: Colors.red,
+                              color: AppTheme.danger,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -398,7 +394,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
                     onPressed: _isLoading ? null : _submitResolution,
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.success,
                     ),
                     child: _isLoading
                         ? const SizedBox(

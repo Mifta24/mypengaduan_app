@@ -1,9 +1,11 @@
 ﻿import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../services/admin_service.dart';
+import '../../../theme/app_theme.dart';
 
 class EditAnnouncementScreen extends StatefulWidget {
   final Map<String, dynamic> announcement;
@@ -53,7 +55,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memilih gambar: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
@@ -93,7 +95,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memilih file: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal memilih file: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -165,7 +167,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
             content: Text(activatingNow
                 ? 'Pengumuman dipublikasi & notifikasi dikirim'
                 : 'Pengumuman berhasil diperbarui'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context, true);
@@ -187,7 +189,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
           }
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red),
+          SnackBar(content: Text(message), backgroundColor: AppTheme.danger),
         );
       }
     } catch (e) {
@@ -196,7 +198,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memperbarui pengumuman: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
@@ -216,7 +218,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
             child: const Text('Hapus'),
           ),
         ],
@@ -232,9 +234,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pengumuman berhasil dihapus'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Pengumuman berhasil dihapus'),
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context, true);
@@ -245,7 +247,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal menghapus pengumuman: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
@@ -284,7 +286,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                   children: [
                     Icon(
                       _isActive ? Icons.check_circle : Icons.info_outline,
-                      color: _isActive ? Colors.green : Colors.grey,
+                      color: _isActive ? AppTheme.success : Colors.grey,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -293,9 +295,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                         children: [
                           Text(
                             _isActive ? 'Status: Aktif' : 'Status: Nonaktif',
-                            style: TextStyle(
+                            style: GoogleFonts.nunito(
                               fontWeight: FontWeight.bold,
-                              color: _isActive ? Colors.green : Colors.grey,
+                              color: _isActive ? AppTheme.success : Colors.grey,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -303,7 +305,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                             _isActive
                                 ? 'Pengumuman ini sedang ditampilkan'
                                 : 'Pengumuman ini tidak ditampilkan',
-                            style: TextStyle(
+                            style: GoogleFonts.nunito(
                               fontSize: 12,
                               color: Colors.grey.shade600,
                             ),
@@ -350,9 +352,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Informasi Utama',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -362,19 +364,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: 'Judul Pengumuman *',
-                        hintText: 'Masukkan judul pengumuman',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                        ),
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Judul Pengumuman *',
+                        hint: 'Masukkan judul pengumuman',
                         prefixIcon: const Icon(Icons.article),
                       ),
                       validator: (value) {
@@ -388,19 +380,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _summaryController,
-                      decoration: InputDecoration(
-                        labelText: 'Ringkasan',
-                        hintText: 'Ringkasan singkat pengumuman (opsional)',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                        ),
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Ringkasan',
+                        hint: 'Ringkasan singkat pengumuman (opsional)',
                         prefixIcon: const Icon(Icons.short_text),
                       ),
                       maxLines: 2,
@@ -439,9 +421,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Konten Pengumuman',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -451,20 +433,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _contentController,
-                      decoration: InputDecoration(
-                        labelText: 'Konten *',
-                        hintText: 'Tulis konten pengumuman lengkap di sini',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.green.shade300, width: 2),
-                        ),
-                        alignLabelWithHint: true,
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Konten *',
+                        hint: 'Tulis konten pengumuman lengkap di sini',
                       ),
                       maxLines: 10,
                       validator: (value) {
@@ -507,9 +478,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Gambar Pengumuman (Baru)',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -533,7 +504,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: CircleAvatar(
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppTheme.danger,
                               radius: 18,
                               child: IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.white, size: 18),
@@ -566,7 +537,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                             const SizedBox(height: 8),
                             Text(
                               _imagePath == null ? 'Pilih Gambar' : 'Ganti Gambar',
-                              style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.nunito(color: Colors.purple.shade700, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -575,7 +546,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Pilih gambar baru jika ingin mengganti gambar pengumuman saat ini.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: GoogleFonts.nunito(fontSize: 12, color: Colors.grey.shade600),
                     ),
                   ],
                 ),
@@ -606,14 +577,14 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           child: const Icon(Icons.attach_file, color: Colors.teal, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        const Text('Lampiran', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text('Lampiran', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 16),
 
                     // Existing attachments
                     if (_existingAttachments.isNotEmpty) ...[
-                      const Text('Lampiran Saat Ini', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
+                      Text('Lampiran Saat Ini', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
                       const SizedBox(height: 8),
                       Column(
                         children: _existingAttachments.asMap().entries.map((entry) {
@@ -629,7 +600,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                               name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
+                              style: GoogleFonts.nunito(
                                 decoration: isRemoved ? TextDecoration.lineThrough : null,
                                 color: isRemoved ? Colors.grey : null,
                               ),
@@ -637,7 +608,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                             trailing: IconButton(
                               icon: Icon(
                                 isRemoved ? Icons.undo : Icons.remove_circle_outline,
-                                color: isRemoved ? Colors.teal : Colors.red,
+                                color: isRemoved ? Colors.teal : AppTheme.danger,
                               ),
                               onPressed: () => setState(() {
                                 if (isRemoved) {
@@ -658,7 +629,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Lampiran Baru', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
+                          Text('Lampiran Baru', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
                           const SizedBox(height: 8),
                           ..._newAttachments.asMap().entries.map((entry) {
                             final file = entry.value;
@@ -668,7 +639,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                               title: Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                               subtitle: Text(_formatFileSize(file.size)),
                               trailing: IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                icon: Icon(Icons.remove_circle_outline, color: AppTheme.danger),
                                 onPressed: () => setState(() => _newAttachments.removeAt(entry.key)),
                               ),
                             );
@@ -693,7 +664,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           children: [
                             Icon(Icons.add_circle_outline, color: Colors.teal.shade400),
                             const SizedBox(width: 8),
-                            Text('Tambah Lampiran', style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
+                            Text('Tambah Lampiran', style: GoogleFonts.nunito(color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -701,7 +672,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Format: JPG, PNG, PDF, DOC, XLS (maks. 10 MB/file)',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      style: GoogleFonts.nunito(fontSize: 12, color: Colors.grey.shade500),
                     ),
                   ],
                 ),
@@ -736,9 +707,9 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Pengaturan',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -750,18 +721,8 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     // Priority Dropdown
                     DropdownButtonFormField<String>(
                       initialValue: _priority,
-                      decoration: InputDecoration(
-                        labelText: 'Prioritas',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.orange.shade300, width: 2),
-                        ),
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Prioritas',
                         prefixIcon: const Icon(Icons.priority_high),
                       ),
                       items: const [
@@ -810,7 +771,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: const Text('Batal'),
@@ -823,7 +784,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading

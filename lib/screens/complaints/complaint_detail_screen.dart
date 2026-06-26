@@ -191,7 +191,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           const SnackBar(
             content:
                 Text('Terima kasih. Pengaduan telah dikonfirmasi selesai.'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
           ),
         );
       } else {
@@ -201,7 +201,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
             content: Text(response.message.isEmpty
                 ? 'Gagal konfirmasi penyelesaian'
                 : response.message),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
@@ -211,7 +211,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal konfirmasi penyelesaian: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
         ),
       );
     }
@@ -252,7 +252,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
             child: const Text('Hapus'),
           ),
         ],
@@ -269,7 +269,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pengaduan berhasil dihapus'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.success,
         ),
       );
       Navigator.pop(context, true);
@@ -279,7 +279,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal menghapus pengaduan: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
         ),
       );
     }
@@ -309,7 +309,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
             content: Text(apiResponse.message.isEmpty
                 ? 'Gagal mengirim pesan'
                 : apiResponse.message),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
         return;
@@ -322,7 +322,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pesan berhasil ditambahkan'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.success,
         ),
       );
     } catch (e) {
@@ -330,7 +330,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal menambahkan pesan: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
         ),
       );
     } finally {
@@ -524,7 +524,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
               },
               itemBuilder: (_) => const [
                 PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18), SizedBox(width: 8), Text('Edit')])),
-                PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 18, color: Colors.red), SizedBox(width: 8), Text('Hapus', style: TextStyle(color: Colors.red))])),
+                PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 18, color: AppTheme.danger), SizedBox(width: 8), Text('Hapus', style: TextStyle(color: AppTheme.danger))])),
               ],
             ),
         ],

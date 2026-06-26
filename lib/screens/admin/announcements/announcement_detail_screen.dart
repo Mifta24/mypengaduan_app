@@ -88,7 +88,7 @@ class _AdminAnnouncementDetailScreenState
             onPressed: () => Navigator.pop(context, true),
             child: Text('Hapus',
                 style: GoogleFonts.nunito(
-                    color: Colors.red, fontWeight: FontWeight.bold)),
+                    color: AppTheme.danger, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -104,7 +104,7 @@ class _AdminAnnouncementDetailScreenState
           SnackBar(
               content: Text('Pengumuman berhasil dihapus',
                   style: GoogleFonts.nunito()),
-              backgroundColor: Colors.green),
+              backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
@@ -114,7 +114,7 @@ class _AdminAnnouncementDetailScreenState
           SnackBar(
               content: Text('Gagal menghapus pengumuman: $e',
                   style: GoogleFonts.nunito()),
-              backgroundColor: Colors.red),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -446,8 +446,8 @@ class _AdminAnnouncementDetailScreenState
                 label: Text('Hapus',
                     style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
+                  foregroundColor: AppTheme.danger,
+                  side: const BorderSide(color: AppTheme.danger),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -824,15 +824,15 @@ class _AdminAnnouncementDetailScreenState
   Color _priorityColor(String priority) {
     switch (priority.toLowerCase()) {
       case 'urgent':
-        return Colors.red.shade600;
+        return AppTheme.danger;
       case 'high':
-        return Colors.orange.shade600;
+        return AppTheme.warning;
       case 'medium':
-        return Colors.blue.shade600;
+        return AppTheme.info;
       case 'low':
         return AppTheme.primary;
       default:
-        return Colors.grey.shade600;
+        return AppTheme.textSecondary;
     }
   }
 

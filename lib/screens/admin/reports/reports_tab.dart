@@ -484,9 +484,9 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Laporan Keluhan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('Laporan Keluhan', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text('Laporan detail dan analisis keluhan pengguna', style: TextStyle(color: Colors.grey.shade600)),
+                    Text('Laporan detail dan analisis keluhan pengguna', style: GoogleFonts.nunito(color: Colors.grey.shade600)),
                   ],
                 ),
               ),
@@ -519,7 +519,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           const SizedBox(height: 8),
           _smallMetric('Rata-rata Respon', '${avgResponse.toStringAsFixed(1)} jam', fullWidth: true),
           const SizedBox(height: 12),
-          const Text('Daftar Keluhan', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('Daftar Keluhan', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text('Total $total keluhan ditemukan'),
           const SizedBox(height: 8),
@@ -534,7 +534,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                     _periodFilter == 'all'
                         ? 'Belum ada data keluhan.'
                         : 'Tidak ada keluhan pada periode ini.',
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: GoogleFonts.nunito(color: Colors.grey.shade600),
                   ),
                   if (_periodFilter != 'all') ...[
                     const SizedBox(height: 8),
@@ -579,9 +579,9 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Laporan Pengguna', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('Laporan Pengguna', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text('Laporan detail dan analisis pengguna sistem', style: TextStyle(color: Colors.grey.shade600)),
+                    Text('Laporan detail dan analisis pengguna sistem', style: GoogleFonts.nunito(color: Colors.grey.shade600)),
                   ],
                 ),
               ),
@@ -607,7 +607,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
             },
           ),
           const SizedBox(height: 12),
-          const Text('Daftar Pengguna', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('Daftar Pengguna', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text('Total $total pengguna ditemukan'),
           const SizedBox(height: 8),
@@ -622,7 +622,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                     _periodFilter == 'all'
                         ? 'Belum ada data pengguna.'
                         : 'Tidak ada pengguna terdaftar pada periode ini.',
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: GoogleFonts.nunito(color: Colors.grey.shade600),
                   ),
                   if (_periodFilter != 'all') ...[
                     const SizedBox(height: 8),
@@ -659,7 +659,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+            style: GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade700),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -667,7 +667,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            child: Text(value, style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18)),
           ),
         ],
       ),
@@ -707,7 +707,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                            style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 16),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -721,7 +721,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                           ),
                           child: Text(
                             status,
-                            style: TextStyle(
+                            style: GoogleFonts.nunito(
                               color: statusColor,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -735,11 +735,11 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                       children: [
                         Icon(Icons.person, size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
-                        Text(userName, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                        Text(userName, style: GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13)),
                         const SizedBox(width: 12),
                         Icon(Icons.category, size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
-                        Text(category, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                        Text(category, style: GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -750,7 +750,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                         Expanded(
                           child: Text(
                             location,
-                            style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                            style: GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -764,7 +764,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                         const SizedBox(width: 4),
                         Text(
                           created == null ? '-' : DateFormat('dd/MM/yyyy HH:mm').format(created),
-                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          style: GoogleFonts.nunito(color: Colors.grey[600], fontSize: 12),
                         ),
                         const Spacer(),
                         Container(
@@ -775,7 +775,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                           ),
                           child: Text(
                             'Prioritas: $priority',
-                            style: TextStyle(color: Colors.blue[700], fontSize: 11),
+                            style: GoogleFonts.nunito(color: Colors.blue[700], fontSize: 11),
                           ),
                         ),
                       ],
@@ -805,7 +805,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 minimumSize: const Size(0, 36),
               ),
-              child: const Text('Lihat Detail', style: TextStyle(fontSize: 13)),
+              child: Text('Lihat Detail', style: GoogleFonts.nunito(fontSize: 13)),
             ),
           ),
         ],
@@ -838,7 +838,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                 backgroundColor: Colors.blue.withValues(alpha: 0.15),
                 child: Text(
                   initials,
-                  style: const TextStyle(
+                  style: GoogleFonts.nunito(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                     color: Colors.blue,
@@ -852,14 +852,14 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 16),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       email,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      style: GoogleFonts.nunito(color: Colors.grey[600], fontSize: 13),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -874,7 +874,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                 ),
                 child: Text(
                   isActive ? 'Aktif' : 'Tidak Aktif',
-                  style: TextStyle(
+                  style: GoogleFonts.nunito(
                     color: isActive ? Colors.green : Colors.red,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -889,7 +889,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
               children: [
                 Icon(Icons.phone, size: 14, color: Colors.grey[600]),
                 const SizedBox(width: 6),
-                Text(phone, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                Text(phone, style: GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13)),
               ],
             ),
             const SizedBox(height: 4),
@@ -900,7 +900,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
               const SizedBox(width: 6),
               Text(
                 'Bergabung: ${created == null ? '-' : DateFormat('dd/MM/yyyy').format(created)}',
-                style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                style: GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13),
               ),
             ],
           ),
@@ -912,7 +912,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
               const SizedBox(width: 6),
               Text(
                 emailVerified ? 'Email terverifikasi' : 'Email belum terverifikasi',
-                style: TextStyle(
+                style: GoogleFonts.nunito(
                   color: emailVerified ? Colors.blue[700] : Colors.orange[700],
                   fontSize: 13,
                 ),
@@ -935,7 +935,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                     const SizedBox(width: 6),
                     Text(
                       '$complaintsCount keluhan',
-                      style: TextStyle(
+                      style: GoogleFonts.nunito(
                         color: Colors.grey[800],
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -955,7 +955,7 @@ class _AdminReportsTabState extends State<AdminReportsTab>
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 minimumSize: const Size(0, 32),
               ),
-              child: const Text('Detail', style: TextStyle(fontSize: 12)),
+              child: Text('Detail', style: GoogleFonts.nunito(fontSize: 12)),
             ),
           ),
         ],

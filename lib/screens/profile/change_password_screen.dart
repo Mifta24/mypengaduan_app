@@ -51,7 +51,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message']?.toString() ?? 'Password berhasil diubah'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.success,
             ),
           );
 
@@ -75,7 +75,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.danger,
               duration: const Duration(seconds: 3),
             ),
           );
@@ -87,7 +87,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Terjadi kesalahan: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -135,19 +135,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               'Untuk keamanan akun Anda, pastikan password baru minimal 8 karakter dan berbeda dari password lama.',
               style: GoogleFonts.nunito(
                 fontSize: 14,
-                color: Colors.grey,
+                color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             TextFormField(
               controller: _currentPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Password Saat Ini',
+              decoration: AppTheme.inputDecoration(
+                label: 'Password Saat Ini',
                 prefixIcon: const Icon(Icons.lock_outline),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureCurrentPassword
@@ -172,12 +169,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _newPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Password Baru',
+              decoration: AppTheme.inputDecoration(
+                label: 'Password Baru',
                 prefixIcon: const Icon(Icons.lock),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureNewPassword
@@ -208,12 +202,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _confirmPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Konfirmasi Password Baru',
+              decoration: AppTheme.inputDecoration(
+                label: 'Konfirmasi Password Baru',
                 prefixIcon: const Icon(Icons.lock),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureConfirmPassword
@@ -244,10 +235,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _changePassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: _isLoading

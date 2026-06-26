@@ -1,8 +1,10 @@
 ﻿import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../services/admin_service.dart';
+import '../../../theme/app_theme.dart';
 
 class AddAnnouncementScreen extends StatefulWidget {
   const AddAnnouncementScreen({super.key});
@@ -40,7 +42,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memilih gambar: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal memilih gambar: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -59,7 +61,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memilih file: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal memilih file: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -117,9 +119,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pengumuman berhasil dibuat'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Pengumuman berhasil dibuat'),
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context, true);
@@ -130,7 +132,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal membuat pengumuman: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.danger,
           ),
         );
       }
@@ -176,9 +178,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Informasi Utama',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -188,19 +190,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: 'Judul Pengumuman *',
-                        hintText: 'Masukkan judul pengumuman',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                        ),
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Judul Pengumuman *',
+                        hint: 'Masukkan judul pengumuman',
                         prefixIcon: const Icon(Icons.article),
                       ),
                       validator: (value) {
@@ -214,19 +206,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _summaryController,
-                      decoration: InputDecoration(
-                        labelText: 'Ringkasan',
-                        hintText: 'Ringkasan singkat pengumuman (opsional)',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                        ),
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Ringkasan',
+                        hint: 'Ringkasan singkat pengumuman (opsional)',
                         prefixIcon: const Icon(Icons.short_text),
                       ),
                       maxLines: 2,
@@ -265,9 +247,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Konten Pengumuman',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -277,20 +259,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _contentController,
-                      decoration: InputDecoration(
-                        labelText: 'Konten *',
-                        hintText: 'Tulis konten pengumuman lengkap di sini',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.green.shade300, width: 2),
-                        ),
-                        alignLabelWithHint: true,
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Konten *',
+                        hint: 'Tulis konten pengumuman lengkap di sini',
                       ),
                       maxLines: 10,
                       validator: (value) {
@@ -333,9 +304,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Gambar Pengumuman',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -359,7 +330,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: CircleAvatar(
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppTheme.danger,
                               radius: 18,
                               child: IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.white, size: 18),
@@ -392,7 +363,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                             const SizedBox(height: 8),
                             Text(
                               _imagePath == null ? 'Pilih Gambar' : 'Ganti Gambar',
-                              style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.nunito(color: Colors.purple.shade700, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -427,7 +398,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                           child: const Icon(Icons.attach_file, color: Colors.teal, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        const Text('Lampiran', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text('Lampiran', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -441,7 +412,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                             title: Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                             subtitle: Text(_formatFileSize(file.size)),
                             trailing: IconButton(
-                              icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                              icon: const Icon(Icons.remove_circle_outline, color: AppTheme.danger),
                               onPressed: () => setState(() => _attachments.removeAt(entry.key)),
                             ),
                           );
@@ -463,7 +434,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                           children: [
                             Icon(Icons.add_circle_outline, color: Colors.teal.shade400),
                             const SizedBox(width: 8),
-                            Text('Tambah Lampiran', style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
+                            Text('Tambah Lampiran', style: GoogleFonts.nunito(color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -471,7 +442,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Format: JPG, PNG, PDF, DOC, XLS (maks. 10 MB/file)',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      style: GoogleFonts.nunito(fontSize: 12, color: Colors.grey.shade500),
                     ),
                   ],
                 ),
@@ -506,9 +477,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Pengaturan',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -516,22 +487,12 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Priority Dropdown
                     DropdownButtonFormField<String>(
                       initialValue: _priority,
-                      decoration: InputDecoration(
-                        labelText: 'Prioritas',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.orange.shade300, width: 2),
-                        ),
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Prioritas',
                         prefixIcon: const Icon(Icons.priority_high),
                       ),
                       items: const [
@@ -561,7 +522,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                         },
                         secondary: Icon(
                           Icons.push_pin,
-                          color: _isSticky ? Colors.red : Colors.grey,
+                          color: _isSticky ? AppTheme.danger : Colors.grey,
                         ),
                       ),
                     ),
@@ -582,7 +543,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                         },
                         secondary: Icon(
                           Icons.publish,
-                          color: _isPublished ? Colors.green : Colors.grey,
+                          color: _isPublished ? AppTheme.success : Colors.grey,
                         ),
                       ),
                     ),
@@ -601,7 +562,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: const Text('Batal'),
@@ -614,7 +575,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading

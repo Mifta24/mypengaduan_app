@@ -293,7 +293,7 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                                       foregroundColor: AppTheme.primary,
                                       side: const BorderSide(color: AppTheme.primary),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8)),
+                                          borderRadius: BorderRadius.circular(12)),
                                     ),
                                     child: Text('Restore', style: GoogleFonts.nunito(fontSize: 12)),
                                   ),
@@ -303,7 +303,7 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                                       foregroundColor: AppTheme.danger,
                                       side: const BorderSide(color: AppTheme.danger),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8)),
+                                          borderRadius: BorderRadius.circular(12)),
                                     ),
                                     child: Text('Hapus Permanen', style: GoogleFonts.nunito(fontSize: 12)),
                                   ),

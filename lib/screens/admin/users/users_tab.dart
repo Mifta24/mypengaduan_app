@@ -11,6 +11,14 @@ import '../../../widgets/admin/admin_confirm_dialog.dart';
 import '../../../widgets/admin/admin_empty_state.dart';
 import 'user_detail_screen.dart';
 
+InputDecoration _userFormFieldDecoration({
+  required String label,
+  String? hint,
+  String? errorText,
+}) {
+  return AppTheme.inputDecoration(label: label, hint: hint, errorText: errorText);
+}
+
 class AdminUsersTab extends StatefulWidget {
   const AdminUsersTab({super.key});
 
@@ -164,14 +172,13 @@ class _AdminUsersTabState extends State<AdminUsersTab>
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password Baru'),
+              decoration: _userFormFieldDecoration(label: 'Password Baru'),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: confirmController,
               obscureText: true,
-              decoration:
-                  const InputDecoration(labelText: 'Konfirmasi Password'),
+              decoration: _userFormFieldDecoration(label: 'Konfirmasi Password'),
             ),
           ],
         ),
@@ -838,16 +845,16 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
             children: [
               TextField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama Lengkap*',
+                decoration: _userFormFieldDecoration(
+                  label: 'Nama Lengkap*',
                   errorText: _fieldErrors['name'],
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email*',
+                decoration: _userFormFieldDecoration(
+                  label: 'Email*',
                   errorText: _fieldErrors['email'],
                 ),
               ),
@@ -856,8 +863,8 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                 controller: _passwordController,
                 obscureText: true,
                 onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  labelText: 'Password*',
+                decoration: _userFormFieldDecoration(
+                  label: 'Password*',
                   errorText: _fieldErrors['password'],
                 ),
               ),
@@ -884,32 +891,32 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                 controller: _confirmPasswordController,
                 obscureText: true,
                 onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  labelText: 'Konfirmasi Password*',
+                decoration: _userFormFieldDecoration(
+                  label: 'Konfirmasi Password*',
                   errorText: _fieldErrors['password_confirmation'],
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Nomor Telepon',
+                decoration: _userFormFieldDecoration(
+                  label: 'Nomor Telepon',
                   errorText: _fieldErrors['phone'],
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _addressController,
-                decoration: InputDecoration(
-                  labelText: 'Alamat',
+                decoration: _userFormFieldDecoration(
+                  label: 'Alamat',
                   errorText: _fieldErrors['address'],
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _nikController,
-                decoration: InputDecoration(
-                  labelText: 'NIK',
+                decoration: _userFormFieldDecoration(
+                  label: 'NIK',
                   errorText: _fieldErrors['nik'],
                 ),
               ),
@@ -919,8 +926,8 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                   Expanded(
                     child: TextField(
                       controller: _rtController,
-                      decoration: InputDecoration(
-                        labelText: 'RT',
+                      decoration: _userFormFieldDecoration(
+                        label: 'RT',
                         errorText:
                             _fieldErrors['rt_number'] ?? _fieldErrors['rt'],
                       ),
@@ -930,8 +937,8 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
                   Expanded(
                     child: TextField(
                       controller: _rwController,
-                      decoration: InputDecoration(
-                        labelText: 'RW',
+                      decoration: _userFormFieldDecoration(
+                        label: 'RW',
                         errorText:
                             _fieldErrors['rw_number'] ?? _fieldErrors['rw'],
                       ),
@@ -942,7 +949,7 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 initialValue: _selectedRole,
-                decoration: const InputDecoration(labelText: 'Peran'),
+                decoration: _userFormFieldDecoration(label: 'Peran'),
                 items: const [
                   DropdownMenuItem(value: 'user', child: Text('User')),
                   DropdownMenuItem(value: 'admin', child: Text('Admin')),
@@ -1237,27 +1244,27 @@ class _EditUserDialogState extends State<_EditUserDialog> {
             children: [
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+                decoration: _userFormFieldDecoration(label: 'Nama Lengkap'),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: _userFormFieldDecoration(label: 'Email'),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Nomor Telepon'),
+                decoration: _userFormFieldDecoration(label: 'Nomor Telepon'),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Alamat'),
+                decoration: _userFormFieldDecoration(label: 'Alamat'),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _nikController,
-                decoration: const InputDecoration(labelText: 'NIK'),
+                decoration: _userFormFieldDecoration(label: 'NIK'),
               ),
               const SizedBox(height: 10),
               Row(
@@ -1265,14 +1272,14 @@ class _EditUserDialogState extends State<_EditUserDialog> {
                   Expanded(
                     child: TextField(
                       controller: _rtController,
-                      decoration: const InputDecoration(labelText: 'RT'),
+                      decoration: _userFormFieldDecoration(label: 'RT'),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       controller: _rwController,
-                      decoration: const InputDecoration(labelText: 'RW'),
+                      decoration: _userFormFieldDecoration(label: 'RW'),
                     ),
                   ),
                 ],
@@ -1280,7 +1287,7 @@ class _EditUserDialogState extends State<_EditUserDialog> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 initialValue: _selectedRole,
-                decoration: const InputDecoration(labelText: 'Peran'),
+                decoration: _userFormFieldDecoration(label: 'Peran'),
                 items: const [
                   DropdownMenuItem(value: 'user', child: Text('User')),
                   DropdownMenuItem(value: 'admin', child: Text('Admin')),

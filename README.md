@@ -1,6 +1,6 @@
 # MyPengaduan Mobile App
 
-Aplikasi mobile Flutter untuk sistem pengaduan masyarakat yang terintegrasi dengan backend Laravel.
+Aplikasi mobile Flutter untuk sistem pengaduan masyarakat yang terintegrasi dengan backend Laravel. studi kasus rt 5 gang annur 2
 
 ## 📱 Features
 
