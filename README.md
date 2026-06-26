@@ -1,14 +1,29 @@
 # MyPengaduan Mobile App
 
-Aplikasi mobile Flutter untuk sistem pengaduan masyarakat yang terintegrasi dengan backend Laravel. studi kasus rt 5 gang annur 2
+Aplikasi mobile Flutter untuk sistem pengaduan masyarakat yang terintegrasi dengan backend Laravel. Studi kasus: RT 05 Gang Annur II.
 
 ## 📱 Features
 
-- ✅ **Authentication** - Login, Register, Logout
-- ✅ **Complaint Management** - List, Create, View complaints
-- ✅ **Notifications** - Real-time push notifications via FCM
-- ✅ **Dashboard** - User statistics and quick actions
-- ✅ **Profile Management** - View and manage user profile
+- ✅ **Authentication** - Login, Register (verifikasi KTP), Forgot/Reset Password, Logout
+- ✅ **Complaint Management** - List, Create, Edit, Detail, status tracking pengaduan
+- ✅ **Announcements** - Pengumuman dari RT/admin, bookmark & komentar
+- ✅ **Notifications** - Real-time push notification via Firebase Cloud Messaging (FCM)
+- ✅ **Dashboard** - Statistik & quick actions untuk user
+- ✅ **Profile Management** - Lihat & edit profile, ganti password
+- ✅ **Admin Panel** - Kelola pengaduan, kategori, pengumuman, user, dan laporan/statistik
+
+## 🛠️ Tech Stack
+
+| Kategori | Library |
+|---|---|
+| Framework | Flutter 3.5.1+ |
+| State Management | [provider](https://pub.dev/packages/provider) (`ChangeNotifier`) |
+| Routing | [go_router](https://pub.dev/packages/go_router) |
+| HTTP Client | [dio](https://pub.dev/packages/dio) |
+| Storage | `flutter_secure_storage` (token), `shared_preferences` (preferensi) |
+| Push Notification | `firebase_messaging` + `flutter_local_notifications` |
+| Fonts | `google_fonts` (Nunito) |
+| Export Laporan | `pdf`, `excel` |
 
 ---
 
@@ -82,13 +97,18 @@ flutter build apk --release
 
 ```
 lib/
-├── config/           # Configuration files
-├── models/           # Data models
-├── services/         # API & FCM services
-├── providers/        # State management
-├── screens/          # UI screens
-└── main.dart        # Entry point
+├── config/           # Konfigurasi (base URL API, storage keys, dll)
+├── models/           # Data models (JSON ⇄ Dart object)
+├── services/         # API client (Dio) & integrasi FCM
+├── providers/        # State management (ChangeNotifier)
+├── routes/           # GoRouter & auth guard
+├── theme/            # Design system terpusat
+├── screens/          # UI per fitur (user & admin)
+├── widgets/          # Komponen UI reusable
+└── main.dart         # Entry point
 ```
+
+Detail lengkap tiap layer dan alur datanya ada di [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
@@ -101,10 +121,16 @@ lib/
 
 ## 📚 Documentation
 
-Lihat folder dokumentasi untuk panduan lengkap:
-- Backend API integration
-- Firebase setup
-- Testing guide
+Dokumentasi lebih detail tersedia di folder [`docs/`](docs/):
+
+| Dokumen | Isi |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Struktur project, tanggung jawab tiap layer, alur data, alur autentikasi & push notification |
+| [docs/THEME.md](docs/THEME.md) | Design system: palet warna, tipografi, style komponen, cara mengubah tema |
+| [docs/ROUTING.md](docs/ROUTING.md) | Daftar route, auth guard, transisi halaman, cara menambah route baru |
+| [docs/API_INTEGRATION.md](docs/API_INTEGRATION.md) | Konfigurasi API, alur token, daftar endpoint per service, format response |
+| [docs/QUICK_START.md](docs/QUICK_START.md) | Cara menjalankan app, hot reload, troubleshooting, tips kustomisasi |
+| [lib/screens/admin/README.md](lib/screens/admin/README.md) | Struktur & aturan konsistensi UI khusus modul Admin |
 
 ---
 
