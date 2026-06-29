@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 import '../../../routes/app_router.dart';
 import '../../../services/admin_service.dart';
 import '../../../services/file_download_service.dart';
 import '../../../theme/app_theme.dart';
+import 'announcement_detail_utils.dart';
+import 'widgets/announcement_detail_widgets.dart';
+import 'widgets/announcement_media_section.dart';
 
 class AdminAnnouncementDetailScreen extends StatefulWidget {
   final Map<String, dynamic> announcement;
@@ -38,7 +40,7 @@ class _AdminAnnouncementDetailScreenState
   }
 
   Future<void> _loadDetail() async {
-    final id = _toInt(_detail['id']);
+    final id = announcementToInt(_detail['id']);
     if (id == 0) return;
 
     setState(() => _isLoading = true);
@@ -97,7 +99,7 @@ class _AdminAnnouncementDetailScreenState
     if (confirm != true) return;
 
     try {
-      await _adminService.deleteAnnouncement(_toInt(_detail['id']));
+      await _adminService.deleteAnnouncement(announcementToInt(_detail['id']));
       _hasChanges = true;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -120,31 +122,62 @@ class _AdminAnnouncementDetailScreenState
     }
   }
 
+  void _openImageViewer(String url, String name) {
+    context.push(
+      AppRouter.adminAnnouncementImage,
+      extra: {'imageUrl': url, 'title': name},
+    );
+  }
+
+  Future<void> _downloadAttachment(String url, String fileName) async {
+    if (url.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('URL lampiran tidak tersedia')),
+      );
+      return;
+    }
+
+    try {
+      await _fileDownloadService.downloadToDownloads(url: url, fileName: fileName);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File tersimpan di Downloads: $fileName')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengunduh lampiran: $e')),
+      );
+    }
+  }
+
+  String? _extractUpdaterName() {
+    final updatedBy = _detail['updated_by'];
+    if (updatedBy is Map) return updatedBy['name']?.toString();
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isActive = _toBool(_detail['is_active']);
+    final isActive = announcementToBool(_detail['is_active']);
     final priority = (_detail['priority']?.toString() ?? 'low').toLowerCase();
-    final viewsCount = _toInt(_detail['views_count'] ?? _detail['views']);
-    final author = _firstString(_detail,
+    final viewsCount = announcementToInt(_detail['views_count'] ?? _detail['views']);
+    final author = firstAnnouncementString(_detail,
         ['author_name', 'author', 'created_by_name', 'created_by', 'user_name'],
         fallback: 'Admin');
-    final publishDate = _formatDateTime(_detail['published_at'] ??
-        _detail['publish_date'] ??
-        _detail['created_at']);
+    final publishDate = formatAnnouncementDateTime(
+        _detail['published_at'] ?? _detail['publish_date'] ?? _detail['created_at']);
 
-    final photos =
-        _extractMediaItems(['photos', 'images', 'media', 'photo_urls']);
-    final attachments =
-        _extractMediaItems(['attachments', 'files', 'documents']);
-    final coverImage = _firstString(
-        _detail, ['cover_image', 'cover', 'thumbnail', 'image_url', 'image'],
-        fallback: '');
+    final photos = extractAnnouncementMediaItems(_detail, ['photos', 'images', 'media', 'photo_urls']);
+    final attachments = extractAnnouncementMediaItems(_detail, ['attachments', 'files', 'documents']);
+    final coverImage = firstAnnouncementString(
+        _detail, ['cover_image', 'cover', 'thumbnail', 'image_url', 'image'], fallback: '');
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: Text('Detail Pengumuman',
-            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        title: Text('Detail Pengumuman', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textPrimary,
         elevation: 0,
@@ -155,8 +188,7 @@ class _AdminAnnouncementDetailScreenState
         ),
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,17 +205,16 @@ class _AdminAnnouncementDetailScreenState
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          image:
-                              coverImage.isNotEmpty && _isImageFile(coverImage)
-                                  ? DecorationImage(
-                                      image: NetworkImage(coverImage),
-                                      fit: BoxFit.cover,
-                                      colorFilter: ColorFilter.mode(
-                                        Colors.black.withOpacity(0.4),
-                                        BlendMode.darken,
-                                      ),
-                                    )
-                                  : null,
+                          image: coverImage.isNotEmpty && isAnnouncementImageFile(coverImage)
+                              ? DecorationImage(
+                                  image: NetworkImage(coverImage),
+                                  fit: BoxFit.cover,
+                                  colorFilter: ColorFilter.mode(
+                                    Colors.black.withValues(alpha: 0.4),
+                                    BlendMode.darken,
+                                  ),
+                                )
+                              : null,
                         ),
                       ),
                       Positioned(
@@ -198,17 +229,15 @@ class _AdminAnnouncementDetailScreenState
                               border: Border.all(color: Colors.white, width: 3),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Colors.black.withValues(alpha: 0.08),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 )
                               ]),
                           alignment: Alignment.center,
                           child: Icon(
-                            priority == 'urgent'
-                                ? Icons.priority_high_rounded
-                                : Icons.campaign_rounded,
-                            color: _priorityColor(priority),
+                            priority == 'urgent' ? Icons.priority_high_rounded : Icons.campaign_rounded,
+                            color: announcementPriorityColor(priority),
                             size: 32,
                           ),
                         ),
@@ -217,25 +246,19 @@ class _AdminAnnouncementDetailScreenState
                         bottom: 12,
                         right: 20,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.visibility_rounded,
-                                  size: 14, color: AppTheme.textSecondary),
+                              const Icon(Icons.visibility_rounded, size: 14, color: AppTheme.textSecondary),
                               const SizedBox(width: 4),
                               Text(
                                 '$viewsCount Views',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textSecondary,
-                                ),
+                                style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
                               ),
                             ],
                           ),
@@ -263,17 +286,15 @@ class _AdminAnnouncementDetailScreenState
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            _buildBadge(
-                              isActive ? 'Aktif' : 'Nonaktif',
-                              isActive ? AppTheme.primary : Colors.grey,
-                              isActive
-                                  ? Icons.check_circle_rounded
-                                  : Icons.cancel_rounded,
+                            AnnouncementDetailBadge(
+                              label: isActive ? 'Aktif' : 'Nonaktif',
+                              color: isActive ? AppTheme.primary : Colors.grey,
+                              icon: isActive ? Icons.check_circle_rounded : Icons.cancel_rounded,
                             ),
-                            _buildBadge(
-                              _capitalize(priority),
-                              _priorityColor(priority),
-                              Icons.flag_rounded,
+                            AnnouncementDetailBadge(
+                              label: capitalizeAnnouncement(priority),
+                              color: announcementPriorityColor(priority),
+                              icon: Icons.flag_rounded,
                             ),
                           ],
                         ),
@@ -283,14 +304,9 @@ class _AdminAnnouncementDetailScreenState
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color: AppTheme.border.withOpacity(0.5)),
+                            border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
                             boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.02),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              )
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
                             ],
                           ),
                           child: Row(
@@ -299,28 +315,20 @@ class _AdminAnnouncementDetailScreenState
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primary.withOpacity(0.1),
+                                  color: AppTheme.primary.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.person_outline_rounded,
-                                    color: AppTheme.primary),
+                                child: const Icon(Icons.person_outline_rounded, color: AppTheme.primary),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Penulis',
-                                      style: GoogleFonts.nunito(
-                                          fontSize: 12,
-                                          color: AppTheme.textSecondary),
-                                    ),
+                                    Text('Penulis', style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
                                     Text(
                                       author,
-                                      style: GoogleFonts.nunito(
-                                          fontWeight: FontWeight.w700,
-                                          color: AppTheme.textPrimary),
+                                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -330,18 +338,8 @@ class _AdminAnnouncementDetailScreenState
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    'Diterbitkan',
-                                    style: GoogleFonts.nunito(
-                                        fontSize: 12,
-                                        color: AppTheme.textSecondary),
-                                  ),
-                                  Text(
-                                    publishDate,
-                                    style: GoogleFonts.nunito(
-                                        fontWeight: FontWeight.w700,
-                                        color: AppTheme.textPrimary),
-                                  ),
+                                  Text('Diterbitkan', style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                                  Text(publishDate, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
                                 ],
                               ),
                             ],
@@ -356,33 +354,40 @@ class _AdminAnnouncementDetailScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _sectionTitle('Ringkasan'),
+                        const AnnouncementSectionTitle('Ringkasan'),
                         const SizedBox(height: 8),
-                        _contentBlock(
-                          content: _firstString(_detail, ['summary', 'excerpt'],
-                              fallback: '-'),
+                        AnnouncementContentBlock(
+                          content: firstAnnouncementString(_detail, ['summary', 'excerpt'], fallback: '-'),
                           isItalic: true,
                         ),
                         const SizedBox(height: 18),
-                        _sectionTitle('Konten'),
+                        const AnnouncementSectionTitle('Konten'),
                         const SizedBox(height: 8),
-                        _contentBlock(
-                          content: _detail['content']?.toString() ?? '-',
-                        ),
+                        AnnouncementContentBlock(content: _detail['content']?.toString() ?? '-'),
                         const SizedBox(height: 24),
                         if (photos.isNotEmpty || attachments.isNotEmpty) ...[
-                          _sectionTitle('Lampiran & Media'),
+                          const AnnouncementSectionTitle('Lampiran & Media'),
                           const SizedBox(height: 12),
                           if (photos.isNotEmpty)
-                            _mediaSection('Foto', photos, isImageSection: true),
-                          if (photos.isNotEmpty && attachments.isNotEmpty)
-                            const SizedBox(height: 12),
+                            AnnouncementMediaSection(
+                              title: 'Foto',
+                              items: photos,
+                              isImageSection: true,
+                              onImageTap: _openImageViewer,
+                              onDownloadAttachment: _downloadAttachment,
+                            ),
+                          if (photos.isNotEmpty && attachments.isNotEmpty) const SizedBox(height: 12),
                           if (attachments.isNotEmpty)
-                            _mediaSection('Dokumen', attachments,
-                                isImageSection: false),
+                            AnnouncementMediaSection(
+                              title: 'Dokumen',
+                              items: attachments,
+                              isImageSection: false,
+                              onImageTap: _openImageViewer,
+                              onDownloadAttachment: _downloadAttachment,
+                            ),
                           const SizedBox(height: 24),
                         ],
-                        _sectionTitle('Informasi Tambahan'),
+                        const AnnouncementSectionTitle('Informasi Tambahan'),
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(16),
@@ -393,27 +398,22 @@ class _AdminAnnouncementDetailScreenState
                           ),
                           child: Column(
                             children: [
-                              _detailRow(
-                                  'Target Audience',
-                                  _firstString(_detail,
-                                      ['target_audience', 'audience', 'target'],
-                                      fallback: 'Semua Warga')),
+                              AnnouncementDetailRow(
+                                label: 'Target Audience',
+                                value: firstAnnouncementString(_detail, ['target_audience', 'audience', 'target'], fallback: 'Semua Warga'),
+                              ),
                               const Divider(height: 20),
-                              _detailRow(
-                                  'Komentar',
-                                  _toBool(_detail['allow_comments'] ??
-                                          _detail['comments_enabled'])
-                                      ? 'Diizinkan'
-                                      : 'Ditutup'),
+                              AnnouncementDetailRow(
+                                label: 'Komentar',
+                                value: announcementToBool(_detail['allow_comments'] ?? _detail['comments_enabled']) ? 'Diizinkan' : 'Ditutup',
+                              ),
                               const Divider(height: 20),
-                              _detailRow('Dibuat',
-                                  _formatDateTime(_detail['created_at'])),
+                              AnnouncementDetailRow(label: 'Dibuat', value: formatAnnouncementDateTime(_detail['created_at'])),
                               const Divider(height: 20),
-                              _detailRow('Terakhir Update',
-                                  _formatDateTime(_detail['updated_at'])),
+                              AnnouncementDetailRow(label: 'Terakhir Update', value: formatAnnouncementDateTime(_detail['updated_at'])),
                               if (_extractUpdaterName() != null) ...[
                                 const Divider(height: 20),
-                                _detailRow('Diperbarui oleh', _extractUpdaterName()!),
+                                AnnouncementDetailRow(label: 'Diperbarui oleh', value: _extractUpdaterName()!),
                               ],
                             ],
                           ),
@@ -430,11 +430,7 @@ class _AdminAnnouncementDetailScreenState
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            )
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5)),
           ],
         ),
         child: Row(
@@ -443,14 +439,12 @@ class _AdminAnnouncementDetailScreenState
               child: OutlinedButton.icon(
                 onPressed: _deleteAnnouncement,
                 icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                label: Text('Hapus',
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                label: Text('Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.danger,
                   side: const BorderSide(color: AppTheme.danger),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
@@ -460,425 +454,17 @@ class _AdminAnnouncementDetailScreenState
               child: ElevatedButton.icon(
                 onPressed: _editAnnouncement,
                 icon: const Icon(Icons.edit_rounded, size: 18),
-                label: Text('Edit Pengumuman',
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                label: Text('Edit Pengumuman', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadge(String label, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.nunito(
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        color: AppTheme.textPrimary,
-      ),
-    );
-  }
-
-  Widget _contentBlock({required String content, bool isItalic = false}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border.withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.01),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Text(
-        content,
-        style: GoogleFonts.nunito(
-          fontSize: 14,
-          color: AppTheme.textPrimary.withOpacity(0.8),
-          height: 1.6,
-          fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
-        ),
-      ),
-    );
-  }
-
-  Widget _mediaSection(String title, List<Map<String, String>> items,
-      {required bool isImageSection}) {
-    final displayItems = isImageSection
-        ? items
-            .where((item) => _isImageFile(item['url'] ?? item['name'] ?? ''))
-            .toList()
-        : items;
-
-    if (displayItems.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-          const SizedBox(height: 12),
-          if (isImageSection)
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: displayItems.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 1.2,
-              ),
-              itemBuilder: (context, index) {
-                final item = displayItems[index];
-                final name = item['name'] ?? '-';
-                final url = item['url'] ?? '';
-
-                return InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: url.isEmpty
-                      ? null
-                      : () {
-                          context.push(
-                            AppRouter.adminAnnouncementImage,
-                            extra: {'imageUrl': url, 'title': name},
-                          );
-                        },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: AppTheme.border.withOpacity(0.5)),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          url.isEmpty
-                              ? Container(
-                                  color: Colors.grey.shade100,
-                                  child: const Center(
-                                      child: Icon(
-                                          Icons.image_not_supported_outlined)),
-                                )
-                              : Image.network(
-                                  url,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                    color: Colors.grey.shade100,
-                                    child: const Center(
-                                        child:
-                                            Icon(Icons.broken_image_outlined)),
-                                  ),
-                                ),
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 6),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(0.7),
-                                    Colors.transparent
-                                  ],
-                                ),
-                              ),
-                              child: Text(
-                                name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.nunito(
-                                    fontSize: 10,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            )
-          else
-            ...displayItems.map((item) {
-              final name = item['name'] ?? '-';
-              final url = item['url'] ?? '';
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.border.withOpacity(0.5)),
-                ),
-                child: ListTile(
-                  dense: true,
-                  leading: const Icon(Icons.description_outlined,
-                      color: AppTheme.primary),
-                  title: Text(name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
-                  trailing: const Icon(Icons.download_rounded,
-                      size: 20, color: AppTheme.textSecondary),
-                  onTap: () => _downloadAttachment(url, name),
-                ),
-              );
-            }),
-        ],
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 140,
-          child: Text(label,
-              style: GoogleFonts.nunito(
-                  color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: GoogleFonts.nunito(
-                fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-            textAlign: TextAlign.right,
-          ),
-        ),
-      ],
-    );
-  }
-
-  List<Map<String, String>> _extractMediaItems(List<String> keys) {
-    final List<Map<String, String>> items = [];
-
-    for (final key in keys) {
-      final raw = _detail[key];
-      if (raw is List) {
-        for (final item in raw) {
-          if (item is String) {
-            items.add({'name': item.split('/').last, 'url': item});
-          } else if (item is Map) {
-            final map = Map<String, dynamic>.from(item);
-            final name = map['original_name']?.toString() ??
-                map['file_name']?.toString() ??
-                map['filename']?.toString() ??
-                map['name']?.toString() ??
-                map['title']?.toString() ??
-                'Lampiran';
-            final url = map['file_url']?.toString() ??
-                map['secure_url']?.toString() ??
-                map['download_url']?.toString() ??
-                map['url']?.toString() ??
-                map['file_path']?.toString() ??
-                map['path']?.toString() ??
-                '';
-            items.add({'name': name, 'url': url});
-          }
-        }
-      }
-    }
-
-    return items;
-  }
-
-  Future<void> _downloadAttachment(String url, String fileName) async {
-    if (url.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('URL lampiran tidak tersedia')),
-      );
-      return;
-    }
-
-    try {
-      await _fileDownloadService.downloadToDownloads(
-        url: url,
-        fileName: fileName,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('File tersimpan di Downloads: $fileName')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengunduh lampiran: $e')),
-      );
-    }
-  }
-
-  bool _isImageFile(String value) {
-    final normalized = value.toLowerCase();
-    return normalized.endsWith('.png') ||
-        normalized.endsWith('.jpg') ||
-        normalized.endsWith('.jpeg') ||
-        normalized.endsWith('.webp') ||
-        normalized.endsWith('.gif') ||
-        normalized.contains('image');
-  }
-
-  String _firstString(Map<String, dynamic> source, List<String> keys,
-      {String fallback = '-'}) {
-    for (final key in keys) {
-      final value = source[key];
-      if (value != null && value.toString().trim().isNotEmpty) {
-        return value.toString();
-      }
-    }
-    return fallback;
-  }
-
-  String _capitalize(String value) {
-    if (value.isEmpty) return value;
-    return value[0].toUpperCase() + value.substring(1).toLowerCase();
-  }
-
-  bool _toBool(dynamic value) {
-    if (value is bool) return value;
-    if (value is int) return value == 1;
-    if (value is String) {
-      final normalized = value.toLowerCase();
-      return normalized == '1' ||
-          normalized == 'true' ||
-          normalized == 'yes' ||
-          normalized == 'aktif';
-    }
-    return false;
-  }
-
-  int _toInt(dynamic value) {
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
-
-  String? _extractUpdaterName() {
-    final updatedBy = _detail['updated_by'];
-    if (updatedBy is Map) return updatedBy['name']?.toString();
-    return null;
-  }
-
-  Color _priorityColor(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'urgent':
-        return AppTheme.danger;
-      case 'high':
-        return AppTheme.warning;
-      case 'medium':
-        return AppTheme.info;
-      case 'low':
-        return AppTheme.primary;
-      default:
-        return AppTheme.textSecondary;
-    }
-  }
-
-  String _formatDateTime(dynamic value) {
-    if (value == null) return '-';
-    final date = DateTime.tryParse(value.toString())?.toLocal();
-    if (date == null) return value.toString();
-    return DateFormat('d MMMM y, HH:mm').format(date);
-  }
-}
-
-class AnnouncementImageViewerScreen extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-
-  const AnnouncementImageViewerScreen({
-    super.key,
-    required this.imageUrl,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text(title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.nunito(color: Colors.white)),
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          child: Image.network(
-            imageUrl,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Gagal memuat gambar',
-                    style: GoogleFonts.nunito(color: Colors.white)),
-              );
-            },
-          ),
         ),
       ),
     );

@@ -25,14 +25,19 @@ import '../screens/admin/profile/edit_admin_profile_screen.dart';
 import '../screens/admin/categories/categories_tab.dart';
 import '../screens/admin/categories/add_category_screen.dart';
 import '../screens/admin/categories/edit_category_screen.dart';
+import '../screens/admin/categories/category_complaints_screen.dart';
 import '../screens/admin/categories/category_detail_screen.dart';
 import '../screens/admin/announcements/add_announcement_screen.dart';
 import '../screens/admin/announcements/edit_announcement_screen.dart';
 import '../screens/admin/announcements/announcement_detail_screen.dart';
+import '../screens/admin/announcements/announcement_image_viewer_screen.dart';
 import '../screens/admin/complaints/trash_complaints_screen.dart';
 import '../screens/admin/complaints/resolve_complaint_screen.dart';
 import '../screens/admin/reports/reports_tab.dart';
+import '../screens/admin/users/add_user_screen.dart';
+import '../screens/admin/users/edit_user_screen.dart';
 import '../screens/admin/users/user_detail_screen.dart';
+import '../screens/admin/users/user_complaints_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -68,6 +73,8 @@ class AppRouter {
   static const String adminReports = '/admin/reports';
   static const String adminUserDetail = '/admin/users/detail';
   static const String adminUserComplaints = '/admin/users/complaints';
+  static const String adminUsersAdd = '/admin/users/add';
+  static const String adminUsersEdit = '/admin/users/edit';
 
   static CustomTransitionPage _adminSlidePage(GoRouterState state, Widget child) {
     return CustomTransitionPage(
@@ -539,6 +546,22 @@ class AppRouter {
             state,
             AdminUserComplaintsScreen(
                 args: state.extra as AdminUserComplaintsArgs),
+          ),
+        ),
+        GoRoute(
+          path: adminUsersAdd,
+          name: 'adminUsersAdd',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            const AddUserScreen(),
+          ),
+        ),
+        GoRoute(
+          path: adminUsersEdit,
+          name: 'adminUsersEdit',
+          pageBuilder: (context, state) => _adminSlidePage(
+            state,
+            EditUserScreen(detail: state.extra as Map<String, dynamic>),
           ),
         ),
       ],

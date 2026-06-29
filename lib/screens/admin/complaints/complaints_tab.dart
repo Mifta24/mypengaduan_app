@@ -6,6 +6,11 @@ import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/admin/admin_confirm_dialog.dart';
 import '../../../widgets/admin/admin_empty_state.dart';
+import 'complaint_status_utils.dart';
+import 'widgets/complaint_action_sheet.dart';
+import 'widgets/complaint_attachment_dialog.dart';
+import 'widgets/complaint_list_card.dart';
+import 'widgets/complaint_status_dropdown.dart';
 
 class AdminComplaintsTab extends StatefulWidget {
   const AdminComplaintsTab({super.key});
@@ -164,155 +169,9 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
     }
   }
 
-  Future<void> _showAttachmentDeleteDialog(dynamic complaint) async {
-    final attachments = _extractAttachments(complaint);
-    if (attachments.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Tidak ada attachment pada pengaduan ini')),
-      );
-      return;
-    }
-
-    await showDialog<void>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setLocalState) => AlertDialog(
-          title: const Text('Hapus Attachment'),
-          content: SizedBox(
-            width: 420,
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: attachments.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final item = attachments[index];
-                final id = _toInt(item['id']);
-                final name = item['name']?.toString() ??
-                    item['filename']?.toString() ??
-                    item['file_name']?.toString() ??
-                    'Attachment #$id';
-
-                return Row(
-                  children: [
-                    Expanded(
-                        child: Text(name,
-                            maxLines: 1, overflow: TextOverflow.ellipsis)),
-                    TextButton(
-                      onPressed: id <= 0
-                          ? null
-                          : () async {
-                              final confirmed = await showAdminConfirmDialog(
-                                context,
-                                title: 'Hapus Attachment',
-                                message: 'Hapus "$name" dari pengaduan ini?',
-                              );
-                              if (!confirmed) return;
-                              try {
-                                await _adminService
-                                    .deleteComplaintAttachment(id);
-                                setLocalState(() {
-                                  attachments.removeAt(index);
-                                });
-                                if (mounted) {
-                                  ScaffoldMessenger.of(this.context)
-                                      .showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Attachment berhasil dihapus'),
-                                      backgroundColor: AppTheme.success,
-                                    ),
-                                  );
-                                }
-                                await _loadComplaints(forceRefresh: true);
-                              } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(this.context)
-                                      .showSnackBar(
-                                    SnackBar(
-                                        content:
-                                            Text('Gagal hapus attachment: $e'),
-                                        backgroundColor: AppTheme.danger),
-                                  );
-                                }
-                              }
-                            },
-                      child: const Text('Hapus',
-                          style: TextStyle(color: AppTheme.danger)),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Tutup')),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _statusLabel(String status) {
-    switch (status) {
-      case 'pending':
-        return 'Menunggu';
-      case 'processing':
-      case 'in_progress':
-        return 'Diproses';
-      case 'waiting_user_confirmation':
-        return 'Konfirmasi';
-      case 'resolved':
-      case 'completed':
-        return 'Selesai';
-      case 'rejected':
-        return 'Ditolak';
-      default:
-        return status;
-    }
-  }
-
-  Color _statusColor(String s) {
-    switch (s) {
-      case 'pending':
-        return AppTheme.warning;
-      case 'in_progress':
-      case 'processing':
-        return const Color(0xFF0891B2);
-      case 'waiting_user_confirmation':
-        return const Color(0xFFEA580C);
-      case 'resolved':
-      case 'completed':
-        return AppTheme.primary;
-      case 'rejected':
-        return AppTheme.danger;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  int _toInt(dynamic value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
-
-  List<Map<String, dynamic>> _extractAttachments(dynamic complaint) {
-    if (complaint is! Map) return const [];
-
-    final raw = complaint['attachments'];
-    if (raw is List) {
-      return raw
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
-    }
-
-    return const [];
+  Future<void> _deleteAttachment(int attachmentId) async {
+    await _adminService.deleteComplaintAttachment(attachmentId);
+    await _loadComplaints(forceRefresh: true);
   }
 
   @override
@@ -335,7 +194,7 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
               Row(
                 children: [
                   Expanded(
-                    child: _dropdownFilter(
+                    child: ComplaintStatusDropdown(
                       value: _selectedStatus,
                       hint: 'Semua Status',
                       items: const {
@@ -426,8 +285,11 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                         itemCount: filtered.length,
-                        itemBuilder: (_, i) =>
-                            _buildComplaintCard(filtered[i]),
+                        itemBuilder: (_, i) => ComplaintListCard(
+                          item: filtered[i],
+                          onTap: () => _openComplaint(filtered[i]),
+                          onLongPress: () => _showActionSheet(filtered[i]),
+                        ),
                       ),
                     ),
         ),
@@ -435,318 +297,36 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
     );
   }
 
-  Widget _dropdownFilter({
-    required String? value,
-    required String hint,
-    required Map<String, String> items,
-    required void Function(String?) onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          hint: Text(hint,
-              style: GoogleFonts.nunito(
-                  fontSize: 13, color: Colors.grey.shade500)),
-          style: GoogleFonts.nunito(
-              fontSize: 13, color: AppTheme.textPrimary),
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-          items: [
-            DropdownMenuItem(
-                value: null,
-                child: Text(hint, style: GoogleFonts.nunito(fontSize: 13))),
-            ...items.entries.map((e) => DropdownMenuItem(
-                value: e.key,
-                child:
-                    Text(e.value, style: GoogleFonts.nunito(fontSize: 13)))),
-          ],
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildComplaintCard(dynamic item) {
-    final status =
-        item['status']?.toString().toLowerCase() ?? 'pending';
-    final statusColor = _statusColor(status);
-    final statusLabel = _statusLabel(status);
-
-    final userName = item['user'] is Map
-        ? (item['user']['name']?.toString() ?? 'P')
-        : 'P';
-    final firstLetter =
-        userName.isNotEmpty ? userName[0].toUpperCase() : 'P';
-
-    final title = item['title']?.toString() ?? 'Tanpa Judul';
-    final category = item['category'] is Map
-        ? item['category']['name']?.toString()
-        : item['category_name']?.toString();
-    final location = item['address']?.toString() ??
-        item['location']?.toString() ??
-        '';
-    final createdAt = item['created_at']?.toString() ?? '';
-    String dateStr = '';
-    if (createdAt.isNotEmpty) {
-      try {
-        final dt = DateTime.parse(createdAt).toLocal();
-        dateStr =
-            '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-      } catch (_) {
-        dateStr = createdAt.length > 10 ? createdAt.substring(0, 10) : createdAt;
+  Future<void> _openComplaint(dynamic item) async {
+    try {
+      final id = complaintIdOf(item['id']);
+      await context.push('/complaint/$id');
+      await _loadComplaints(forceRefresh: true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
       }
     }
-
-    return GestureDetector(
-      onTap: () async {
-        try {
-          final id = _toInt(item['id']);
-          await context.push('/complaint/$id');
-          await _loadComplaints(forceRefresh: true);
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${e.toString()}')),
-            );
-          }
-        }
-      },
-      onLongPress: () => _showActionSheet(item),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Avatar
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: statusColor.withValues(alpha: 0.15),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  firstLetter,
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: statusColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: AppTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (category != null && category.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          category,
-                          style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 4),
-                    Text(
-                      [
-                        if (location.isNotEmpty) location,
-                        if (dateStr.isNotEmpty) dateStr,
-                      ].join(' • '),
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Status badge + chevron
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      statusLabel,
-                      style: GoogleFonts.nunito(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: statusColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Icon(Icons.chevron_right,
-                      size: 16, color: Colors.grey.shade400),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   void _showActionSheet(dynamic item) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    showComplaintActionSheet(
+      context,
+      item,
+      onResolve: () async {
+        final result = await context.push(AppRouter.adminComplaintsResolve, extra: item);
+        if (result == true) await _loadComplaints(forceRefresh: true);
+      },
+      onMarkInProgress: () => _updateStatus(complaintIdOf(item['id']), 'in_progress'),
+      onReject: () => _updateStatus(complaintIdOf(item['id']), 'rejected'),
+      onManageAttachments: () => showComplaintAttachmentDialog(
+        context,
+        item,
+        onDeleteAttachment: _deleteAttachment,
       ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                item['title']?.toString() ?? 'Aksi Pengaduan',
-                style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.bold, fontSize: 15),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  final result = await context.push(
-                    AppRouter.adminComplaintsResolve,
-                    extra: item,
-                  );
-                  if (result == true) {
-                    await _loadComplaints(forceRefresh: true);
-                  }
-                },
-                icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: Text('Selesaikan',
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _updateStatus(_toInt(item['id']), 'in_progress');
-                },
-                icon: const Icon(Icons.autorenew, size: 18),
-                label: Text('Tandai Diproses',
-                    style: GoogleFonts.nunito()),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _statusColor('in_progress'),
-                  side: BorderSide(color: _statusColor('in_progress')),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _updateStatus(_toInt(item['id']), 'rejected');
-                },
-                icon: const Icon(Icons.cancel_outlined, size: 18),
-                label: Text('Tolak', style: GoogleFonts.nunito()),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.danger,
-                  side: const BorderSide(color: AppTheme.danger),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _showAttachmentDeleteDialog(item);
-                },
-                icon: const Icon(Icons.attach_file, size: 18),
-                label: Text('Hapus Attachment',
-                    style: GoogleFonts.nunito()),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.grey.shade700,
-                  side: BorderSide(color: Colors.grey.shade400),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _deleteComplaintToTrash(_toInt(item['id']));
-                },
-                icon: const Icon(Icons.delete_sweep, size: 18),
-                label: Text('Pindah Trash',
-                    style: GoogleFonts.nunito(color: AppTheme.danger)),
-                style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
-              ),
-              const SizedBox(height: 4),
-            ],
-          ),
-        ),
-      ),
+      onMoveToTrash: () => _deleteComplaintToTrash(complaintIdOf(item['id'])),
     );
   }
 }

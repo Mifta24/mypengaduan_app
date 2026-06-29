@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../routes/app_router.dart';
@@ -9,15 +8,10 @@ import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/admin/admin_confirm_dialog.dart';
 import '../../../widgets/admin/admin_empty_state.dart';
+import 'user_complaints_screen.dart';
 import 'user_detail_screen.dart';
-
-InputDecoration _userFormFieldDecoration({
-  required String label,
-  String? hint,
-  String? errorText,
-}) {
-  return AppTheme.inputDecoration(label: label, hint: hint, errorText: errorText);
-}
+import 'user_form_utils.dart';
+import 'widgets/user_list_card.dart';
 
 class AdminUsersTab extends StatefulWidget {
   const AdminUsersTab({super.key});
@@ -89,7 +83,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
             : fetchedUsers.where((item) {
                 if (item is! Map) return true;
                 final userMap = Map<String, dynamic>.from(item);
-                return _toInt(userMap['id']) != currentUserId;
+                return parseUserId(userMap['id']) != currentUserId;
               }).toList();
 
         setState(() {
@@ -152,7 +146,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     }
   }
 
-  Future<void> _resetUserPassword(int id, {String? userName}) async {
+  Future<void> _resetUserPassword(int id, String userName) async {
     final passwordController = TextEditingController();
     final confirmController = TextEditingController();
 
@@ -163,7 +157,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if ((userName ?? '').isNotEmpty)
+            if (userName.isNotEmpty)
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text('User: $userName'),
@@ -172,13 +166,13 @@ class _AdminUsersTabState extends State<AdminUsersTab>
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration: _userFormFieldDecoration(label: 'Password Baru'),
+              decoration: userFormFieldDecoration(label: 'Password Baru'),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: confirmController,
               obscureText: true,
-              decoration: _userFormFieldDecoration(label: 'Konfirmasi Password'),
+              decoration: userFormFieldDecoration(label: 'Konfirmasi Password'),
             ),
           ],
         ),
@@ -232,11 +226,8 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     }
   }
 
-  Future<void> _showCreateUserDialog() async {
-    final created = await showDialog<bool>(
-      context: context,
-      builder: (context) => _CreateUserDialog(adminService: _adminService),
-    );
+  Future<void> _navigateToAddUser() async {
+    final created = await context.push<bool>(AppRouter.adminUsersAdd);
 
     if (created == true && mounted) {
       await _loadUsers(forceRefresh: true);
@@ -297,7 +288,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
               ),
               const SizedBox(width: 10),
               ElevatedButton.icon(
-                onPressed: _showCreateUserDialog,
+                onPressed: _navigateToAddUser,
                 icon: const Icon(Icons.person_add, size: 16),
                 label: Text('Tambah', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 13)),
                 style: ElevatedButton.styleFrom(
@@ -328,7 +319,13 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                         itemCount: filtered.length,
-                        itemBuilder: (_, i) => _buildUserCard(filtered[i]),
+                        itemBuilder: (_, i) => UserListCard(
+                          user: filtered[i],
+                          onTap: () => _showUserDetailDialog(filtered[i]),
+                          onVerify: _verifyUser,
+                          onChangeRole: _changeRole,
+                          onResetPassword: _resetUserPassword,
+                        ),
                       ),
                     ),
         ),
@@ -336,130 +333,9 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     );
   }
 
-  Widget _buildUserCard(dynamic user) {
-    final role = user['role']?.toString() ?? 'user';
-    final isVerified = _toBool(user['is_user_verified']) || _toBool(user['is_verified']);
-    final name  = user['name']?.toString()  ?? 'Pengguna';
-    final email = user['email']?.toString() ?? '';
-    final initials = name.trim().split(' ').take(2).map((w) => w.isEmpty ? '' : w[0].toUpperCase()).join();
-    final avatarColor = isVerified ? AppTheme.primary : const Color(0xFFD97706);
-
-    return GestureDetector(
-      onTap: () => _showUserDetailDialog(user),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.border),
-        ),
-        child: Row(
-          children: [
-            // Avatar
-            Container(
-              width: 42, height: 42,
-              decoration: BoxDecoration(
-                color: avatarColor.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(initials,
-                    style: GoogleFonts.nunito(
-                        fontSize: 15, fontWeight: FontWeight.w800, color: avatarColor)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Name + email
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name,
-                      style: GoogleFonts.nunito(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text(email,
-                      style: GoogleFonts.nunito(
-                          fontSize: 12, color: AppTheme.textSecondary),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Role + verification badges
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: (role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primary).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    role == 'admin' ? 'Admin' : 'Warga',
-                    style: GoogleFonts.nunito(
-                        fontSize: 10, fontWeight: FontWeight.w700,
-                        color: role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primary),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isVerified ? Icons.verified_rounded : Icons.cancel_rounded,
-                      size: 13,
-                      color: isVerified ? AppTheme.primary : const Color(0xFFD97706),
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      isVerified ? 'Terverifikasi' : 'Belum',
-                      style: GoogleFonts.nunito(
-                          fontSize: 10, fontWeight: FontWeight.w600,
-                          color: isVerified ? AppTheme.primary : const Color(0xFFD97706)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(width: 4),
-            // More actions
-            PopupMenuButton<String>(
-              padding: EdgeInsets.zero,
-              icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
-              onSelected: (value) {
-                switch (value) {
-                  case 'verify':     _verifyUser(_toInt(user['id']));
-                  case 'make_admin': _changeRole(_toInt(user['id']), 'admin');
-                  case 'make_user':  _changeRole(_toInt(user['id']), 'user');
-                  case 'view':       _showUserDetailDialog(user);
-                  case 'reset_password':
-                    _resetUserPassword(_toInt(user['id']), userName: name);
-                }
-              },
-              itemBuilder: (_) => [
-                if (!isVerified)
-                  const PopupMenuItem(value: 'verify', child: Row(children: [Icon(Icons.verified_user, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text('Verifikasi')])),
-                if (role != 'admin')
-                  const PopupMenuItem(value: 'make_admin', child: Row(children: [Icon(Icons.admin_panel_settings, size: 16, color: Colors.indigo), SizedBox(width: 8), Text('Jadikan Admin')])),
-                if (role == 'admin')
-                  const PopupMenuItem(value: 'make_user', child: Row(children: [Icon(Icons.person, size: 16, color: Colors.teal), SizedBox(width: 8), Text('Jadikan User')])),
-                const PopupMenuItem(value: 'view', child: Row(children: [Icon(Icons.visibility, size: 16), SizedBox(width: 8), Text('Lihat Detail')])),
-                const PopupMenuItem(value: 'reset_password', child: Row(children: [Icon(Icons.lock_reset, size: 16, color: Colors.blueGrey), SizedBox(width: 8), Text('Reset Password')])),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
   Future<Map<String, dynamic>> _fetchUserDetail(dynamic user) async {
     final summary = Map<String, dynamic>.from(user as Map);
-    final id = _toInt(summary['id']);
+    final id = parseUserId(summary['id']);
 
     if (id == 0) return summary;
 
@@ -494,24 +370,22 @@ class _AdminUsersTabState extends State<AdminUsersTab>
       extra: AdminUserDetailArgs(
         user: user,
         fetchDetail: _fetchUserDetail,
-        onEditUser: _showEditUserDialog,
+        onEditUser: _navigateToEditUser,
         onToggleVerification: _toggleUserVerification,
         onToggleEmailVerification: _toggleEmailVerification,
         onToggleStatus: _toggleUserStatus,
-        onResetPassword: _resetUserPassword,
+        onResetPassword: (id, {String? userName}) => _resetUserPassword(id, userName ?? ''),
         onDelete: _confirmDeleteUser,
         onShowAllComplaints: _showAllUserComplaints,
       ),
     );
   }
 
-
   Future<void> _toggleUserStatus(Map<String, dynamic> detail) async {
-    final id = _toInt(detail['id']);
+    final id = parseUserId(detail['id']);
     if (id == 0) return;
 
-    final isActive =
-        detail['is_active'] == null ? true : _toBool(detail['is_active']);
+    final isActive = parseUserBool(detail['is_active'], defaultValue: true);
 
     try {
       await _adminService.updateUser(id, {'is_active': !isActive});
@@ -538,7 +412,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   }
 
   Future<void> _confirmDeleteUser(Map<String, dynamic> detail) async {
-    final id = _toInt(detail['id']);
+    final id = parseUserId(detail['id']);
     if (id == 0 || !mounted) return;
 
     final confirmed = await showAdminConfirmDialog(
@@ -572,7 +446,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
   Future<void> _toggleUserVerification(Map<String, dynamic> detail,
       {required bool shouldVerify}) async {
-    final id = _toInt(detail['id']);
+    final id = parseUserId(detail['id']);
     if (id == 0) return;
 
     try {
@@ -606,7 +480,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
   Future<void> _toggleEmailVerification(Map<String, dynamic> detail,
       {required bool shouldVerify}) async {
-    final id = _toInt(detail['id']);
+    final id = parseUserId(detail['id']);
     if (id == 0) return;
 
     try {
@@ -638,18 +512,12 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     }
   }
 
-  Future<void> _showEditUserDialog(Map<String, dynamic> detail) async {
-    final id = _toInt(detail['id']);
+  Future<void> _navigateToEditUser(Map<String, dynamic> detail) async {
+    final id = parseUserId(detail['id']);
     if (id == 0) return;
     final originalRole = detail['role']?.toString() ?? 'user';
 
-    final newRole = await showDialog<String>(
-      context: context,
-      builder: (context) => _EditUserDialog(
-        adminService: _adminService,
-        detail: detail,
-      ),
-    );
+    final newRole = await context.push<String>(AppRouter.adminUsersEdit, extra: detail);
 
     if (newRole == null || !mounted) return;
 
@@ -680,7 +548,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   }
 
   Future<void> _showAllUserComplaints(Map<String, dynamic> detail) async {
-    final id = _toInt(detail['id']);
+    final id = parseUserId(detail['id']);
     final name = detail['name']?.toString() ?? 'Pengguna';
 
     if (id == 0) {
@@ -699,7 +567,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
 
   Future<List<Map<String, dynamic>>> _fetchUserComplaints(
       Map<String, dynamic> detail) async {
-    final id = _toInt(detail['id']);
+    final id = parseUserId(detail['id']);
     if (id == 0) return [];
 
     try {
@@ -717,10 +585,10 @@ class _AdminUsersTabState extends State<AdminUsersTab>
       final filtered = complaints.where((complaint) {
         final complaintUser = complaint['user'];
         if (complaintUser is Map) {
-          final uid = _toInt(complaintUser['id']);
+          final uid = parseUserId(complaintUser['id']);
           if (uid != 0) return uid == id;
         }
-        final complaintUserId = _toInt(complaint['user_id']);
+        final complaintUserId = parseUserId(complaint['user_id']);
         return complaintUserId == 0 ? true : complaintUserId == id;
       }).toList();
 
@@ -751,636 +619,10 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  int _toInt(dynamic value) {
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
-
-  bool _toBool(dynamic value) {
-    if (value is bool) return value;
-    if (value is int) return value == 1;
-    if (value is String) {
-      final normalized = value.toLowerCase();
-      return normalized == '1' ||
-          normalized == 'true' ||
-          normalized == 'yes' ||
-          normalized == 'aktif';
-    }
-    return false;
-  }
-
-
-
-
-
   DateTime? _parseDate(dynamic value) {
     if (value == null) return null;
     if (value is DateTime) return value;
     if (value is String) return DateTime.tryParse(value)?.toLocal();
     return null;
   }
-
-
-
-}
-
-// ---------------------------------------------------------------------------
-// Extracted StatefulWidget for the "Tambah Pengguna" dialog so that
-// TextEditingControllers are disposed in State.dispose() — only called after
-// the dialog exit animation fully completes — preventing the
-// "TextEditingController used after being disposed" and
-// "_dependents.isEmpty" assertion errors.
-// ---------------------------------------------------------------------------
-
-class _CreateUserDialog extends StatefulWidget {
-  final AdminService adminService;
-  const _CreateUserDialog({required this.adminService});
-
-  @override
-  State<_CreateUserDialog> createState() => _CreateUserDialogState();
-}
-
-class _CreateUserDialogState extends State<_CreateUserDialog> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _nikController = TextEditingController();
-  final _rtController = TextEditingController();
-  final _rwController = TextEditingController();
-
-  String _selectedRole = 'user';
-  final _fieldErrors = <String, String>{};
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _addressController.dispose();
-    _nikController.dispose();
-    _rtController.dispose();
-    _rwController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final passwordStrength = _calcPasswordStrength(_passwordController.text);
-    final strengthLabel = _passwordStrengthLabel(passwordStrength);
-    final strengthColor = _passwordStrengthColor(passwordStrength);
-
-    return AlertDialog(
-      title: const Text('Tambah Pengguna'),
-      content: SingleChildScrollView(
-        child: SizedBox(
-          width: 480,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: _userFormFieldDecoration(
-                  label: 'Nama Lengkap*',
-                  errorText: _fieldErrors['name'],
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _emailController,
-                decoration: _userFormFieldDecoration(
-                  label: 'Email*',
-                  errorText: _fieldErrors['email'],
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                onChanged: (_) => setState(() {}),
-                decoration: _userFormFieldDecoration(
-                  label: 'Password*',
-                  errorText: _fieldErrors['password'],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Kekuatan password: $strengthLabel',
-                  style: TextStyle(fontSize: 12, color: strengthColor),
-                ),
-              ),
-              const SizedBox(height: 4),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  minHeight: 6,
-                  value: passwordStrength,
-                  color: strengthColor,
-                  backgroundColor: Colors.grey.shade300,
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                onChanged: (_) => setState(() {}),
-                decoration: _userFormFieldDecoration(
-                  label: 'Konfirmasi Password*',
-                  errorText: _fieldErrors['password_confirmation'],
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _phoneController,
-                decoration: _userFormFieldDecoration(
-                  label: 'Nomor Telepon',
-                  errorText: _fieldErrors['phone'],
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _addressController,
-                decoration: _userFormFieldDecoration(
-                  label: 'Alamat',
-                  errorText: _fieldErrors['address'],
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _nikController,
-                decoration: _userFormFieldDecoration(
-                  label: 'NIK',
-                  errorText: _fieldErrors['nik'],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _rtController,
-                      decoration: _userFormFieldDecoration(
-                        label: 'RT',
-                        errorText:
-                            _fieldErrors['rt_number'] ?? _fieldErrors['rt'],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _rwController,
-                      decoration: _userFormFieldDecoration(
-                        label: 'RW',
-                        errorText:
-                            _fieldErrors['rw_number'] ?? _fieldErrors['rw'],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedRole,
-                decoration: _userFormFieldDecoration(label: 'Peran'),
-                items: const [
-                  DropdownMenuItem(value: 'user', child: Text('User')),
-                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                ],
-                onChanged: (value) {
-                  if (value != null) setState(() => _selectedRole = value);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Batal'),
-        ),
-        ElevatedButton(
-          onPressed: _handleSubmit,
-          child: const Text('Simpan'),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleSubmit() async {
-    setState(() => _fieldErrors.clear());
-
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final passwordConfirmation = _confirmPasswordController.text.trim();
-
-    final localErrors = <String, String>{};
-
-    if (name.isEmpty) localErrors['name'] = 'Nama wajib diisi';
-
-    if (email.isEmpty) {
-      localErrors['email'] = 'Email wajib diisi';
-    } else if (!_isValidEmail(email)) {
-      localErrors['email'] = 'Format email tidak valid';
-    }
-
-    if (password.isEmpty) {
-      localErrors['password'] = 'Password wajib diisi';
-    } else if (!_isStrongPassword(password)) {
-      localErrors['password'] = 'Minimal 8 karakter, kombinasi huruf dan angka';
-    }
-
-    if (passwordConfirmation.isEmpty) {
-      localErrors['password_confirmation'] = 'Konfirmasi password wajib diisi';
-    } else if (passwordConfirmation != password) {
-      localErrors['password_confirmation'] = 'Konfirmasi password tidak sama';
-    }
-
-    if (localErrors.isNotEmpty) {
-      setState(() {
-        _fieldErrors
-          ..clear()
-          ..addAll(localErrors);
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Periksa kembali input form'),
-            backgroundColor: AppTheme.danger,
-          ),
-        );
-      }
-      return;
-    }
-
-    try {
-      final response = await widget.adminService.createUser({
-        'name': name,
-        'email': email,
-        'password': password,
-        'password_confirmation': passwordConfirmation,
-        ..._adminUserProfilePayload(
-          phone: _phoneController.text,
-          address: _addressController.text,
-          nik: _nikController.text,
-          rtNumber: _rtController.text,
-          rwNumber: _rwController.text,
-        ),
-        'role': _selectedRole,
-        'is_active': true,
-      });
-
-      if (!response.success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message.isEmpty
-                  ? 'Gagal membuat pengguna'
-                  : response.message),
-              backgroundColor: AppTheme.danger,
-            ),
-          );
-        }
-        return;
-      }
-
-      // Server may create user as 'user' regardless of role param.
-      // Explicitly change role if admin was requested.
-      if (_selectedRole == 'admin') {
-        final rawData = response.data;
-        if (rawData is Map) {
-          final rawId = rawData['id'];
-          final numId = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
-          if (numId != null && numId > 0) {
-            try {
-              await widget.adminService.changeUserRole(numId, 'admin');
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('User dibuat tapi gagal set role admin: $e'),
-                    backgroundColor: AppTheme.warning,
-                  ),
-                );
-              }
-            }
-          }
-        }
-      }
-
-      if (mounted) Navigator.pop(context, true);
-    } on DioException catch (e) {
-      final parsed = _extractCreateFieldErrors(e.response?.data);
-      if (parsed.isNotEmpty) {
-        setState(() {
-          _fieldErrors
-            ..clear()
-            ..addAll(parsed);
-        });
-      }
-      final fallbackMessage =
-          _extractCreateGeneralMessage(e.response?.data) ?? 'Gagal buat pengguna';
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(fallbackMessage), backgroundColor: AppTheme.danger),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal buat pengguna: $e'),
-            backgroundColor: AppTheme.danger,
-          ),
-        );
-      }
-    }
-  }
-
-  bool _isValidEmail(String email) =>
-      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
-
-  bool _isStrongPassword(String password) {
-    if (password.length < 8) { return false; }
-    return RegExp(r'[A-Za-z]').hasMatch(password) &&
-        RegExp(r'[0-9]').hasMatch(password);
-  }
-
-  double _calcPasswordStrength(String password) {
-    if (password.isEmpty) return 0;
-    var score = 0.0;
-    if (password.length >= 8) score += 0.35;
-    if (password.length >= 12) score += 0.15;
-    if (RegExp(r'[A-Z]').hasMatch(password) &&
-        RegExp(r'[a-z]').hasMatch(password)) score += 0.2;
-    if (RegExp(r'[0-9]').hasMatch(password)) score += 0.15;
-    if (RegExp(r'[^A-Za-z0-9]').hasMatch(password)) score += 0.15;
-    return score.clamp(0.0, 1.0);
-  }
-
-  String _passwordStrengthLabel(double score) {
-    if (score >= 0.85) return 'Sangat Kuat';
-    if (score >= 0.65) return 'Kuat';
-    if (score >= 0.4) return 'Sedang';
-    if (score > 0) return 'Lemah';
-    return '-';
-  }
-
-  Color _passwordStrengthColor(double score) {
-    if (score >= 0.85) return Colors.green;
-    if (score >= 0.65) return Colors.lightGreen;
-    if (score >= 0.4) return Colors.orange;
-    return Colors.red;
-  }
-
-  Map<String, String> _extractCreateFieldErrors(dynamic data) {
-    if (data is! Map) return const {};
-    final errorsRaw = Map<String, dynamic>.from(data)['errors'];
-    if (errorsRaw is! Map) return const {};
-    final result = <String, String>{};
-    for (final entry in Map<String, dynamic>.from(errorsRaw).entries) {
-      final v = entry.value;
-      if (v is List && v.isNotEmpty) {
-        result[entry.key] = v.first.toString();
-      } else if (v != null) {
-        result[entry.key] = v.toString();
-      }
-    }
-    return result;
-  }
-
-  String? _extractCreateGeneralMessage(dynamic data) {
-    if (data is! Map) return null;
-    final message = Map<String, dynamic>.from(data)['message'];
-    return message?.toString();
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Extracted StatefulWidget for the "Edit Pengguna" dialog.
-// Controllers are owned by State.dispose() so they are released only after
-// the dialog exit animation completes. The dialog returns the selected role
-// (String) on save, or null on cancel.
-// ---------------------------------------------------------------------------
-
-class _EditUserDialog extends StatefulWidget {
-  final AdminService adminService;
-  final Map<String, dynamic> detail;
-
-  const _EditUserDialog({
-    required this.adminService,
-    required this.detail,
-  });
-
-  @override
-  State<_EditUserDialog> createState() => _EditUserDialogState();
-}
-
-class _EditUserDialogState extends State<_EditUserDialog> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _emailController;
-  late final TextEditingController _phoneController;
-  late final TextEditingController _addressController;
-  late final TextEditingController _nikController;
-  late final TextEditingController _rtController;
-  late final TextEditingController _rwController;
-
-  late String _selectedRole;
-  late bool _isActive;
-
-  @override
-  void initState() {
-    super.initState();
-    final d = widget.detail;
-    _nameController    = TextEditingController(text: _pick(d, ['name']));
-    _emailController   = TextEditingController(text: _pick(d, ['email']));
-    _phoneController   = TextEditingController(text: _pick(d, ['phone', 'phone_number']));
-    _addressController = TextEditingController(text: _pick(d, ['address', 'alamat']));
-    _nikController     = TextEditingController(text: _pick(d, ['nik']));
-    _rtController      = TextEditingController(text: _pick(d, ['rt_number', 'rt']));
-    _rwController      = TextEditingController(text: _pick(d, ['rw_number', 'rw']));
-    _selectedRole      = d['role']?.toString() ?? 'user';
-    _isActive          = _parseBool(d['is_active']);
-  }
-
-  static String _pick(Map<String, dynamic> d, List<String> keys) {
-    for (final key in keys) {
-      final v = d[key];
-      if (v != null && v.toString().trim().isNotEmpty) return v.toString();
-    }
-    return '';
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    _nikController.dispose();
-    _rtController.dispose();
-    _rwController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Edit Pengguna'),
-      content: SingleChildScrollView(
-        child: SizedBox(
-          width: 480,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: _userFormFieldDecoration(label: 'Nama Lengkap'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _emailController,
-                decoration: _userFormFieldDecoration(label: 'Email'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _phoneController,
-                decoration: _userFormFieldDecoration(label: 'Nomor Telepon'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _addressController,
-                decoration: _userFormFieldDecoration(label: 'Alamat'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _nikController,
-                decoration: _userFormFieldDecoration(label: 'NIK'),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _rtController,
-                      decoration: _userFormFieldDecoration(label: 'RT'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _rwController,
-                      decoration: _userFormFieldDecoration(label: 'RW'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedRole,
-                decoration: _userFormFieldDecoration(label: 'Peran'),
-                items: const [
-                  DropdownMenuItem(value: 'user', child: Text('User')),
-                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                ],
-                onChanged: (value) {
-                  if (value != null) setState(() => _selectedRole = value);
-                },
-              ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _isActive,
-                title: const Text('Status Aktif'),
-                onChanged: (value) => setState(() => _isActive = value),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Batal'),
-        ),
-        ElevatedButton(
-          onPressed: _handleSave,
-          child: const Text('Simpan'),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleSave() async {
-    final id = _toInt(widget.detail['id']);
-    try {
-      await widget.adminService.updateUser(id, {
-        'name':       _nameController.text.trim(),
-        'email':      _emailController.text.trim(),
-        ..._adminUserProfilePayload(
-          phone: _phoneController.text,
-          address: _addressController.text,
-          nik: _nikController.text,
-          rtNumber: _rtController.text,
-          rwNumber: _rwController.text,
-        ),
-        'role':       _selectedRole,
-        'is_active':  _isActive,
-      });
-      if (mounted) Navigator.pop(context, _selectedRole);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal update pengguna: $e'),
-            backgroundColor: AppTheme.danger,
-          ),
-        );
-      }
-    }
-  }
-
-  static int _toInt(dynamic value) {
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
-
-  static bool _parseBool(dynamic value) {
-    if (value == null) return true;
-    if (value is bool) return value;
-    if (value is int) return value == 1;
-    if (value is String) {
-      final s = value.toLowerCase();
-      return s == '1' || s == 'true' || s == 'yes' || s == 'aktif';
-    }
-    return false;
-  }
-}
-
-Map<String, dynamic> _adminUserProfilePayload({
-  required String phone,
-  required String address,
-  required String nik,
-  required String rtNumber,
-  required String rwNumber,
-}) {
-  return {
-    'phone': phone.trim(),
-    'address': address.trim(),
-    'nik': nik.trim(),
-    'rt_number': rtNumber.trim(),
-    'rw_number': rwNumber.trim(),
-    'rt': rtNumber.trim(),
-    'rw': rwNumber.trim(),
-  };
 }
