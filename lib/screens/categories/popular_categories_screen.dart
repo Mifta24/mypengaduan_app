@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../models/complaint_model.dart';
 import '../../providers/complaint_provider.dart';
 import '../../theme/app_theme.dart';
-import '../complaints/complaint_detail_screen.dart';
 
 class PopularCategoriesScreen extends StatefulWidget {
   const PopularCategoriesScreen({super.key});
@@ -315,8 +315,7 @@ class _ComplaintMiniCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusInfo = _statusInfo(complaint.status);
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(
-          builder: (_) => ComplaintDetailScreen(complaint: complaint))),
+      onTap: () => context.push('/complaint/${complaint.id}'),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),

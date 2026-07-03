@@ -8,7 +8,6 @@ import '../../providers/announcement_provider.dart';
 import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
-import '../categories/popular_categories_screen.dart';
 import 'widgets/dashboard_widgets.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -233,11 +232,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 28),
                     _SectionHeader(
                       title: 'Kategori Keluhan Populer',
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  const PopularCategoriesScreen())),
+                      onTap: () => context.push(AppRouter.popularCategories),
                     ),
                     const SizedBox(height: 12),
                     const DashboardCategoryChips(),

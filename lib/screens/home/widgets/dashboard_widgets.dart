@@ -6,8 +6,6 @@ import '../../../providers/announcement_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../routes/app_router.dart';
 import '../../../theme/app_theme.dart';
-import '../../announcements/announcement_detail_screen.dart';
-import '../../categories/popular_categories_screen.dart';
 import '../home_screen.dart' show showUnverifiedDialog;
 
 class DashboardVerificationBanner extends StatelessWidget {
@@ -192,12 +190,9 @@ class DashboardAnnouncementCarousel extends StatelessWidget {
                   : '';
 
               return GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        AnnouncementDetailScreen(announcement: item),
-                  ),
+                onTap: () => context.push(
+                  AppRouter.announcementDetail,
+                  extra: item,
                 ),
                 child: Container(
                   width: 180,
@@ -387,9 +382,7 @@ class DashboardCategoryChips extends StatelessWidget {
       child: Row(
         children: categories.map((cat) {
           return GestureDetector(
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(
-                    builder: (_) => const PopularCategoriesScreen())),
+            onTap: () => context.push(AppRouter.popularCategories),
             child: Container(
               width: 90,
               margin: const EdgeInsets.only(right: 12),

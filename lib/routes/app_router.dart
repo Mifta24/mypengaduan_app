@@ -19,6 +19,12 @@ import '../screens/faq/faq_screen.dart';
 import '../screens/contact/contact_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/notifications/notification_settings_screen.dart';
+import '../screens/announcements/announcement_detail_screen.dart';
+import '../screens/complaints/edit_complaint_screen.dart';
+import '../screens/categories/popular_categories_screen.dart';
+import '../screens/profile/change_password_screen.dart';
+import '../models/announcement_model.dart';
+import '../models/complaint_model.dart';
 import '../models/user_model.dart';
 import '../screens/admin/profile/admin_profile_screen.dart';
 import '../screens/admin/profile/edit_admin_profile_screen.dart';
@@ -57,6 +63,10 @@ class AppRouter {
   static const String contact = '/contact';
   static const String forgotPassword = '/forgot-password';
   static const String notificationSettings = '/notification-settings';
+  static const String announcementDetail = '/announcements/detail';
+  static const String editComplaint = '/edit-complaint';
+  static const String popularCategories = '/popular-categories';
+  static const String changePassword = '/change-password';
   static const String adminProfile = '/admin/profile';
   static const String adminProfileEdit = '/admin/profile/edit';
   static const String adminCategoriesManage = '/admin/categories';
@@ -379,6 +389,80 @@ class AppRouter {
               var tween = Tween(begin: begin, end: end)
                   .chain(CurveTween(curve: Curves.easeInOut));
               return SlideTransition(position: animation.drive(tween), child: child);
+            },
+          ),
+        ),
+        // ── User sub-screens ──────────────────────────────────
+        GoRoute(
+          path: announcementDetail,
+          name: 'announcementDetail',
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: AnnouncementDetailScreen(
+                announcement: state.extra as Announcement),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: Curves.easeInOut));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
+            },
+          ),
+        ),
+        GoRoute(
+          path: editComplaint,
+          name: 'editComplaint',
+          pageBuilder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>;
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: EditComplaintScreen(
+                complaint: extra['complaint'] as Complaint,
+                allowEditAnyStatus:
+                    extra['allowEditAnyStatus'] as bool? ?? false,
+              ),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(0.0, 1.0);
+                const end = Offset.zero;
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: Curves.easeInOut));
+                return SlideTransition(
+                    position: animation.drive(tween), child: child);
+              },
+            );
+          },
+        ),
+        GoRoute(
+          path: popularCategories,
+          name: 'popularCategories',
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const PopularCategoriesScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: Curves.easeInOut));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
+            },
+          ),
+        ),
+        GoRoute(
+          path: changePassword,
+          name: 'changePassword',
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const ChangePasswordScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end)
+                  .chain(CurveTween(curve: Curves.easeOutCubic));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),

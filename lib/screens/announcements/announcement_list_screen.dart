@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'announcement_detail_screen.dart';
 import '../../models/announcement_model.dart' as models;
 import '../../services/announcement_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
 import 'widgets/announcement_list_card.dart';
 
@@ -390,12 +391,9 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                                 final announcement = _filteredAnnouncements[index];
                                 return AnnouncementListCard(
                                   announcement: announcement,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AnnouncementDetailScreen(
-                                          announcement: announcement),
-                                    ),
+                                  onTap: () => context.push(
+                                    AppRouter.announcementDetail,
+                                    extra: announcement,
                                   ),
                                 );
                               },

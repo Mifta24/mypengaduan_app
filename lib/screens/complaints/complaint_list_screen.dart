@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/complaint_provider.dart';
 import '../../models/complaint_model.dart';
-import 'create_complaint_screen.dart';
-import 'complaint_detail_screen.dart';
-import 'edit_complaint_screen.dart';
+import '../../routes/app_router.dart';
 import 'widgets/user_complaint_list_card.dart';
 
 class ComplaintListScreen extends StatefulWidget {
@@ -194,11 +193,9 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
               if (waitingComplaints.isNotEmpty)
                 UserComplaintWaitingBanner(
                   waitingComplaints: waitingComplaints,
-                  onOpen: (c) => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => ComplaintDetailScreen(complaint: c)),
-                  ).then((_) => _loadComplaints()),
+                  onOpen: (c) => context
+                      .push('/complaint/${c.id}')
+                      .then((_) => _loadComplaints()),
                 ),
               Expanded(
                 child: TabBarView(
@@ -234,16 +231,8 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const CreateComplaintScreen(),
-            ),
-          ).then((result) {
-            // Only reload if complaint was successfully created
-            if (result == true) {
-              _loadComplaints();
-            }
+          context.push(AppRouter.createComplaint).then((result) {
+            if (result == true) _loadComplaints();
           });
         },
         backgroundColor: AppTheme.primary,
@@ -314,26 +303,19 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
           final complaint = filteredComplaints[index];
           return UserComplaintListCard(
             complaint: complaint,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => ComplaintDetailScreen(complaint: complaint)),
-            ).then((r) { if (r == true) _loadComplaints(); }),
+            onTap: () => context
+                .push('/complaint/${complaint.id}')
+                .then((r) { if (r == true) _loadComplaints(); }),
             onEdit: complaint.status == 'pending'
-                ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              EditComplaintScreen(complaint: complaint)),
-                    ).then((r) { if (r == true) _loadComplaints(); })
+                ? () => context.push(AppRouter.editComplaint, extra: {
+                      'complaint': complaint,
+                      'allowEditAnyStatus': false,
+                    }).then((r) { if (r == true) _loadComplaints(); })
                 : null,
             onConfirm: complaint.status == 'waiting_user_confirmation'
-                ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              ComplaintDetailScreen(complaint: complaint)),
-                    ).then((r) { if (r == true) _loadComplaints(); })
+                ? () => context
+                    .push('/complaint/${complaint.id}')
+                    .then((r) { if (r == true) _loadComplaints(); })
                 : null,
           );
         },

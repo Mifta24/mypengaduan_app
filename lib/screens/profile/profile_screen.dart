@@ -9,7 +9,6 @@ import '../../providers/announcement_provider.dart';
 import '../../models/user_model.dart';
 import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
-import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -341,8 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context,
                 icon: Icons.lock_rounded,
                 label: 'Ubah Password',
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
+                onTap: () => context.push(AppRouter.changePassword),
               ),
               _divider(),
               _actionTile(

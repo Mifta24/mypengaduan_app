@@ -6,8 +6,8 @@ import '../../providers/auth_provider.dart';
 import '../../services/admin_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/complaint_service.dart';
-import '../admin/complaints/resolve_complaint_screen.dart';
-import 'edit_complaint_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
 import 'complaint_detail_utils.dart';
 import 'widgets/complaint_detail_cards.dart';
@@ -109,23 +109,19 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Gagal memuat detail: $e')));
-      Navigator.pop(context);
+      context.pop();
     }
   }
 
   Future<void> _handleResolve() async {
     if (_complaint == null) return;
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ResolveComplaintScreen(
-          complaint: {
-            'id': _complaint!.id,
-            'title': _complaint!.title,
-            'description': _complaint!.description,
-          },
-        ),
-      ),
+    final result = await context.push<bool>(
+      AppRouter.adminComplaintsResolve,
+      extra: {
+        'id': _complaint!.id,
+        'title': _complaint!.title,
+        'description': _complaint!.description,
+      },
     );
     if (result == true) await _loadComplaint();
   }
@@ -182,12 +178,9 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
 
   Future<void> _handleEditComplaint() async {
     if (_complaint == null) return;
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            EditComplaintScreen(complaint: _complaint!, allowEditAnyStatus: true),
-      ),
+    final result = await context.push<bool>(
+      AppRouter.editComplaint,
+      extra: {'complaint': _complaint!, 'allowEditAnyStatus': true},
     );
     if (result == true) await _loadComplaint();
   }
