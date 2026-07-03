@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'announcement_detail_screen.dart';
 import '../../models/announcement_model.dart' as models;
 import '../../services/announcement_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import 'widgets/announcement_list_card.dart';
 
 class AnnouncementListScreen extends StatefulWidget {
   const AnnouncementListScreen({super.key});
@@ -388,7 +388,16 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                               itemCount: _filteredAnnouncements.length,
                               itemBuilder: (context, index) {
                                 final announcement = _filteredAnnouncements[index];
-                                return _buildAnnouncementCard(announcement);
+                                return AnnouncementListCard(
+                                  announcement: announcement,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AnnouncementDetailScreen(
+                                          announcement: announcement),
+                                    ),
+                                  ),
+                                );
                               },
                             ),
                           ),
@@ -398,300 +407,4 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
     );
   }
 
-  Widget _buildAnnouncementCard(models.Announcement announcement) {
-    Color priorityColor;
-    Color priorityBgColor;
-    String priorityText;
-
-    final priority = announcement.priority.toLowerCase();
-    switch (priority) {
-      case 'urgent':
-        priorityColor = const Color(0xFFEF4444);
-        priorityBgColor = const Color(0xFFFEE2E2);
-        priorityText = 'Mendesak';
-        break;
-      case 'high':
-        priorityColor = const Color(0xFFF59E0B);
-        priorityBgColor = const Color(0xFFFEF3C7);
-        priorityText = 'Tinggi';
-        break;
-      case 'medium':
-        priorityColor = const Color(0xFF3B82F6);
-        priorityBgColor = const Color(0xFFDBEAFE);
-        priorityText = 'Sedang';
-        break;
-      case 'low':
-        priorityColor = const Color(0xFF10B981);
-        priorityBgColor = const Color(0xFFD1FAE5);
-        priorityText = 'Rendah';
-        break;
-      default:
-        priorityColor = const Color(0xFF6B7280);
-        priorityBgColor = const Color(0xFFF3F4F6);
-        priorityText = 'Sedang';
-    }
-
-    // Use cover image from dedicated field, fallback to attachments
-    String? coverImageUrl;
-    if (announcement.coverImage != null && announcement.coverImage!.isNotEmpty) {
-      coverImageUrl = announcement.coverImage;
-    } else if (announcement.attachmentItems != null && announcement.attachmentItems!.isNotEmpty) {
-      final img = announcement.attachmentItems!.firstWhere(
-        (att) => att.url.toLowerCase().endsWith('.jpg') || att.url.toLowerCase().endsWith('.png') || att.url.toLowerCase().endsWith('.jpeg'),
-        orElse: () => const models.AnnouncementAttachment(name: '', url: ''),
-      );
-      if (img.url.isNotEmpty) coverImageUrl = img.url;
-    } else if (announcement.attachments != null && announcement.attachments!.isNotEmpty) {
-      final img = announcement.attachments!.firstWhere(
-        (att) => att.toLowerCase().endsWith('.jpg') || att.toLowerCase().endsWith('.png') || att.toLowerCase().endsWith('.jpeg'),
-        orElse: () => '',
-      );
-      if (img.isNotEmpty) coverImageUrl = img;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: announcement.isSticky
-            ? Border.all(color: Colors.orange.shade300, width: 1.5)
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showAnnouncementDetail(announcement),
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Image or Gradient
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Stack(
-                  children: [
-                    if (coverImageUrl != null)
-                      Image.network(
-                        coverImageUrl,
-                        width: double.infinity,
-                        height: 140,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => _buildFallbackHeader(),
-                      )
-                    else
-                      _buildFallbackHeader(),
-
-                    // Sticky pin badge (top left)
-                    if (announcement.isSticky)
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade600,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.push_pin, size: 12, color: Colors.white),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Disematkan',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    // Priority Badge Floating on Image
-                    Positioned(
-                      top: 12,
-                      right: 12,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: priorityBgColor.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: priorityColor.withValues(alpha: 0.2)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.bookmark, size: 14, color: priorityColor),
-                            const SizedBox(width: 4),
-                            Text(
-                              priorityText,
-                              style: GoogleFonts.nunito(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: priorityColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Content Area
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Meta Info
-                    Row(
-                      children: [
-                        Icon(Icons.access_time, size: 14, color: AppTheme.textSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat('dd MMM yyyy', 'id_ID').format(
-                            announcement.publishedAt ?? announcement.createdAt,
-                          ),
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(Icons.person_outline, size: 14, color: AppTheme.textSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Admin',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Title
-                    Text(
-                      announcement.title,
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Content Preview
-                    Text(
-                      announcement.summary?.isNotEmpty == true ? announcement.summary! : announcement.content,
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
-                        color: AppTheme.textSecondary,
-                        height: 1.5,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(height: 1, color: AppTheme.border),
-                    const SizedBox(height: 12),
-
-                    // Target Audience
-                    Row(
-                      children: [
-                        Text(
-                          'Target: ',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          announcement.targetAudience?.join(', ') ?? 'Semua Warga',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFallbackHeader() {
-    return Container(
-      width: double.infinity,
-      height: 80,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppTheme.primary.withValues(alpha: 0.8), AppTheme.secondary.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.campaign_outlined,
-          size: 40,
-          color: Colors.white.withValues(alpha: 0.3),
-        ),
-      ),
-    );
-  }
-
-  void _showAnnouncementDetail(models.Announcement announcement) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AnnouncementDetailScreen(announcement: announcement),
-      ),
-    );
-  }
-}
-
-class Announcement {
-  final int id;
-  final String title;
-  final String content;
-  final String author;
-  final String priority;
-  final DateTime date;
-  final String category;
-
-  Announcement({
-    required this.id,
-    required this.title,
-    required this.content,
-    required this.author,
-    required this.priority,
-    required this.date,
-    required this.category,
-  });
 }
