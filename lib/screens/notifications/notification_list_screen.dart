@@ -7,11 +7,10 @@ import '../../providers/notification_provider.dart';
 import '../../providers/complaint_provider.dart';
 import '../../providers/announcement_provider.dart';
 import '../../providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../routes/app_router.dart';
 import '../../services/announcement_service.dart';
 import '../../theme/app_theme.dart';
-import '../complaints/complaint_detail_screen.dart';
-import '../announcements/announcement_detail_screen.dart';
-import '../announcements/announcement_list_screen.dart';
 
 class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
@@ -53,7 +52,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           color: AppTheme.textPrimary,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Notifikasi',
             style: GoogleFonts.nunito(
@@ -202,9 +201,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       final rawId = data['complaint_id'] ?? data['id'];
       final id = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
       if (id != null && ctx.mounted) {
-        Navigator.push(ctx, MaterialPageRoute(
-          builder: (_) => ComplaintDetailScreen(complaintId: id),
-        ));
+        ctx.push('/complaint/$id');
       }
       return;
     }
@@ -231,24 +228,18 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
               await AnnouncementService().getAnnouncementDetail(idOrSlug);
           if (ctx.mounted) {
             ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-            Navigator.push(ctx, MaterialPageRoute(
-              builder: (_) => AnnouncementDetailScreen(announcement: announcement),
-            ));
+            ctx.push(AppRouter.announcementDetail, extra: announcement);
           }
         } catch (_) {
           // Fallback ke list
           if (ctx.mounted) {
             ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-            Navigator.push(ctx, MaterialPageRoute(
-              builder: (_) => const AnnouncementListScreen(),
-            ));
+            ctx.push(AppRouter.announcementsList);
           }
         }
       } else {
         if (ctx.mounted) {
-          Navigator.push(ctx, MaterialPageRoute(
-            builder: (_) => const AnnouncementListScreen(),
-          ));
+          ctx.push(AppRouter.announcementsList);
         }
       }
     }

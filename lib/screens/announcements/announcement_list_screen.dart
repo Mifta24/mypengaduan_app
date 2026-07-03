@@ -113,7 +113,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         await authProvider.logout();
         
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/landing', (route) => false);
+          context.go(AppRouter.landing);
         }
         return;
       }

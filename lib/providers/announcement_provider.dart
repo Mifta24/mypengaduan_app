@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/announcement_model.dart';
-import '../models/api_response.dart';
 import '../services/admin_service.dart';
 import '../services/announcement_service.dart';
-import '../services/auth_service.dart';
 
 class AnnouncementProvider extends ChangeNotifier {
   final AdminService _adminService;
   final AnnouncementService _announcementService;
-  final AuthService _authService;
 
-  AnnouncementProvider(this._authService)
+  AnnouncementProvider()
       : _adminService = AdminService(),
         _announcementService = AnnouncementService();
 
@@ -21,7 +18,6 @@ class AnnouncementProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  int _currentPage = 1;
   bool _hasMorePages = false;
 
   List<dynamic> get announcements => _announcements;
@@ -75,7 +71,6 @@ class AnnouncementProvider extends ChangeNotifier {
       );
 
       _announcements = response['data'] ?? [];
-      _currentPage = response['current_page'] ?? page;
       _hasMorePages = (response['current_page'] ?? page) < (response['last_page'] ?? page);
       
       _isLoading = false;
@@ -332,7 +327,6 @@ class AnnouncementProvider extends ChangeNotifier {
     _selectedAnnouncement = null;
     _isLoading = false;
     _errorMessage = null;
-    _currentPage = 1;
     _hasMorePages = false;
     notifyListeners();
     debugPrint('✅ [AnnouncementProvider] State cleared');

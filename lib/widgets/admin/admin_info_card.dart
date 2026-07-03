@@ -34,12 +34,12 @@ class AdminInfoCard extends StatelessWidget {
         color: backgroundColor ?? Colors.white,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: borderColor ?? AppTheme.primary.withOpacity(0.08), 
+          color: borderColor ?? AppTheme.primary.withValues(alpha: 0.08), 
           width: borderWidth,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

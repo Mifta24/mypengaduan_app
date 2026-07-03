@@ -198,7 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Icon(
@@ -222,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'Daftarkan diri Anda dan mulai laporkan keluhan\ndi lingkungan Anda dengan mudah.',
                         style: GoogleFonts.nunito(
                           fontSize: 16,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           height: 1.6,
                         ),
                       ),
@@ -269,7 +269,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary.withOpacity(0.3),
+                                    color: AppTheme.primary.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),
@@ -280,7 +280,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -313,7 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               border: Border.all(color: AppTheme.border),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primary.withOpacity(0.06),
+                                  color: AppTheme.primary.withValues(alpha: 0.06),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -596,7 +596,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             foregroundColor: Colors.white,
                                             elevation: 0,
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                            disabledBackgroundColor: AppTheme.primary.withOpacity(0.4),
+                                            disabledBackgroundColor: AppTheme.primary.withValues(alpha: 0.4),
                                           ),
                                           child: authProvider.isLoading
                                               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
@@ -726,7 +726,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: Colors.white, size: 24),
@@ -743,7 +743,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: GoogleFonts.nunito(fontSize: 14, color: Colors.white.withOpacity(0.85), height: 1.4),
+                style: GoogleFonts.nunito(fontSize: 14, color: Colors.white.withValues(alpha: 0.85), height: 1.4),
               ),
             ],
           ),

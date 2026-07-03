@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Icon(
@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Sistem Pengaduan Digital RT',
                         style: GoogleFonts.nunito(
                           fontSize: 16,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                       const SizedBox(height: 48),
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Laporkan keluhan dengan mudah dan dapatkan\nrespon cepat dari pengurus RT/RW Anda.',
                         style: GoogleFonts.nunito(
                           fontSize: 16,
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                           height: 1.6,
                         ),
                       ),
@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary.withOpacity(0.3),
+                                    color: AppTheme.primary.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -214,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     'Sistem Pengaduan Digital RT',
                                     style: GoogleFonts.nunito(
                                       fontSize: 12,
-                                      color: Colors.white.withOpacity(0.85),
+                                      color: Colors.white.withValues(alpha: 0.85),
                                     ),
                                   ),
                                 ],
@@ -232,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               border: Border.all(color: AppTheme.border),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primary.withOpacity(0.06),
+                                  color: AppTheme.primary.withValues(alpha: 0.06),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -279,10 +279,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           icon: Icons.email_outlined,
                                         ),
                                         validator: (v) {
-                                          if (v == null || v.isEmpty)
-                                            return 'Email tidak boleh kosong';
-                                          if (!v.contains('@'))
-                                            return 'Email tidak valid';
+                                          if (v == null || v.isEmpty) { return 'Email tidak boleh kosong'; }
+                                          if (!v.contains('@')) { return 'Email tidak valid'; }
                                           return null;
                                         },
                                       ),
@@ -314,8 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                         ),
                                         validator: (v) {
-                                          if (v == null || v.isEmpty)
-                                            return 'Password tidak boleh kosong';
+                                          if (v == null || v.isEmpty) { return 'Password tidak boleh kosong'; }
                                           return null;
                                         },
                                       ),
@@ -396,7 +393,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 ),
                                                 disabledBackgroundColor:
                                                     AppTheme.primary
-                                                        .withOpacity(0.4),
+                                                        .withValues(alpha: 0.4),
                                               ),
                                               child: authProvider.isLoading
                                                   ? const SizedBox(
@@ -560,7 +557,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: Colors.white, size: 20),

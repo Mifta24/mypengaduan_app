@@ -186,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               np.unreadCount > 99
                                   ? '99+'
                                   : '${np.unreadCount}',
-                              style: const TextStyle(
+                              style: GoogleFonts.nunito(
                                   color: Colors.white,
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold),

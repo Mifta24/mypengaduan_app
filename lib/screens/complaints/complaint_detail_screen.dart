@@ -280,7 +280,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             color: AppTheme.textPrimary,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
           ),
         ),
         body: const Center(
@@ -356,8 +356,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                 if (v == 'edit') _handleEditComplaint();
                 if (v == 'delete') _handleDeleteComplaint();
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
+              itemBuilder: (_) => [
+                const PopupMenuItem(
                     value: 'edit',
                     child: Row(children: [
                       Icon(Icons.edit, size: 18),
@@ -367,10 +367,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                 PopupMenuItem(
                     value: 'delete',
                     child: Row(children: [
-                      Icon(Icons.delete, size: 18, color: AppTheme.danger),
-                      SizedBox(width: 8),
+                      const Icon(Icons.delete, size: 18, color: AppTheme.danger),
+                      const SizedBox(width: 8),
                       Text('Hapus',
-                          style: TextStyle(color: AppTheme.danger))
+                          style: GoogleFonts.nunito(color: AppTheme.danger))
                     ])),
               ],
             ),

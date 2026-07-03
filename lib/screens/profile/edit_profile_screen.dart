@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -112,6 +113,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         if (result['success']) {
           await context.read<AuthProvider>().getProfile();
+          if (!mounted) return;
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -120,7 +122,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           );
 
-          Navigator.pop(context, true);
+          context.pop(true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

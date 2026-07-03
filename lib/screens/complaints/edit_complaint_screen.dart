@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -238,7 +239,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           color: AppTheme.textPrimary,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Edit Keluhan',
             style: GoogleFonts.nunito(
@@ -390,7 +391,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
       );
 
   Widget _buildCategoryDropdown() => DropdownButtonFormField<int>(
-        value: _selectedCategoryId,
+        initialValue: _selectedCategoryId,
         style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
         decoration: _inputDecoration(
             hint: _categories.isEmpty ? 'Tidak ada kategori' : 'Pilih kategori keluhan'),

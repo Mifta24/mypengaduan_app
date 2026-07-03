@@ -171,7 +171,7 @@ class _NavItem extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 10,
                 fontWeight:
                     selected ? FontWeight.w700 : FontWeight.w500,

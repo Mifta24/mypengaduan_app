@@ -62,11 +62,11 @@ void main() async {
           lazy: true, // Load only when needed
         ),
         ChangeNotifierProvider(
-          create: (_) => AnnouncementProvider(AuthService()),
+          create: (_) => AnnouncementProvider(),
           lazy: true, // Load only when needed
         ),
         ChangeNotifierProvider(
-          create: (_) => CategoryProvider(AuthService()),
+          create: (_) => CategoryProvider(),
           lazy: true, // Load only when needed
         ),
         ChangeNotifierProvider(

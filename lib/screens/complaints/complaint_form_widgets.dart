@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 
@@ -115,7 +116,7 @@ class ImageSourceSheet extends StatelessWidget {
       title: Text(label,
           style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600)),
       onTap: () {
-        Navigator.pop(context);
+        context.pop();
         onTap();
       },
     );

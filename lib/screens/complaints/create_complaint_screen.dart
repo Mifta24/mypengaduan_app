@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -191,7 +192,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           color: AppTheme.textPrimary,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Lapor Keluhan',
             style: GoogleFonts.nunito(
@@ -357,7 +358,7 @@ class _CreateComplaintScreenState extends State<CreateComplaintScreen> {
 
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<int>(
-      value: _selectedCategoryId,
+      initialValue: _selectedCategoryId,
       style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
       decoration: InputDecoration(
         hintText: _categories.isEmpty ? 'Tidak ada kategori' : 'Pilih kategori keluhan',

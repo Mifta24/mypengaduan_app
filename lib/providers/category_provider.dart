@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/api_response.dart';
 import '../services/admin_service.dart';
-import '../services/auth_service.dart';
 
 class CategoryProvider extends ChangeNotifier {
   final AdminService _adminService;
-  final AuthService _authService;
 
-  CategoryProvider(this._authService) 
+  CategoryProvider()
       : _adminService = AdminService();
 
   List<dynamic> _categories = [];

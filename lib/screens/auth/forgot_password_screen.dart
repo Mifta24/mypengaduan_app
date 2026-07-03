@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
@@ -42,8 +43,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   void dispose() {
     _emailCtrl.dispose();
-    for (final c in _otpCtrls) c.dispose();
-    for (final f in _otpFocus) f.dispose();
+    for (final c in _otpCtrls) { c.dispose(); }
+    for (final f in _otpFocus) { f.dispose(); }
     _passCtrl.dispose();
     _passConfCtrl.dispose();
     _timer?.cancel();
@@ -101,7 +102,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (res['success'] == true) {
       _showSnack('Password berhasil direset! Silakan login.');
       await Future.delayed(const Duration(seconds: 1));
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } else {
       _showSnack(res['message'] ?? 'Gagal mereset password', error: true);
     }
@@ -116,7 +117,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _loading = false);
     if (res['success'] == true) {
       _startCountdown();
-      for (final c in _otpCtrls) c.clear();
+      for (final c in _otpCtrls) { c.clear(); }
       _otpFocus.first.requestFocus();
       _showSnack('Kode OTP baru telah dikirim');
     } else {
@@ -130,8 +131,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) { t.cancel(); return; }
       setState(() {
-        if (_countdown > 0) _countdown--;
-        else t.cancel();
+        if (_countdown > 0) { _countdown--; } else { t.cancel(); }
       });
     });
   }

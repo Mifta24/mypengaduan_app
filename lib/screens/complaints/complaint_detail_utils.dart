@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -132,7 +133,7 @@ void showComplaintFullImage(BuildContext context, String imageUrl) {
             top: 40,
             right: 20,
             child: IconButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               icon: const Icon(Icons.close, color: Colors.white, size: 32),
             ),
           ),
