@@ -23,12 +23,16 @@ class AuthProvider extends ChangeNotifier {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
       if (isLoggedIn) {
-        // Only load user from storage - DON'T verify with server to avoid lag
-        _user = await _authService.getUserFromStorage();
-        if (_user != null) {
-          _isAuthenticated = true;
-        } else {
+        final remembered = await _authService.getRememberMe();
+        if (!remembered) {
+          // User didn't ask to be remembered - require a fresh login every app launch.
+          await _authService.logout();
           _isAuthenticated = false;
+          _user = null;
+        } else {
+          // Only load user from storage - DON'T verify with server to avoid lag
+          _user = await _authService.getUserFromStorage();
+          _isAuthenticated = _user != null;
         }
       } else {
         _isAuthenticated = false;
@@ -45,7 +49,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Login
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {bool rememberMe = true}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -54,6 +58,7 @@ class AuthProvider extends ChangeNotifier {
       final response = await _authService.login(
         email: email,
         password: password,
+        rememberMe: rememberMe,
       );
 
       if (response.success && response.data != null) {

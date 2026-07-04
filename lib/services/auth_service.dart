@@ -89,6 +89,7 @@ class AuthService {
   Future<AuthResponse> login({
     required String email,
     required String password,
+    bool rememberMe = true,
   }) async {
     try {
       final response = await _dio.post('auth/login', data: {
@@ -114,6 +115,7 @@ class AuthService {
       if (authResponse.success && authResponse.data != null) {
         await _saveToken(authResponse.data!.token);
         await _saveUser(authResponse.data!.user);
+        await _saveRememberMe(rememberMe);
       }
 
       return authResponse;
@@ -491,11 +493,23 @@ class AuthService {
     }
   }
 
+  // Save remember-me preference
+  Future<void> _saveRememberMe(bool rememberMe) async {
+    await _storage.write(key: AppConfig.rememberMeKey, value: rememberMe.toString());
+  }
+
+  // Get remember-me preference (defaults to true for sessions saved before this setting existed)
+  Future<bool> getRememberMe() async {
+    final value = await _storage.read(key: AppConfig.rememberMeKey);
+    return value != 'false';
+  }
+
   // Clear storage
   Future<void> _clearStorage() async {
     await _storage.delete(key: AppConfig.tokenKey);
     await _storage.delete(key: AppConfig.userKey);
     await _storage.delete(key: AppConfig.fcmTokenKey);
+    await _storage.delete(key: AppConfig.rememberMeKey);
   }
 
   // Check if logged in

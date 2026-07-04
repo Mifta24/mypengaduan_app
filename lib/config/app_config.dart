@@ -21,6 +21,7 @@ class AppConfig {
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
   static const String fcmTokenKey = 'fcm_token';
+  static const String rememberMeKey = 'remember_me';
 
   // Notification Types
   static const String notificationComplaintCreated = 'complaint_created';
