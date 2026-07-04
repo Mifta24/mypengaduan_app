@@ -144,12 +144,14 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   _sectionLabel('Belum Dibaca', unread.length),
                   const SizedBox(height: 8),
                   ...unread.map((n) => _NotifCard(
+                        key: ValueKey(n.id),
                         notif: n,
                         onTap: () async {
                           final ctx = context;
                           await provider.markAsRead(n.id);
                           if (ctx.mounted) _navigateFromNotif(ctx, n);
                         },
+                        onDelete: () => _deleteNotification(context, n),
                       )),
                   const SizedBox(height: 16),
                 ],
@@ -157,8 +159,10 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   _sectionLabel('Sudah Dibaca', null),
                   const SizedBox(height: 8),
                   ...read.map((n) => _NotifCard(
+                        key: ValueKey(n.id),
                         notif: n,
                         onTap: () => _navigateFromNotif(context, n),
+                        onDelete: () => _deleteNotification(context, n),
                       )),
                 ],
               ],
@@ -245,6 +249,43 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     }
   }
 
+  Future<void> _deleteNotification(BuildContext context, NotificationModel notif) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Hapus Notifikasi?', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        content: Text('Notifikasi ini akan dihapus secara permanen.', style: GoogleFonts.nunito()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Batal', style: GoogleFonts.nunito()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final provider = context.read<NotificationProvider>();
+    final success = await provider.deleteNotification(notif.id);
+
+    if (!success && context.mounted) {
+      messenger.showSnackBar(SnackBar(
+        content: Text('Gagal menghapus notifikasi', style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+        backgroundColor: AppTheme.danger,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
+  }
+
   Future<void> _logout(BuildContext ctx) async {
     try { ctx.read<ComplaintProvider>().clear(); } catch (_) {}
     try { ctx.read<NotificationProvider>().clear(); } catch (_) {}
@@ -257,7 +298,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
 class _NotifCard extends StatelessWidget {
   final NotificationModel notif;
   final VoidCallback? onTap;
-  const _NotifCard({required this.notif, this.onTap});
+  final VoidCallback? onDelete;
+  const _NotifCard({super.key, required this.notif, this.onTap, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +307,24 @@ class _NotifCard extends StatelessWidget {
     final iconColor = _iconColor(notif.type);
     final iconBg   = iconColor.withValues(alpha: 0.12);
 
-    return GestureDetector(
+    return Dismissible(
+      key: key!,
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        onDelete?.call();
+        return false;
+      },
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: AppTheme.danger,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+      ),
+      child: GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -361,6 +420,7 @@ class _NotifCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

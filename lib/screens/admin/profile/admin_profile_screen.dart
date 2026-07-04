@@ -528,6 +528,12 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       child: Column(
         children: [
           _actionTile(
+            icon: Icons.lock_rounded,
+            label: 'Ubah Password',
+            onTap: () => context.push(AppRouter.changePassword),
+          ),
+          Divider(height: 1, indent: 64, color: AppTheme.border),
+          _actionTile(
             icon: Icons.notifications_outlined,
             label: 'Pengaturan Notifikasi',
             onTap: () => context.push(AppRouter.notificationSettings),

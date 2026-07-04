@@ -147,6 +147,23 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
+  // Delete a single notification
+  Future<bool> deleteNotification(int notificationId) async {
+    try {
+      final success = await _notificationService.deleteNotification(notificationId);
+
+      if (success) {
+        _notifications.removeWhere((n) => n.id == notificationId);
+        _unreadCount = _notifications.where((n) => !n.isRead).length;
+        notifyListeners();
+      }
+
+      return success;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Register FCM token
   Future<bool> registerFCMToken(String token) async {
     try {

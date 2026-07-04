@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -361,6 +362,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     hintText: '16 digit angka',
                                     icon: Icons.badge_outlined,
                                     keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(16),
+                                    ],
                                     validator: (v) {
                                       if (v == null || v.isEmpty) return 'NIK tidak boleh kosong';
                                       if (v.length != 16) return 'NIK harus 16 digit angka';
@@ -675,6 +680,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool obscureText = false,
     Widget? suffixIcon,
     int maxLines = 1,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
@@ -682,6 +688,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       maxLines: maxLines,
+      inputFormatters: inputFormatters,
       style: GoogleFonts.nunito(color: AppTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,

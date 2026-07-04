@@ -229,22 +229,6 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.push(AppRouter.createComplaint).then((result) {
-            if (result == true) _loadComplaints();
-          });
-        },
-        backgroundColor: AppTheme.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(
-          'Buat Pengaduan',
-          style: GoogleFonts.nunito(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
     );
   }
 

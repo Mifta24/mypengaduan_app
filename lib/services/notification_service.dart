@@ -250,6 +250,24 @@ class NotificationService {
     }
   }
 
+  // Delete a single notification
+  Future<bool> deleteNotification(int notificationId) async {
+    try {
+      final options = await _getOptions();
+      final response = await _dio.delete(
+        'notifications/$notificationId',
+        options: options,
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return data['success'] == true || data['success'] == 1;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Register FCM token
   Future<bool> registerFCMToken(String fcmToken) async {
     try {
