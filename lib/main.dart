@@ -88,6 +88,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   FCMService? _fcmService;
+  bool _wasAuthenticated = false;
 
   @override
   void initState() {
@@ -131,8 +132,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         // Listen ke perubahan auth — saat login berhasil, cek unread notif
         if (mounted) {
           final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          _wasAuthenticated = authProvider.isAuthenticated;
           authProvider.addListener(() {
-            if (authProvider.isAuthenticated) {
+            final isAuthenticated = authProvider.isAuthenticated;
+            // Hanya trigger saat transisi dari belum-login ke login,
+            // bukan setiap kali notifyListeners() dipanggil (mis. saat
+            // refreshProfile() pada app resume) — kalau tidak, notifikasi
+            // unread yang sama akan ditampilkan ulang berkali-kali.
+            if (isAuthenticated && !_wasAuthenticated) {
               // Delay sedikit agar token backend sudah terdaftar
               Future.delayed(const Duration(seconds: 2), () async {
                 // Re-register FCM token setelah login (penting untuk release APK
@@ -141,6 +148,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 _fcmService?.checkUnreadAndNotify();
               });
             }
+            _wasAuthenticated = isAuthenticated;
           });
         }
       }
