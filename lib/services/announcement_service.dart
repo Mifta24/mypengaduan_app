@@ -11,6 +11,7 @@ class AnnouncementService {
     baseUrl: AppConfig.baseUrl,
     connectTimeout: AppConfig.connectionTimeout,
     receiveTimeout: AppConfig.receiveTimeout,
+    headers: {'Accept': 'application/json'},
   ));
   final AuthService _authService = AuthService();
 

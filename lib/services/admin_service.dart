@@ -11,6 +11,7 @@ class AdminService {
     connectTimeout: AppConfig.connectionTimeout,
     receiveTimeout: AppConfig.receiveTimeout,
     contentType: 'application/json',
+    headers: {'Accept': 'application/json'},
   ))..interceptors.add(
     LogInterceptor(
       requestBody: true,

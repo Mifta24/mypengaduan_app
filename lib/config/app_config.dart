@@ -3,7 +3,7 @@ class AppConfig {
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
     // defaultValue: 'https://mypengaduan.miftahaldi.my.id/api/',
-    defaultValue: 'https://mypengaduan.miftahaldi.my.id/api/',
+    defaultValue: 'https://my-pengaduan.fts-tech.co.id/api/',
   );
 
   // App Configuration

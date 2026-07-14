@@ -14,6 +14,7 @@ class NotificationService {
     baseUrl: AppConfig.baseUrl,
     connectTimeout: AppConfig.connectionTimeout,
     receiveTimeout: const Duration(seconds: 30), // Reduced timeout for notifications
+    headers: {'Accept': 'application/json'},
   )) {
     // Add interceptor for debugging
     _dio.interceptors.add(InterceptorsWrapper(
