@@ -150,21 +150,24 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                     ),
                     // Leaf decorations
                     Positioned(
-                      top: 60, right: 20,
+                      top: 60,
+                      right: 20,
                       child: Transform.rotate(
                         angle: 0.3,
-                        child: Icon(Icons.eco_rounded, size: 36,
-                            color: AppTheme.primaryDark
-                                .withValues(alpha: 0.4)),
+                        child: Icon(Icons.eco_rounded,
+                            size: 36,
+                            color: AppTheme.primaryDark.withValues(alpha: 0.4)),
                       ),
                     ),
                     Positioned(
-                      top: 80, left: 14,
+                      top: 80,
+                      left: 14,
                       child: Transform.rotate(
                         angle: -0.5,
-                        child: Icon(Icons.eco_rounded, size: 24,
-                            color: AppTheme.primaryDark
-                                .withValues(alpha: 0.35)),
+                        child: Icon(Icons.eco_rounded,
+                            size: 24,
+                            color:
+                                AppTheme.primaryDark.withValues(alpha: 0.35)),
                       ),
                     ),
                     // Avatar + name
@@ -175,16 +178,17 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                           children: [
                             const SizedBox(height: 32),
                             Container(
-                              width: 64, height: 64,
+                              width: 64,
+                              height: 64,
                               decoration: BoxDecoration(
                                 color: AppTheme.secondary,
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: Colors.white, width: 2.5),
+                                border:
+                                    Border.all(color: Colors.white, width: 2.5),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary
-                                        .withValues(alpha: 0.4),
+                                    color:
+                                        AppTheme.primary.withValues(alpha: 0.4),
                                     blurRadius: 16,
                                   ),
                                 ],
@@ -192,28 +196,29 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                               child: ClipOval(
                                 child: _profileImage != null
                                     ? Image.file(_profileImage!,
-                                        width: 64, height: 64,
+                                        width: 64,
+                                        height: 64,
                                         fit: BoxFit.cover)
                                     : (!_removeAvatar &&
                                             widget.user.avatar != null
                                         ? Image.network(
                                             widget.user.avatar!,
-                                            width: 64, height: 64,
+                                            width: 64,
+                                            height: 64,
                                             fit: BoxFit.cover,
                                             errorBuilder: (_, __, ___) =>
                                                 Center(
-                                                  child: Text(
-                                                    widget.user.name.isNotEmpty
-                                                        ? widget.user.name[0]
-                                                            .toUpperCase()
-                                                        : 'A',
-                                                    style: GoogleFonts.nunito(
-                                                        fontSize: 26,
-                                                        fontWeight:
-                                                            FontWeight.w800,
-                                                        color: Colors.white),
-                                                  ),
-                                                ),
+                                              child: Text(
+                                                widget.user.name.isNotEmpty
+                                                    ? widget.user.name[0]
+                                                        .toUpperCase()
+                                                    : 'A',
+                                                style: GoogleFonts.nunito(
+                                                    fontSize: 26,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: Colors.white),
+                                              ),
+                                            ),
                                           )
                                         : Center(
                                             child: Text(
@@ -240,8 +245,7 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                             Text(widget.user.email,
                                 style: GoogleFonts.nunito(
                                     fontSize: 12,
-                                    color: Colors.white
-                                        .withValues(alpha: 0.7)),
+                                    color: Colors.white.withValues(alpha: 0.7)),
                                 textAlign: TextAlign.center),
                           ],
                         ),
@@ -254,8 +258,7 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
                         fontSize: 17)),
-                titlePadding:
-                    const EdgeInsets.only(left: 56, bottom: 16),
+                titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
                 collapseMode: CollapseMode.parallax,
               ),
             ),
@@ -331,8 +334,7 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                                     label: Text(
                                       'Hapus Foto',
                                       style: GoogleFonts.nunito(
-                                          fontSize: 13,
-                                          color: AppTheme.danger),
+                                          fontSize: 13, color: AppTheme.danger),
                                     ),
                                     style: OutlinedButton.styleFrom(
                                       side: const BorderSide(
@@ -365,10 +367,9 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                         label: 'Nama Lengkap',
                         icon: Icons.person_rounded,
                         hint: 'Masukkan nama lengkap',
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty)
-                                ? 'Nama tidak boleh kosong'
-                                : null,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Nama tidak boleh kosong'
+                            : null,
                       ),
                       const SizedBox(height: 14),
                       _buildReadonlyField(
@@ -478,7 +479,8 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                         onPressed: _isLoading ? null : _updateProfile,
                         icon: _isLoading
                             ? const SizedBox(
-                                width: 18, height: 18,
+                                width: 18,
+                                height: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
                                   valueColor: AlwaysStoppedAnimation<Color>(
@@ -566,12 +568,12 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
         ),
         filled: true,
         fillColor: Colors.white,
-        labelStyle: GoogleFonts.nunito(
-            fontSize: 13, color: AppTheme.textSecondary),
-        hintStyle: GoogleFonts.nunito(
-            fontSize: 13, color: AppTheme.textSecondary),
-        counterStyle: GoogleFonts.nunito(
-            fontSize: 11, color: AppTheme.textSecondary),
+        labelStyle:
+            GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary),
+        hintStyle:
+            GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary),
+        counterStyle:
+            GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppTheme.border),
@@ -617,8 +619,7 @@ class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
                 color: AppTheme.primary.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, size: 16,
-                  color: AppTheme.textSecondary),
+              child: Icon(icon, size: 16, color: AppTheme.textSecondary),
             ),
           ),
           Expanded(

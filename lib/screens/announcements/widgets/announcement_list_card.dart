@@ -186,8 +186,8 @@ class AnnouncementListCard extends StatelessWidget {
                             size: 14, color: AppTheme.textSecondary),
                         const SizedBox(width: 4),
                         Text(
-                          DateFormat('dd MMM yyyy', 'id_ID').format(
-                              a.publishedAt ?? a.createdAt),
+                          DateFormat('dd MMM yyyy', 'id_ID')
+                              .format(a.publishedAt ?? a.createdAt),
                           style: GoogleFonts.nunito(
                               fontSize: 12,
                               color: AppTheme.textSecondary,
@@ -217,9 +217,7 @@ class AnnouncementListCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      a.summary?.isNotEmpty == true
-                          ? a.summary!
-                          : a.content,
+                      a.summary?.isNotEmpty == true ? a.summary! : a.content,
                       style: GoogleFonts.nunito(
                           fontSize: 14,
                           color: AppTheme.textSecondary,
@@ -234,8 +232,7 @@ class AnnouncementListCard extends StatelessWidget {
                       children: [
                         Text('Target: ',
                             style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                color: AppTheme.textSecondary)),
+                                fontSize: 12, color: AppTheme.textSecondary)),
                         Text(
                           a.targetAudience?.join(', ') ?? 'Semua Warga',
                           style: GoogleFonts.nunito(

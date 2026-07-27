@@ -56,15 +56,23 @@ class _AddUserScreenState extends State<AddUserScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: Text('Tambah Pengguna', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        title: Text('Tambah Pengguna',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         actions: [
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
             )
           else
-            IconButton(icon: const Icon(Icons.check_rounded), onPressed: _handleSubmit, tooltip: 'Simpan'),
+            IconButton(
+                icon: const Icon(Icons.check_rounded),
+                onPressed: _handleSubmit,
+                tooltip: 'Simpan'),
         ],
       ),
       body: ListView(
@@ -72,24 +80,28 @@ class _AddUserScreenState extends State<AddUserScreen> {
         children: [
           TextField(
             controller: _nameController,
-            decoration: userFormFieldDecoration(label: 'Nama Lengkap*', errorText: _fieldErrors['name']),
+            decoration: userFormFieldDecoration(
+                label: 'Nama Lengkap*', errorText: _fieldErrors['name']),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _emailController,
-            decoration: userFormFieldDecoration(label: 'Email*', errorText: _fieldErrors['email']),
+            decoration: userFormFieldDecoration(
+                label: 'Email*', errorText: _fieldErrors['email']),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _passwordController,
             obscureText: true,
             onChanged: (_) => setState(() {}),
-            decoration: userFormFieldDecoration(label: 'Password*', errorText: _fieldErrors['password']),
+            decoration: userFormFieldDecoration(
+                label: 'Password*', errorText: _fieldErrors['password']),
           ),
           const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('Kekuatan password: $strengthLabel', style: TextStyle(fontSize: 12, color: strengthColor)),
+            child: Text('Kekuatan password: $strengthLabel',
+                style: TextStyle(fontSize: 12, color: strengthColor)),
           ),
           const SizedBox(height: 4),
           ClipRRect(
@@ -107,22 +119,26 @@ class _AddUserScreenState extends State<AddUserScreen> {
             obscureText: true,
             onChanged: (_) => setState(() {}),
             decoration: userFormFieldDecoration(
-                label: 'Konfirmasi Password*', errorText: _fieldErrors['password_confirmation']),
+                label: 'Konfirmasi Password*',
+                errorText: _fieldErrors['password_confirmation']),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _phoneController,
-            decoration: userFormFieldDecoration(label: 'Nomor Telepon', errorText: _fieldErrors['phone']),
+            decoration: userFormFieldDecoration(
+                label: 'Nomor Telepon', errorText: _fieldErrors['phone']),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _addressController,
-            decoration: userFormFieldDecoration(label: 'Alamat', errorText: _fieldErrors['address']),
+            decoration: userFormFieldDecoration(
+                label: 'Alamat', errorText: _fieldErrors['address']),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _nikController,
-            decoration: userFormFieldDecoration(label: 'NIK', errorText: _fieldErrors['nik']),
+            decoration: userFormFieldDecoration(
+                label: 'NIK', errorText: _fieldErrors['nik']),
           ),
           const SizedBox(height: 10),
           Row(
@@ -130,14 +146,20 @@ class _AddUserScreenState extends State<AddUserScreen> {
               Expanded(
                 child: TextField(
                   controller: _rtController,
-                  decoration: userFormFieldDecoration(label: 'RT', errorText: _fieldErrors['rt_number'] ?? _fieldErrors['rt']),
+                  decoration: userFormFieldDecoration(
+                      label: 'RT',
+                      errorText:
+                          _fieldErrors['rt_number'] ?? _fieldErrors['rt']),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
                   controller: _rwController,
-                  decoration: userFormFieldDecoration(label: 'RW', errorText: _fieldErrors['rw_number'] ?? _fieldErrors['rw']),
+                  decoration: userFormFieldDecoration(
+                      label: 'RW',
+                      errorText:
+                          _fieldErrors['rw_number'] ?? _fieldErrors['rw']),
                 ),
               ),
             ],
@@ -158,14 +180,20 @@ class _AddUserScreenState extends State<AddUserScreen> {
           ElevatedButton.icon(
             onPressed: _isLoading ? null : _handleSubmit,
             icon: _isLoading
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.save_rounded, size: 18),
-            label: Text(_isLoading ? 'Menyimpan...' : 'Simpan Pengguna', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+            label: Text(_isLoading ? 'Menyimpan...' : 'Simpan Pengguna',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
@@ -211,7 +239,9 @@ class _AddUserScreenState extends State<AddUserScreen> {
           ..addAll(localErrors);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Periksa kembali input form'), backgroundColor: AppTheme.danger),
+        const SnackBar(
+            content: Text('Periksa kembali input form'),
+            backgroundColor: AppTheme.danger),
       );
       return;
     }
@@ -240,7 +270,9 @@ class _AddUserScreenState extends State<AddUserScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(response.message.isEmpty ? 'Gagal membuat pengguna' : response.message),
+              content: Text(response.message.isEmpty
+                  ? 'Gagal membuat pengguna'
+                  : response.message),
               backgroundColor: AppTheme.danger,
             ),
           );
@@ -254,7 +286,8 @@ class _AddUserScreenState extends State<AddUserScreen> {
         final rawData = response.data;
         if (rawData is Map) {
           final rawId = rawData['id'];
-          final numId = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
+          final numId =
+              rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
           if (numId != null && numId > 0) {
             try {
               await _adminService.changeUserRole(numId, 'admin');
@@ -283,27 +316,33 @@ class _AddUserScreenState extends State<AddUserScreen> {
             ..addAll(parsed);
         });
       }
-      final fallbackMessage = _extractCreateGeneralMessage(e.response?.data) ?? 'Gagal buat pengguna';
+      final fallbackMessage = _extractCreateGeneralMessage(e.response?.data) ??
+          'Gagal buat pengguna';
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(fallbackMessage), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text(fallbackMessage), backgroundColor: AppTheme.danger),
         );
       }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal buat pengguna: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal buat pengguna: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
   }
 
-  bool _isValidEmail(String email) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+  bool _isValidEmail(String email) =>
+      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
 
   bool _isStrongPassword(String password) {
     if (password.length < 8) return false;
-    return RegExp(r'[A-Za-z]').hasMatch(password) && RegExp(r'[0-9]').hasMatch(password);
+    return RegExp(r'[A-Za-z]').hasMatch(password) &&
+        RegExp(r'[0-9]').hasMatch(password);
   }
 
   double _calcPasswordStrength(String password) {
@@ -311,7 +350,8 @@ class _AddUserScreenState extends State<AddUserScreen> {
     var score = 0.0;
     if (password.length >= 8) score += 0.35;
     if (password.length >= 12) score += 0.15;
-    if (RegExp(r'[A-Z]').hasMatch(password) && RegExp(r'[a-z]').hasMatch(password)) score += 0.2;
+    if (RegExp(r'[A-Z]').hasMatch(password) &&
+        RegExp(r'[a-z]').hasMatch(password)) score += 0.2;
     if (RegExp(r'[0-9]').hasMatch(password)) score += 0.15;
     if (RegExp(r'[^A-Za-z0-9]').hasMatch(password)) score += 0.15;
     return score.clamp(0.0, 1.0);

@@ -31,13 +31,20 @@ class ComplaintStatusDropdown extends StatelessWidget {
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          hint: Text(hint, style: GoogleFonts.nunito(fontSize: 13, color: Colors.grey.shade500)),
+          hint: Text(hint,
+              style: GoogleFonts.nunito(
+                  fontSize: 13, color: Colors.grey.shade500)),
           style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary),
           icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
           items: [
-            DropdownMenuItem(value: null, child: Text(hint, style: GoogleFonts.nunito(fontSize: 13))),
+            DropdownMenuItem(
+                value: null,
+                child: Text(hint, style: GoogleFonts.nunito(fontSize: 13))),
             ...items.entries.map(
-              (e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: GoogleFonts.nunito(fontSize: 13))),
+              (e) => DropdownMenuItem(
+                  value: e.key,
+                  child:
+                      Text(e.value, style: GoogleFonts.nunito(fontSize: 13))),
             ),
           ],
           onChanged: onChanged,

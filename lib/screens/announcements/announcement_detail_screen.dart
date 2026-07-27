@@ -66,8 +66,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoadingComments = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat komentar: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Gagal memuat komentar: $e')));
     }
   }
 
@@ -76,8 +76,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       final bookmarked =
           await _announcementService.getBookmarkedAnnouncements();
       if (!mounted) return;
-      setState(() =>
-          _isBookmarked = bookmarked.any((b) => b.id == widget.announcement.id));
+      setState(() => _isBookmarked =
+          bookmarked.any((b) => b.id == widget.announcement.id));
     } catch (_) {}
   }
 
@@ -204,7 +204,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           children: [
             Center(
               child: InteractiveViewer(
-                child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
+                child:
+                    CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
               ),
             ),
             Positioned(

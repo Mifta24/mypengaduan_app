@@ -40,15 +40,15 @@ class ReportsProvider extends ChangeNotifier {
   ReportsProvider() {
     // Tanpa batasan tanggal default — tampilkan semua data
     complaintFromDate = null;
-    complaintToDate   = null;
-    userFromDate      = null;
-    userToDate        = null;
+    complaintToDate = null;
+    userFromDate = null;
+    userToDate = null;
 
     if (_hasLoadedDataGlobally && _cachedComplaintItems.isNotEmpty) {
-      overview   = _cachedOverview;
+      overview = _cachedOverview;
       statistics = _cachedStatistics;
       complaintItems = List.of(_cachedComplaintItems);
-      userItems      = List.of(_cachedUserItems);
+      userItems = List.of(_cachedUserItems);
       _applyComplaintFilterLocal();
       _applyUserFilterLocal();
       hasLoadedData = true;
@@ -65,20 +65,22 @@ class ReportsProvider extends ChangeNotifier {
   }) async {
     if (_hasLoadedDataGlobally && !forceRefresh) return;
 
-    final dateFromStr = dateFrom != null ? DateFormat('yyyy-MM-dd').format(dateFrom) : null;
-    final dateToStr   = dateTo   != null ? DateFormat('yyyy-MM-dd').format(dateTo)   : null;
+    final dateFromStr =
+        dateFrom != null ? DateFormat('yyyy-MM-dd').format(dateFrom) : null;
+    final dateToStr =
+        dateTo != null ? DateFormat('yyyy-MM-dd').format(dateTo) : null;
 
     final payload = await _reportsService.fetchReportsData(
       dateFrom: dateFromStr,
-      dateTo:   dateToStr,
+      dateTo: dateToStr,
     );
 
-    overview   = payload['overview']   as Map<String, dynamic>?;
+    overview = payload['overview'] as Map<String, dynamic>?;
     statistics = payload['statistics'] as Map<String, dynamic>?;
 
     // Items sudah di-flatten oleh _fetchAllPages di service
     final rawComplaints = payload['complaintItems'];
-    final rawUsers      = payload['userItems'];
+    final rawUsers = payload['userItems'];
 
     complaintItems = (rawComplaints is List ? rawComplaints : <dynamic>[])
         .whereType<Map>()
@@ -92,10 +94,10 @@ class ReportsProvider extends ChangeNotifier {
         .toList();
 
     // Simpan ke cache
-    _cachedOverview        = overview;
-    _cachedStatistics      = statistics;
-    _cachedComplaintItems  = List.of(complaintItems);
-    _cachedUserItems       = List.of(userItems);
+    _cachedOverview = overview;
+    _cachedStatistics = statistics;
+    _cachedComplaintItems = List.of(complaintItems);
+    _cachedUserItems = List.of(userItems);
     _hasLoadedDataGlobally = true;
 
     _applyComplaintFilterLocal();
@@ -107,10 +109,11 @@ class ReportsProvider extends ChangeNotifier {
   void _applyComplaintFilterLocal() {
     filteredComplaintItems = complaintItems.where((item) {
       final created = _parseDate(item['created_at']);
-      final from    = complaintFromDate;
-      final to      = complaintToDate;
+      final from = complaintFromDate;
+      final to = complaintToDate;
 
-      if (from != null && created != null &&
+      if (from != null &&
+          created != null &&
           created.isBefore(DateTime(from.year, from.month, from.day))) {
         return false;
       }
@@ -119,7 +122,8 @@ class ReportsProvider extends ChangeNotifier {
         if (created.isAfter(end)) return false;
       }
       if (complaintStatusFilter != 'all') {
-        final normalized = _normalizeComplaintStatus(item['status']?.toString() ?? '');
+        final normalized =
+            _normalizeComplaintStatus(item['status']?.toString() ?? '');
         if (normalized != complaintStatusFilter) return false;
       }
       if (complaintCategoryFilter != 'all') {
@@ -130,8 +134,10 @@ class ReportsProvider extends ChangeNotifier {
     }).toList();
 
     filteredComplaintItems.sort((a, b) {
-      final ad = _parseDate(a['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bd = _parseDate(b['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final ad =
+          _parseDate(a['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bd =
+          _parseDate(b['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
       return bd.compareTo(ad);
     });
 
@@ -147,10 +153,11 @@ class ReportsProvider extends ChangeNotifier {
 
     filteredUserItems = userItems.where((item) {
       final created = _parseDate(item['created_at']);
-      final from    = userFromDate;
-      final to      = userToDate;
+      final from = userFromDate;
+      final to = userToDate;
 
-      if (from != null && created != null &&
+      if (from != null &&
+          created != null &&
           created.isBefore(DateTime(from.year, from.month, from.day))) {
         return false;
       }
@@ -160,11 +167,11 @@ class ReportsProvider extends ChangeNotifier {
       }
       if (userStatusFilter != 'all') {
         final isActive = _toBool(item['is_active']);
-        if (userStatusFilter == 'active'   && !isActive) return false;
-        if (userStatusFilter == 'inactive' &&  isActive) return false;
+        if (userStatusFilter == 'active' && !isActive) return false;
+        if (userStatusFilter == 'inactive' && isActive) return false;
       }
       if (search.isNotEmpty) {
-        final name  = (item['name']?.toString()  ?? '').toLowerCase();
+        final name = (item['name']?.toString() ?? '').toLowerCase();
         final email = (item['email']?.toString() ?? '').toLowerCase();
         if (!name.contains(search) && !email.contains(search)) return false;
       }
@@ -172,13 +179,16 @@ class ReportsProvider extends ChangeNotifier {
     }).toList();
 
     filteredUserItems.sort((a, b) {
-      final ad = _parseDate(a['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bd = _parseDate(b['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final ad =
+          _parseDate(a['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bd =
+          _parseDate(b['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
       return bd.compareTo(ad);
     });
   }
 
-  Future<String> exportReport(String type, String format, {String period = 'all'}) async {
+  Future<String> exportReport(String type, String format,
+      {String period = 'all'}) async {
     final exportItems = await _reportsService.fetchExportData(
       type: type,
       period: period,
@@ -194,10 +204,10 @@ class ReportsProvider extends ChangeNotifier {
 
     return _reportsService.exportReport(
       reportType: type,
-      format:     format,
-      title:      _reportTitle(type),
-      headers:    _buildReportHeaders(type),
-      rows:       rows,
+      format: format,
+      title: _reportTitle(type),
+      headers: _buildReportHeaders(type),
+      rows: rows,
     );
   }
 
@@ -239,25 +249,29 @@ class ReportsProvider extends ChangeNotifier {
     return set.toList()..sort();
   }
 
-  String normalizeComplaintStatus(String status) => _normalizeComplaintStatus(status);
-  String complaintCategoryName(Map<String, dynamic> c) => _complaintCategoryName(c);
+  String normalizeComplaintStatus(String status) =>
+      _normalizeComplaintStatus(status);
+  String complaintCategoryName(Map<String, dynamic> c) =>
+      _complaintCategoryName(c);
 
   String complaintUserName(Map<String, dynamic> complaint) {
     final user = complaint['user'];
     if (user is Map) return user['name']?.toString() ?? '-';
-    return complaint['user_name']?.toString()
-        ?? complaint['complainant_name']?.toString()
-        ?? '-';
+    return complaint['user_name']?.toString() ??
+        complaint['complainant_name']?.toString() ??
+        '-';
   }
 
-  DateTime? parseDate(dynamic value)  => _parseDate(value);
-  bool      toBool(dynamic value)     => _toBool(value);
-  int       toInt(dynamic value)      => _toInt(value);
+  DateTime? parseDate(dynamic value) => _parseDate(value);
+  bool toBool(dynamic value) => _toBool(value);
+  int toInt(dynamic value) => _toInt(value);
 
-  String firstString(Map<String, dynamic> source, List<String> keys, {String fallback = '-'}) {
+  String firstString(Map<String, dynamic> source, List<String> keys,
+      {String fallback = '-'}) {
     for (final key in keys) {
       final value = source[key];
-      if (value != null && value.toString().trim().isNotEmpty) return value.toString();
+      if (value != null && value.toString().trim().isNotEmpty)
+        return value.toString();
     }
     return fallback;
   }
@@ -265,37 +279,58 @@ class ReportsProvider extends ChangeNotifier {
   // ─── Private helpers ───────────────────────────────────────────────────────
 
   int _toInt(dynamic value) {
-    if (value is int)    return value;
-    if (value is num)    return value.toInt();
+    if (value is int) return value;
+    if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value) ?? 0;
     return 0;
   }
 
   String _reportTitle(String type) {
     switch (type) {
-      case 'complaints': return 'Laporan Keluhan';
-      case 'users':      return 'Laporan Pengguna';
-      default:           return 'Laporan';
+      case 'complaints':
+        return 'Laporan Keluhan';
+      case 'users':
+        return 'Laporan Pengguna';
+      default:
+        return 'Laporan';
     }
   }
 
   List<String> _buildReportHeaders(String type) {
     switch (type) {
       case 'complaints':
-        return ['No', 'Judul', 'Status', 'Kategori', 'Pelapor', 'Lokasi', 'Prioritas', 'Dibuat'];
+        return [
+          'No',
+          'Judul',
+          'Status',
+          'Kategori',
+          'Pelapor',
+          'Lokasi',
+          'Prioritas',
+          'Dibuat'
+        ];
       case 'users':
-        return ['No', 'Nama', 'Email', 'Telepon', 'Status', 'Jumlah Keluhan',
-                'Bergabung', 'Verifikasi Email'];
+        return [
+          'No',
+          'Nama',
+          'Email',
+          'Telepon',
+          'Status',
+          'Jumlah Keluhan',
+          'Bergabung',
+          'Verifikasi Email'
+        ];
       default:
         return ['No', 'Data'];
     }
   }
 
-  List<List<String>> _buildComplaintRowsFromList(List<Map<String, dynamic>> source) {
+  List<List<String>> _buildComplaintRowsFromList(
+      List<Map<String, dynamic>> source) {
     return source.asMap().entries.map((entry) {
-      final c       = entry.value;
+      final c = entry.value;
       final created = _parseDate(c['created_at']);
-      final status  = _normalizeComplaintStatus(c['status']?.toString() ?? '');
+      final status = _normalizeComplaintStatus(c['status']?.toString() ?? '');
       return [
         '${entry.key + 1}',
         c['title']?.toString() ?? c['description']?.toString() ?? '-',
@@ -311,12 +346,13 @@ class ReportsProvider extends ChangeNotifier {
 
   List<List<String>> _buildUserRowsFromList(List<Map<String, dynamic>> source) {
     return source.asMap().entries.map((entry) {
-      final u             = entry.value;
-      final created       = _parseDate(u['created_at']);
-      final emailVerified = _toBool(u['is_email_verified']) || u['email_verified_at'] != null;
+      final u = entry.value;
+      final created = _parseDate(u['created_at']);
+      final emailVerified =
+          _toBool(u['is_email_verified']) || u['email_verified_at'] != null;
       return [
         '${entry.key + 1}',
-        u['name']?.toString()  ?? '-',
+        u['name']?.toString() ?? '-',
         u['email']?.toString() ?? '-',
         u['phone']?.toString() ?? '-',
         _toBool(u['is_active']) ? 'Aktif' : 'Tidak Aktif',
@@ -330,9 +366,9 @@ class ReportsProvider extends ChangeNotifier {
   String _complaintCategoryName(Map<String, dynamic> complaint) {
     final category = complaint['category'];
     if (category is Map) return category['name']?.toString() ?? '-';
-    return complaint['category_name']?.toString()
-        ?? complaint['category']?.toString()
-        ?? '-';
+    return complaint['category_name']?.toString() ??
+        complaint['category']?.toString() ??
+        '-';
   }
 
   String _normalizeComplaintStatus(String status) {
@@ -344,11 +380,16 @@ class ReportsProvider extends ChangeNotifier {
 
   String _statusText(String normalized) {
     switch (normalized) {
-      case 'pending':     return 'Pending';
-      case 'in_progress': return 'Dalam Proses';
-      case 'resolved':    return 'Selesai';
-      case 'rejected':    return 'Ditolak';
-      default:            return normalized;
+      case 'pending':
+        return 'Pending';
+      case 'in_progress':
+        return 'Dalam Proses';
+      case 'resolved':
+        return 'Selesai';
+      case 'rejected':
+        return 'Ditolak';
+      default:
+        return normalized;
     }
   }
 
@@ -359,8 +400,8 @@ class ReportsProvider extends ChangeNotifier {
   }
 
   bool _toBool(dynamic value) {
-    if (value is bool)   return value;
-    if (value is int)    return value == 1;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
     if (value is String) {
       final s = value.toLowerCase();
       return s == '1' || s == 'true' || s == 'yes' || s == 'aktif';

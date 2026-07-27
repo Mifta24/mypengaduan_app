@@ -132,8 +132,19 @@ class DashboardAnnouncementCarousel extends StatelessWidget {
 
   String _monthName(int month) {
     const names = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
     ];
     return names[month];
   }
@@ -280,8 +291,7 @@ class DashboardQuickActionsGrid extends StatelessWidget {
         label: 'Lapor\nKeluhan',
         color: AppTheme.primary,
         onTap: () {
-          final user =
-              Provider.of<AuthProvider>(context, listen: false).user;
+          final user = Provider.of<AuthProvider>(context, listen: false).user;
           if (user != null && !user.isUserVerified) {
             showUnverifiedDialog(context);
             return;
@@ -308,10 +318,10 @@ class DashboardQuickActionsGrid extends StatelessWidget {
         onTap: () => context.push(AppRouter.faq),
       ),
       _QuickAction(
-        icon: Icons.campaign_rounded,
-        label: 'Informasi\nPublik',
+        icon: Icons.public_rounded,
+        label: 'Pengaduan\nPublik',
         color: AppTheme.primary,
-        onTap: () => context.push(AppRouter.announcementsList),
+        onTap: () => context.push(AppRouter.publicComplaints),
       ),
       _QuickAction(
         icon: Icons.phone_rounded,
@@ -371,10 +381,10 @@ class DashboardCategoryChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const categories = [
-      (Icons.construction_rounded,      'Jalan &\nInfrastruktur', AppTheme.primary),
-      (Icons.cleaning_services_rounded, 'Kebersihan',             AppTheme.secondary),
-      (Icons.assignment_rounded,        'Perizinan',              AppTheme.primaryDark),
-      (Icons.category_rounded,          'Lainnya',                AppTheme.accent),
+      (Icons.construction_rounded, 'Jalan &\nInfrastruktur', AppTheme.primary),
+      (Icons.cleaning_services_rounded, 'Kebersihan', AppTheme.secondary),
+      (Icons.assignment_rounded, 'Perizinan', AppTheme.primaryDark),
+      (Icons.category_rounded, 'Lainnya', AppTheme.accent),
     ];
 
     return SingleChildScrollView(

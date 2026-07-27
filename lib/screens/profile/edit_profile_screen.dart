@@ -232,7 +232,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       decoration: AppTheme.inputDecoration(
                         label: 'Email',
                         prefixIcon: const Icon(Icons.email),
-                        helperText: 'Alamat email tidak dapat diubah dari aplikasi',
+                        helperText:
+                            'Alamat email tidak dapat diubah dari aplikasi',
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -415,7 +416,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 8),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.badge, color: AppTheme.success),
+                        leading:
+                            const Icon(Icons.badge, color: AppTheme.success),
                         title: Text(
                           'KTP ${user.name}',
                           style: GoogleFonts.nunito(

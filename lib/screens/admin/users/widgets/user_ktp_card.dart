@@ -15,7 +15,8 @@ class UserKtpCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (ktpUrl.isEmpty) {
-      return const UserDetailEmptyTile(title: 'KTP Tidak Ada', subtitle: 'Foto KTP belum diunggah.');
+      return const UserDetailEmptyTile(
+          title: 'KTP Tidak Ada', subtitle: 'Foto KTP belum diunggah.');
     }
 
     return Container(
@@ -36,17 +37,22 @@ class UserKtpCard extends StatelessWidget {
               errorBuilder: (_, __, ___) => Container(
                 height: 150,
                 color: Colors.grey.shade100,
-                child: const Center(child: Icon(Icons.broken_image_rounded, size: 40, color: Colors.grey)),
+                child: const Center(
+                    child: Icon(Icons.broken_image_rounded,
+                        size: 40, color: Colors.grey)),
               ),
             ),
           ),
           InkWell(
             onTap: () => _showKtpImage(context, ktpUrl, 'KTP $userName'),
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+            borderRadius:
+                const BorderRadius.vertical(bottom: Radius.circular(12)),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               alignment: Alignment.center,
-              child: Text('Lihat Ukuran Penuh', style: GoogleFonts.nunito(color: AppTheme.primary, fontWeight: FontWeight.w700)),
+              child: Text('Lihat Ukuran Penuh',
+                  style: GoogleFonts.nunito(
+                      color: AppTheme.primary, fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -65,8 +71,12 @@ class UserKtpCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold))),
-                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                  Expanded(
+                      child: Text(title,
+                          style: const TextStyle(fontWeight: FontWeight.bold))),
+                  IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close)),
                 ],
               ),
             ),

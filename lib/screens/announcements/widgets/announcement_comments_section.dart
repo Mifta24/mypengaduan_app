@@ -77,8 +77,7 @@ class AnnouncementCommentsSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: comments.length,
               separatorBuilder: (_, __) => const Divider(height: 24),
-              itemBuilder: (_, index) =>
-                  _CommentItem(comment: comments[index]),
+              itemBuilder: (_, index) => _CommentItem(comment: comments[index]),
             ),
         ],
       ),
@@ -207,8 +206,8 @@ class AnnouncementCommentInput extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               style: GoogleFonts.nunito(
                   fontSize: 14, color: const Color(0xFF374151)),

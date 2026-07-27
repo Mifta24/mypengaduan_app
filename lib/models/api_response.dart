@@ -60,8 +60,8 @@ class PaginatedResponse<T> {
             .map((item) => fromJsonT(item))
             .toList(),
         unreadCount: json['unread_count'] != null
-            ? (json['unread_count'] is int 
-                ? json['unread_count'] as int 
+            ? (json['unread_count'] is int
+                ? json['unread_count'] as int
                 : int.tryParse(json['unread_count'].toString()))
             : null,
       );
@@ -75,10 +75,10 @@ class PaginatedResponse<T> {
 
 class PaginationMeta {
   final int currentPage;
-  final int? from;  // Made nullable - can be null when no data
+  final int? from; // Made nullable - can be null when no data
   final int lastPage;
   final int perPage;
-  final int? to;    // Made nullable - can be null when no data
+  final int? to; // Made nullable - can be null when no data
   final int total;
 
   PaginationMeta({
@@ -97,7 +97,9 @@ class PaginationMeta {
             ? json['current_page'] as int
             : int.tryParse(json['current_page']?.toString() ?? '') ?? 1,
         from: json['from'] != null
-            ? (json['from'] is int ? json['from'] as int : int.tryParse(json['from'].toString()))
+            ? (json['from'] is int
+                ? json['from'] as int
+                : int.tryParse(json['from'].toString()))
             : null,
         lastPage: json['last_page'] is int
             ? json['last_page'] as int
@@ -106,7 +108,9 @@ class PaginationMeta {
             ? json['per_page'] as int
             : int.tryParse(json['per_page']?.toString() ?? '') ?? 20,
         to: json['to'] != null
-            ? (json['to'] is int ? json['to'] as int : int.tryParse(json['to'].toString()))
+            ? (json['to'] is int
+                ? json['to'] as int
+                : int.tryParse(json['to'].toString()))
             : null,
         total: json['total'] is int
             ? json['total'] as int

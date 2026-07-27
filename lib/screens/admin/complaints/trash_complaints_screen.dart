@@ -10,10 +10,12 @@ class AdminTrashComplaintsScreen extends StatefulWidget {
   const AdminTrashComplaintsScreen({super.key});
 
   @override
-  State<AdminTrashComplaintsScreen> createState() => _AdminTrashComplaintsScreenState();
+  State<AdminTrashComplaintsScreen> createState() =>
+      _AdminTrashComplaintsScreenState();
 }
 
-class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen> {
+class _AdminTrashComplaintsScreenState
+    extends State<AdminTrashComplaintsScreen> {
   final AdminService _adminService = AdminService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -43,7 +45,10 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients || _isLoading || _isLoadingMore || !_hasMorePages) return;
+    if (!_scrollController.hasClients ||
+        _isLoading ||
+        _isLoadingMore ||
+        !_hasMorePages) return;
 
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 120) {
@@ -76,8 +81,10 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
       );
 
       final rows = (response['data'] as List?) ?? const [];
-      final currentPage = _toInt(response['current_page'] ?? response['meta']?['current_page']);
-      final lastPage = _toInt(response['last_page'] ?? response['meta']?['last_page']);
+      final currentPage =
+          _toInt(response['current_page'] ?? response['meta']?['current_page']);
+      final lastPage =
+          _toInt(response['last_page'] ?? response['meta']?['last_page']);
       final total = _toInt(response['total'] ?? response['meta']?['total']);
 
       if (!mounted) return;
@@ -103,7 +110,9 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
         _isLoadingMore = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat trash complaints: $e'), backgroundColor: AppTheme.danger),
+        SnackBar(
+            content: Text('Gagal memuat trash complaints: $e'),
+            backgroundColor: AppTheme.danger),
       );
     }
   }
@@ -122,12 +131,16 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
       await _loadTrashedComplaints(reset: true);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengaduan berhasil direstore'), backgroundColor: AppTheme.success),
+        const SnackBar(
+            content: Text('Pengaduan berhasil direstore'),
+            backgroundColor: AppTheme.success),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal restore: $e'), backgroundColor: AppTheme.danger),
+        SnackBar(
+            content: Text('Gagal restore: $e'),
+            backgroundColor: AppTheme.danger),
       );
     }
   }
@@ -136,7 +149,8 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
     final confirmed = await showAdminConfirmDialog(
       context,
       title: 'Hapus Permanen',
-      message: 'Data akan dihapus permanen dan tidak bisa dikembalikan. Lanjutkan?',
+      message:
+          'Data akan dihapus permanen dan tidak bisa dikembalikan. Lanjutkan?',
       confirmText: 'Hapus Permanen',
     );
     if (!confirmed) return;
@@ -146,12 +160,16 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
       await _loadTrashedComplaints(reset: true);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengaduan dihapus permanen'), backgroundColor: AppTheme.success),
+        const SnackBar(
+            content: Text('Pengaduan dihapus permanen'),
+            backgroundColor: AppTheme.success),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal hapus permanen: $e'), backgroundColor: AppTheme.danger),
+        SnackBar(
+            content: Text('Gagal hapus permanen: $e'),
+            backgroundColor: AppTheme.danger),
       );
     }
   }
@@ -241,13 +259,15 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                     : ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.all(16),
-                        itemCount: _items.length + (_hasMorePages || _isLoadingMore ? 1 : 0),
+                        itemCount: _items.length +
+                            (_hasMorePages || _isLoadingMore ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index >= _items.length) {
                             if (_isLoadingMore) {
                               return const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 12),
-                                child: Center(child: CircularProgressIndicator()),
+                                child:
+                                    Center(child: CircularProgressIndicator()),
                               );
                             }
 
@@ -255,7 +275,8 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Center(
                                 child: OutlinedButton(
-                                  onPressed: () => _loadTrashedComplaints(reset: false),
+                                  onPressed: () =>
+                                      _loadTrashedComplaints(reset: false),
                                   child: const Text('Muat Lebih Banyak'),
                                 ),
                               ),
@@ -264,7 +285,9 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
 
                           final item = _items[index] as Map;
                           final id = _toInt(item['id']);
-                          final title = item['title']?.toString() ?? item['description']?.toString() ?? 'Tanpa Judul';
+                          final title = item['title']?.toString() ??
+                              item['description']?.toString() ??
+                              'Tanpa Judul';
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
@@ -283,29 +306,40 @@ class _AdminTrashComplaintsScreenState extends State<AdminTrashComplaintsScreen>
                                   overflow: TextOverflow.ellipsis),
                               subtitle: Text('ID: $id',
                                   style: GoogleFonts.nunito(
-                                      fontSize: 11, color: AppTheme.textSecondary)),
+                                      fontSize: 11,
+                                      color: AppTheme.textSecondary)),
                               trailing: Wrap(
                                 spacing: 8,
                                 children: [
                                   OutlinedButton(
-                                    onPressed: id > 0 ? () => _restore(id) : null,
+                                    onPressed:
+                                        id > 0 ? () => _restore(id) : null,
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: AppTheme.primary,
-                                      side: const BorderSide(color: AppTheme.primary),
+                                      side: const BorderSide(
+                                          color: AppTheme.primary),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12)),
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
                                     ),
-                                    child: Text('Restore', style: GoogleFonts.nunito(fontSize: 12)),
+                                    child: Text('Restore',
+                                        style:
+                                            GoogleFonts.nunito(fontSize: 12)),
                                   ),
                                   OutlinedButton(
-                                    onPressed: id > 0 ? () => _forceDelete(id) : null,
+                                    onPressed:
+                                        id > 0 ? () => _forceDelete(id) : null,
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: AppTheme.danger,
-                                      side: const BorderSide(color: AppTheme.danger),
+                                      side: const BorderSide(
+                                          color: AppTheme.danger),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12)),
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
                                     ),
-                                    child: Text('Hapus Permanen', style: GoogleFonts.nunito(fontSize: 12)),
+                                    child: Text('Hapus Permanen',
+                                        style:
+                                            GoogleFonts.nunito(fontSize: 12)),
                                   ),
                                 ],
                               ),

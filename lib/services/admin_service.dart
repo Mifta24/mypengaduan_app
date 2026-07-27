@@ -12,15 +12,16 @@ class AdminService {
     receiveTimeout: AppConfig.receiveTimeout,
     contentType: 'application/json',
     headers: {'Accept': 'application/json'},
-  ))..interceptors.add(
-    LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      error: true,
-      requestHeader: true,
-      responseHeader: false,
-    ),
-  );
+  ))
+    ..interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        error: true,
+        requestHeader: true,
+        responseHeader: false,
+      ),
+    );
   final AuthService _authService = AuthService();
 
   Future<void> _setAuthHeader() async {
@@ -31,19 +32,20 @@ class AdminService {
   }
 
   // ========== DASHBOARD ==========
-  
+
   /// Get dashboard data
   Future<Map<String, dynamic>> getDashboard() async {
     try {
       await _setAuthHeader();
       final response = await _dio.get('admin/dashboard');
-      
+
       // Check if response is HTML (token expired)
-      if (response.data is String && (response.data as String).contains('<!DOCTYPE html>')) {
+      if (response.data is String &&
+          (response.data as String).contains('<!DOCTYPE html>')) {
         debugPrint('❌ getDashboard: Received HTML response - Token expired!');
         throw Exception('Token expired - Please login again');
       }
-      
+
       return response.data;
     } catch (e) {
       rethrow;
@@ -51,9 +53,10 @@ class AdminService {
   }
 
   /// Get quick stats with caching
-  Future<Map<String, dynamic>> getQuickStats({bool forceRefresh = false}) async {
+  Future<Map<String, dynamic>> getQuickStats(
+      {bool forceRefresh = false}) async {
     const cacheKey = 'quick_stats';
-    
+
     // Try to get from cache first if not forcing refresh
     if (!forceRefresh) {
       final cached = await CacheService.get(cacheKey);
@@ -61,20 +64,22 @@ class AdminService {
         return cached as Map<String, dynamic>;
       }
     }
-    
+
     try {
       await _setAuthHeader();
       final response = await _dio.get('admin/dashboard/quick-stats');
-      
+
       // Check if response is HTML (token expired)
-      if (response.data is String && (response.data as String).contains('<!DOCTYPE html>')) {
+      if (response.data is String &&
+          (response.data as String).contains('<!DOCTYPE html>')) {
         debugPrint('❌ getQuickStats: Received HTML response - Token expired!');
         throw Exception('Token expired - Please login again');
       }
-      
+
       // Cache for 2 minutes
-      await CacheService.set(cacheKey, response.data, ttl: const Duration(minutes: 2));
-      
+      await CacheService.set(cacheKey, response.data,
+          ttl: const Duration(minutes: 2));
+
       return response.data;
     } catch (e) {
       rethrow;
@@ -82,7 +87,7 @@ class AdminService {
   }
 
   // ========== COMPLAINT MANAGEMENT ==========
-  
+
   /// Get all complaints with filters and smaller default pagination
   Future<Map<String, dynamic>> getComplaints({
     int page = 1,
@@ -104,13 +109,14 @@ class AdminService {
         if (userId != null) 'user_id': userId,
         if (categoryId != null) 'category_id': categoryId,
       });
-      
+
       // Check if response is HTML (token expired)
-      if (response.data is String && (response.data as String).contains('<!DOCTYPE html>')) {
+      if (response.data is String &&
+          (response.data as String).contains('<!DOCTYPE html>')) {
         debugPrint('❌ getComplaints: Received HTML response - Token expired!');
         throw Exception('Token expired - Please login again');
       }
-      
+
       return response.data;
     } catch (e) {
       rethrow;
@@ -162,7 +168,8 @@ class AdminService {
   }
 
   /// Update complaint status
-  Future<ApiResponse> updateComplaintStatus(int id, String status, {String? notes}) async {
+  Future<ApiResponse> updateComplaintStatus(int id, String status,
+      {String? notes}) async {
     try {
       await _setAuthHeader();
       final response = await _dio.patch('admin/complaints/$id/status', data: {
@@ -190,7 +197,8 @@ class AdminService {
       });
 
       if (photos != null && photos.isNotEmpty) {
-        debugPrint('📎 [AdminService] Uploading ${photos.length} resolution photos');
+        debugPrint(
+            '📎 [AdminService] Uploading ${photos.length} resolution photos');
         for (final path in photos) {
           final normalizedPath = path.replaceAll('\\\\', '/');
           final fileName = normalizedPath.split('/').last;
@@ -224,7 +232,7 @@ class AdminService {
     try {
       await _setAuthHeader();
       final res = await _dio.post('admin/complaints/$id/response', data: {
-        'message': response,  // Backend expects "message" field
+        'message': response, // Backend expects "message" field
       });
       return ApiResponse.fromJson(res.data, null);
     } catch (e) {
@@ -244,7 +252,8 @@ class AdminService {
   }
 
   /// Bulk update complaints
-  Future<ApiResponse> bulkUpdateComplaints(List<int> ids, String action, {String? value}) async {
+  Future<ApiResponse> bulkUpdateComplaints(List<int> ids, String action,
+      {String? value}) async {
     try {
       await _setAuthHeader();
       final response = await _dio.post('admin/complaints/bulk-update', data: {
@@ -271,7 +280,8 @@ class AdminService {
         queryParameters: {
           'page': page,
           'per_page': perPage,
-          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
         },
       );
       return response.data;
@@ -306,7 +316,8 @@ class AdminService {
   Future<ApiResponse> deleteComplaintAttachment(int attachmentId) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.delete('admin/complaints/attachments/$attachmentId');
+      final response =
+          await _dio.delete('admin/complaints/attachments/$attachmentId');
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -314,7 +325,7 @@ class AdminService {
   }
 
   // ========== CATEGORY MANAGEMENT ==========
-  
+
   /// Get all categories
   Future<List<dynamic>> getCategories() async {
     try {
@@ -415,7 +426,7 @@ class AdminService {
   }
 
   // ========== USER MANAGEMENT ==========
-  
+
   /// Get all users with filters
   Future<Map<String, dynamic>> getUsers({
     int page = 1,
@@ -445,7 +456,7 @@ class AdminService {
       return response.data;
     } catch (e) {
       rethrow;
-   }
+    }
   }
 
   /// Create user
@@ -548,7 +559,8 @@ class AdminService {
   Future<ApiResponse> resetUserPassword(int id, String newPassword) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.patch('admin/users/$id/reset-password', data: {
+      final response =
+          await _dio.patch('admin/users/$id/reset-password', data: {
         'password': newPassword,
         'password_confirmation': newPassword,
       });
@@ -588,7 +600,7 @@ class AdminService {
   }
 
   // ========== ANNOUNCEMENT MANAGEMENT ==========
-  
+
   /// Get all announcements with filters
   Future<Map<String, dynamic>> getAnnouncements({
     int page = 1,
@@ -623,7 +635,8 @@ class AdminService {
   }
 
   /// Create announcement
-  Future<ApiResponse> createAnnouncement(Map<String, dynamic> data, {String? imagePath, List<String>? attachmentPaths}) async {
+  Future<ApiResponse> createAnnouncement(Map<String, dynamic> data,
+      {String? imagePath, List<String>? attachmentPaths}) async {
     try {
       await _setAuthHeader();
 
@@ -661,7 +674,9 @@ class AdminService {
         final response = await _dio.post(
           'admin/announcements',
           data: formData,
-          options: Options(headers: {'Accept': 'application/json'}, contentType: 'multipart/form-data'),
+          options: Options(
+              headers: {'Accept': 'application/json'},
+              contentType: 'multipart/form-data'),
         );
         return ApiResponse.fromJson(response.data, null);
       }
@@ -686,7 +701,8 @@ class AdminService {
 
       final hasFiles = (imagePath != null && imagePath.isNotEmpty) ||
           (attachmentPaths != null && attachmentPaths.isNotEmpty) ||
-          (removeAttachmentIndices != null && removeAttachmentIndices.isNotEmpty);
+          (removeAttachmentIndices != null &&
+              removeAttachmentIndices.isNotEmpty);
 
       if (hasFiles) {
         final formDataMap = Map<String, dynamic>.from(data);
@@ -720,14 +736,17 @@ class AdminService {
 
         if (removeAttachmentIndices != null) {
           for (final index in removeAttachmentIndices) {
-            formData.fields.add(MapEntry('remove_attachments[]', index.toString()));
+            formData.fields
+                .add(MapEntry('remove_attachments[]', index.toString()));
           }
         }
 
         final response = await _dio.post(
           'admin/announcements/$id',
           data: formData,
-          options: Options(headers: {'Accept': 'application/json'}, contentType: 'multipart/form-data'),
+          options: Options(
+              headers: {'Accept': 'application/json'},
+              contentType: 'multipart/form-data'),
         );
         return ApiResponse.fromJson(response.data, null);
       }
@@ -754,7 +773,8 @@ class AdminService {
   Future<ApiResponse> toggleAnnouncementStatus(int id) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.patch('admin/announcements/$id/toggle-status');
+      final response =
+          await _dio.patch('admin/announcements/$id/toggle-status');
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -765,7 +785,8 @@ class AdminService {
   Future<ApiResponse> toggleAnnouncementSticky(int id) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.patch('admin/announcements/$id/toggle-sticky');
+      final response =
+          await _dio.patch('admin/announcements/$id/toggle-sticky');
       return ApiResponse.fromJson(response.data, null);
     } catch (e) {
       rethrow;
@@ -818,7 +839,7 @@ class AdminService {
   }
 
   // ========== REPORT MANAGEMENT ==========
-  
+
   /// Get report overview
   Future<Map<String, dynamic>> getReportOverview() async {
     try {
@@ -881,7 +902,8 @@ class AdminService {
           if (dateTo != null) 'date_to': dateTo,
           if (role != null) 'role': role,
           if (isActive != null) 'is_active': isActive ? 1 : 0,
-          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
           if (perPage != null) 'per_page': perPage,
           if (page != null) 'page': page,
         },
@@ -934,4 +956,3 @@ class AdminService {
     }
   }
 }
-

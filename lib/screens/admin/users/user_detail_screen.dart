@@ -55,7 +55,8 @@ class AdminUserDetailScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final detail = snapshot.data ?? Map<String, dynamic>.from(args.user as Map);
+          final detail =
+              snapshot.data ?? Map<String, dynamic>.from(args.user as Map);
           return _UserDetailBody(detail: detail, args: args);
         },
       ),
@@ -74,9 +75,12 @@ class _UserDetailBody extends StatelessWidget {
     final id = toIntValue(detail['id']);
     final role = detail['role']?.toString() ?? 'user';
     final roleColor = role == 'admin' ? Colors.indigo : Colors.teal;
-    final isVerified = toBoolValue(detail['is_user_verified']) || toBoolValue(detail['is_verified']);
-    final isEmailVerified = toBoolValue(detail['is_email_verified']) || detail['email_verified_at'] != null;
-    final isActive = detail['is_active'] == null ? true : toBoolValue(detail['is_active']);
+    final isVerified = toBoolValue(detail['is_user_verified']) ||
+        toBoolValue(detail['is_verified']);
+    final isEmailVerified = toBoolValue(detail['is_email_verified']) ||
+        detail['email_verified_at'] != null;
+    final isActive =
+        detail['is_active'] == null ? true : toBoolValue(detail['is_active']);
 
     final totalComplaints = firstInt(detail, [
       'complaints_count',
@@ -112,16 +116,24 @@ class _UserDetailBody extends StatelessWidget {
 
     final pendingComplaints = pendingComplaintsRaw > 0
         ? pendingComplaintsRaw
-        : countComplaintsByStatus(detail, const {'pending', 'in_progress', 'processing'});
+        : countComplaintsByStatus(
+            detail, const {'pending', 'in_progress', 'processing'});
 
-    final totalComplaintsFinal = totalComplaints > 0 ? totalComplaints : extractComplaintList(detail).length;
-    final totalComments = firstInt(detail, ['comments_count', 'total_comments', 'komentar_count']);
+    final totalComplaintsFinal = totalComplaints > 0
+        ? totalComplaints
+        : extractComplaintList(detail).length;
+    final totalComments = firstInt(
+        detail, ['comments_count', 'total_comments', 'komentar_count']);
 
-    final latestComplaint = firstMap(detail, ['latest_complaint', 'recent_complaint']) ??
-        firstMapFromList(detail, ['latest_complaints', 'recent_complaints', 'complaints']);
+    final latestComplaint = firstMap(
+            detail, ['latest_complaint', 'recent_complaint']) ??
+        firstMapFromList(
+            detail, ['latest_complaints', 'recent_complaints', 'complaints']);
 
-    final latestComment = firstMap(detail, ['latest_comment', 'recent_comment']) ??
-        firstMapFromList(detail, ['latest_comments', 'recent_comments', 'comments']);
+    final latestComment =
+        firstMap(detail, ['latest_comment', 'recent_comment']) ??
+            firstMapFromList(
+                detail, ['latest_comments', 'recent_comments', 'comments']);
 
     return SingleChildScrollView(
       child: Column(
@@ -135,7 +147,9 @@ class _UserDetailBody extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: role == 'admin' ? [Colors.indigo.shade400, Colors.indigo.shade800] : AppTheme.primaryGradient,
+                    colors: role == 'admin'
+                        ? [Colors.indigo.shade400, Colors.indigo.shade800]
+                        : AppTheme.primaryGradient,
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -152,15 +166,24 @@ class _UserDetailBody extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 4),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 6)),
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6)),
                     ],
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     (detail['name']?.toString().isNotEmpty ?? false)
-                        ? detail['name'].toString().substring(0, 1).toUpperCase()
+                        ? detail['name']
+                            .toString()
+                            .substring(0, 1)
+                            .toUpperCase()
                         : 'U',
-                    style: GoogleFonts.nunito(color: roleColor, fontWeight: FontWeight.w800, fontSize: 36),
+                    style: GoogleFonts.nunito(
+                        color: roleColor,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 36),
                   ),
                 ),
               ),
@@ -172,11 +195,13 @@ class _UserDetailBody extends StatelessWidget {
                     backgroundColor: Colors.white.withValues(alpha: 0.9),
                     foregroundColor: roleColor,
                     side: const BorderSide(color: Colors.transparent),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
                   ),
                   onPressed: () => args.onEditUser(detail),
                   icon: const Icon(Icons.edit_rounded, size: 16),
-                  label: Text('Ubah Profil', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                  label: Text('Ubah Profil',
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -193,7 +218,10 @@ class _UserDetailBody extends StatelessWidget {
                     Expanded(
                       child: Text(
                         detail['name']?.toString() ?? '-',
-                        style: GoogleFonts.nunito(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                        style: GoogleFonts.nunito(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textPrimary),
                       ),
                     ),
                   ],
@@ -206,15 +234,22 @@ class _UserDetailBody extends StatelessWidget {
                     UserDetailBadge(
                       label: isActive ? 'Aktif' : 'Nonaktif',
                       color: isActive ? AppTheme.primary : AppTheme.danger,
-                      icon: isActive ? Icons.check_circle_rounded : Icons.block_rounded,
+                      icon: isActive
+                          ? Icons.check_circle_rounded
+                          : Icons.block_rounded,
                     ),
                     UserDetailBadge(
                       label: role == 'admin' ? 'Admin' : 'User',
                       color: roleColor,
-                      icon: role == 'admin' ? Icons.admin_panel_settings_rounded : Icons.person_rounded,
+                      icon: role == 'admin'
+                          ? Icons.admin_panel_settings_rounded
+                          : Icons.person_rounded,
                     ),
                     if (isEmailVerified)
-                      const UserDetailBadge(label: 'Email Verified', color: AppTheme.primary, icon: Icons.verified_rounded),
+                      const UserDetailBadge(
+                          label: 'Email Verified',
+                          color: AppTheme.primary,
+                          icon: Icons.verified_rounded),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -223,29 +258,42 @@ class _UserDetailBody extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                    border: Border.all(
+                        color: AppTheme.border.withValues(alpha: 0.5)),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4)),
                     ],
                   ),
                   child: Column(
                     children: [
-                      UserDetailContactRow(icon: Icons.email_outlined, text: detail['email']?.toString() ?? '-'),
+                      UserDetailContactRow(
+                          icon: Icons.email_outlined,
+                          text: detail['email']?.toString() ?? '-'),
                       const SizedBox(height: 12),
                       UserDetailContactRow(
                         icon: Icons.phone_outlined,
-                        text: firstString(detail, ['phone', 'phone_number', 'no_hp', 'nomor_telepon'], fallback: '-'),
+                        text: firstString(detail,
+                            ['phone', 'phone_number', 'no_hp', 'nomor_telepon'],
+                            fallback: '-'),
                       ),
                       const Divider(height: 24),
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today_outlined, size: 18, color: AppTheme.textSecondary),
+                          const Icon(Icons.calendar_today_outlined,
+                              size: 18, color: AppTheme.textSecondary),
                           const SizedBox(width: 12),
-                          Text('Bergabung: ', style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
+                          Text('Bergabung: ',
+                              style: GoogleFonts.nunito(
+                                  color: AppTheme.textSecondary)),
                           Expanded(
                             child: Text(
                               formatUserDate(detail['created_at']),
-                              style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary),
                               textAlign: TextAlign.right,
                             ),
                           ),
@@ -267,7 +315,8 @@ class _UserDetailBody extends StatelessWidget {
                   builder: (context, constraints) {
                     final width = constraints.maxWidth;
                     final crossAxisCount = width < 620 ? 1 : 2;
-                    final itemWidth = (width - (12 * (crossAxisCount - 1))) / crossAxisCount;
+                    final itemWidth =
+                        (width - (12 * (crossAxisCount - 1))) / crossAxisCount;
 
                     return Wrap(
                       spacing: 12,
@@ -276,20 +325,30 @@ class _UserDetailBody extends StatelessWidget {
                         SizedBox(
                           width: itemWidth,
                           child: UserDetailStatCard(
-                              title: 'Total Keluhan', value: totalComplaintsFinal.toString(), icon: Icons.report_problem_outlined),
-                        ),
-                        SizedBox(
-                          width: itemWidth,
-                          child: UserDetailStatCard(title: 'Selesai', value: resolvedComplaints.toString(), icon: Icons.task_alt_rounded),
+                              title: 'Total Keluhan',
+                              value: totalComplaintsFinal.toString(),
+                              icon: Icons.report_problem_outlined),
                         ),
                         SizedBox(
                           width: itemWidth,
                           child: UserDetailStatCard(
-                              title: 'Pending', value: pendingComplaints.toString(), icon: Icons.pending_actions_rounded),
+                              title: 'Selesai',
+                              value: resolvedComplaints.toString(),
+                              icon: Icons.task_alt_rounded),
                         ),
                         SizedBox(
                           width: itemWidth,
-                          child: UserDetailStatCard(title: 'Komentar', value: totalComments.toString(), icon: Icons.comment_outlined),
+                          child: UserDetailStatCard(
+                              title: 'Pending',
+                              value: pendingComplaints.toString(),
+                              icon: Icons.pending_actions_rounded),
+                        ),
+                        SizedBox(
+                          width: itemWidth,
+                          child: UserDetailStatCard(
+                              title: 'Komentar',
+                              value: totalComments.toString(),
+                              icon: Icons.comment_outlined),
                         ),
                       ],
                     );
@@ -300,20 +359,28 @@ class _UserDetailBody extends StatelessWidget {
                   title: 'Keluhan Terbaru',
                   action: TextButton(
                     onPressed: () => args.onShowAllComplaints(detail),
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
-                    child: Text('Lihat Semua', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                    style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(50, 30)),
+                    child: Text('Lihat Semua',
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(height: 8),
                 if (latestComplaint == null)
-                  const UserDetailEmptyTile(title: 'Belum ada keluhan', subtitle: 'Pengguna ini belum pernah membuat keluhan.')
+                  const UserDetailEmptyTile(
+                      title: 'Belum ada keluhan',
+                      subtitle: 'Pengguna ini belum pernah membuat keluhan.')
                 else
                   UserComplaintPreviewCard(complaint: latestComplaint),
                 const SizedBox(height: 24),
                 const UserDetailSectionHeader(title: 'Komentar Terbaru'),
                 const SizedBox(height: 8),
                 if (latestComment == null)
-                  const UserDetailEmptyTile(title: 'Belum ada komentar', subtitle: 'Pengguna ini belum pernah memberikan komentar.')
+                  const UserDetailEmptyTile(
+                      title: 'Belum ada komentar',
+                      subtitle:
+                          'Pengguna ini belum pernah memberikan komentar.')
                 else
                   UserCommentPreviewCard(comment: latestComment),
                 const SizedBox(height: 24),
@@ -328,17 +395,22 @@ class _UserDetailBody extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      UserDetailRow(icon: Icons.location_on_outlined, label: 'Alamat', value: detail['address']?.toString() ?? '-'),
+                      UserDetailRow(
+                          icon: Icons.location_on_outlined,
+                          label: 'Alamat',
+                          value: detail['address']?.toString() ?? '-'),
                       const Divider(height: 20),
                       UserDetailRow(
                           icon: Icons.account_balance_outlined,
                           label: 'RT',
-                          value: firstString(detail, ['rt_number', 'rt'], fallback: '-')),
+                          value: firstString(detail, ['rt_number', 'rt'],
+                              fallback: '-')),
                       const Divider(height: 20),
                       UserDetailRow(
                           icon: Icons.home_work_outlined,
                           label: 'RW',
-                          value: firstString(detail, ['rw_number', 'rw'], fallback: '-')),
+                          value: firstString(detail, ['rw_number', 'rw'],
+                              fallback: '-')),
                     ],
                   ),
                 ),
@@ -355,26 +427,41 @@ class _UserDetailBody extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      UserDetailRow(icon: Icons.badge_outlined, label: 'NIK', value: detail['nik']?.toString() ?? '-'),
+                      UserDetailRow(
+                          icon: Icons.badge_outlined,
+                          label: 'NIK',
+                          value: detail['nik']?.toString() ?? '-'),
                       const Divider(height: 20),
-                      Text('Status KTP', style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                      Text('Status KTP',
+                          style: GoogleFonts.nunito(
+                              fontSize: 12, color: AppTheme.textSecondary)),
                       const SizedBox(height: 6),
                       Row(
                         children: [
                           UserDetailBadge(
-                            label: isVerified ? 'Terverifikasi' : 'Belum Terverifikasi',
-                            color: isVerified ? AppTheme.primary : AppTheme.warning,
-                            icon: isVerified ? Icons.check_circle_rounded : Icons.warning_rounded,
+                            label: isVerified
+                                ? 'Terverifikasi'
+                                : 'Belum Terverifikasi',
+                            color: isVerified
+                                ? AppTheme.primary
+                                : AppTheme.warning,
+                            icon: isVerified
+                                ? Icons.check_circle_rounded
+                                : Icons.warning_rounded,
                           ),
                           const Spacer(),
-                          Text(formatUserDate(detail['verified_at'] ?? detail['updated_at']),
-                              style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                          Text(
+                              formatUserDate(detail['verified_at'] ??
+                                  detail['updated_at']),
+                              style: GoogleFonts.nunito(
+                                  fontSize: 12, color: AppTheme.textSecondary)),
                         ],
                       ),
                       const SizedBox(height: 16),
                       UserKtpCard(
                         userName: detail['name']?.toString() ?? 'Pengguna',
-                        ktpUrl: firstString(detail, ['ktp_url', 'ktp_path'], fallback: ''),
+                        ktpUrl: firstString(detail, ['ktp_url', 'ktp_path'],
+                            fallback: ''),
                       ),
                     ],
                   ),
@@ -388,29 +475,60 @@ class _UserDetailBody extends StatelessWidget {
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: isVerified ? AppTheme.warning : AppTheme.primary,
-                        side: BorderSide(color: isVerified ? AppTheme.warning : AppTheme.primary),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        foregroundColor:
+                            isVerified ? AppTheme.warning : AppTheme.primary,
+                        side: BorderSide(
+                            color: isVerified
+                                ? AppTheme.warning
+                                : AppTheme.primary),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () {
                         context.pop();
-                        args.onToggleVerification(detail, shouldVerify: !isVerified);
+                        args.onToggleVerification(detail,
+                            shouldVerify: !isVerified);
                       },
-                      icon: Icon(isVerified ? Icons.undo_rounded : Icons.verified_user_rounded, size: 18),
-                      label: Text(isVerified ? 'Batalkan Verifikasi' : 'Verifikasi User', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      icon: Icon(
+                          isVerified
+                              ? Icons.undo_rounded
+                              : Icons.verified_user_rounded,
+                          size: 18),
+                      label: Text(
+                          isVerified
+                              ? 'Batalkan Verifikasi'
+                              : 'Verifikasi User',
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                     ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: isEmailVerified ? AppTheme.warning : AppTheme.primary,
-                        side: BorderSide(color: isEmailVerified ? AppTheme.warning : AppTheme.primary),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        foregroundColor: isEmailVerified
+                            ? AppTheme.warning
+                            : AppTheme.primary,
+                        side: BorderSide(
+                            color: isEmailVerified
+                                ? AppTheme.warning
+                                : AppTheme.primary),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () {
                         context.pop();
-                        args.onToggleEmailVerification(detail, shouldVerify: !isEmailVerified);
+                        args.onToggleEmailVerification(detail,
+                            shouldVerify: !isEmailVerified);
                       },
-                      icon: Icon(isEmailVerified ? Icons.mark_email_unread_rounded : Icons.mark_email_read_rounded, size: 18),
-                      label: Text(isEmailVerified ? 'Batalkan Verif Email' : 'Verifikasi Email', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      icon: Icon(
+                          isEmailVerified
+                              ? Icons.mark_email_unread_rounded
+                              : Icons.mark_email_read_rounded,
+                          size: 18),
+                      label: Text(
+                          isEmailVerified
+                              ? 'Batalkan Verif Email'
+                              : 'Verifikasi Email',
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ),
@@ -424,12 +542,15 @@ class _UserDetailBody extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: () => args.onEditUser(detail),
                       icon: const Icon(Icons.edit_rounded, size: 18),
-                      label: Text('Edit Pengguna', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      label: Text('Edit Pengguna',
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primary,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                     OutlinedButton.icon(
@@ -437,22 +558,36 @@ class _UserDetailBody extends StatelessWidget {
                         context.pop();
                         args.onToggleStatus(detail);
                       },
-                      icon: Icon(isActive ? Icons.block_rounded : Icons.check_circle_rounded, size: 18),
-                      label: Text(isActive ? 'Nonaktifkan' : 'Aktifkan', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      icon: Icon(
+                          isActive
+                              ? Icons.block_rounded
+                              : Icons.check_circle_rounded,
+                          size: 18),
+                      label: Text(isActive ? 'Nonaktifkan' : 'Aktifkan',
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: isActive ? AppTheme.warning : AppTheme.primary,
-                        side: BorderSide(color: isActive ? AppTheme.warning : AppTheme.primary),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        foregroundColor:
+                            isActive ? AppTheme.warning : AppTheme.primary,
+                        side: BorderSide(
+                            color:
+                                isActive ? AppTheme.warning : AppTheme.primary),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () => args.onResetPassword(id, userName: detail['name']?.toString()),
+                      onPressed: () => args.onResetPassword(id,
+                          userName: detail['name']?.toString()),
                       icon: const Icon(Icons.lock_reset_rounded, size: 18),
-                      label: Text('Reset Password', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      label: Text('Reset Password',
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.textSecondary,
                         side: const BorderSide(color: AppTheme.textSecondary),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                     OutlinedButton.icon(
@@ -461,11 +596,14 @@ class _UserDetailBody extends StatelessWidget {
                         args.onDelete(detail);
                       },
                       icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                      label: Text('Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      label: Text('Hapus',
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.danger,
                         side: const BorderSide(color: AppTheme.danger),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],

@@ -16,7 +16,8 @@ void showComplaintActionSheet(
 }) {
   showModalBottomSheet(
     context: context,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     builder: (sheetContext) => SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -26,7 +27,8 @@ void showComplaintActionSheet(
           children: [
             Text(
               item['title']?.toString() ?? 'Aksi Pengaduan',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15),
+              style:
+                  GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -37,11 +39,13 @@ void showComplaintActionSheet(
                 onResolve();
               },
               icon: const Icon(Icons.check_circle_outline, size: 18),
-              label: Text('Selesaikan', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+              label: Text('Selesaikan',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
             ),
             const SizedBox(height: 8),
@@ -55,7 +59,8 @@ void showComplaintActionSheet(
               style: OutlinedButton.styleFrom(
                 foregroundColor: complaintStatusColor('in_progress'),
                 side: BorderSide(color: complaintStatusColor('in_progress')),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
             ),
             const SizedBox(height: 8),
@@ -69,7 +74,8 @@ void showComplaintActionSheet(
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppTheme.danger,
                 side: const BorderSide(color: AppTheme.danger),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
             ),
             const SizedBox(height: 8),
@@ -83,7 +89,8 @@ void showComplaintActionSheet(
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.grey.shade700,
                 side: BorderSide(color: Colors.grey.shade400),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
             ),
             const SizedBox(height: 8),
@@ -93,7 +100,8 @@ void showComplaintActionSheet(
                 onMoveToTrash();
               },
               icon: const Icon(Icons.delete_sweep, size: 18),
-              label: Text('Pindah Trash', style: GoogleFonts.nunito(color: AppTheme.danger)),
+              label: Text('Pindah Trash',
+                  style: GoogleFonts.nunito(color: AppTheme.danger)),
               style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
             ),
             const SizedBox(height: 4),

@@ -36,21 +36,26 @@ class AnnouncementHeaderCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.priority_high, size: 16, color: Colors.white),
+                    const Icon(Icons.priority_high,
+                        size: 16, color: Colors.white),
                     const SizedBox(width: 4),
                     Text(
                       announcementPriorityText(a.priority),
                       style: GoogleFonts.nunito(
-                          fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
                     ),
                   ],
                 ),
@@ -62,7 +67,8 @@ class AnnouncementHeaderCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     '${a.viewsCount} kali dilihat',
-                    style: GoogleFonts.nunito(fontSize: 12, color: Colors.white70),
+                    style:
+                        GoogleFonts.nunito(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -110,12 +116,15 @@ class AnnouncementHeaderCard extends StatelessWidget {
                 const Icon(Icons.people, size: 16, color: Colors.white),
                 const SizedBox(width: 6),
                 Text('Ditujukan untuk:',
-                    style: GoogleFonts.nunito(fontSize: 13, color: Colors.white70)),
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, color: Colors.white70)),
                 const SizedBox(width: 4),
                 Text(
                   a.targetAudience?.join(', ') ?? 'Semua Warga',
                   style: GoogleFonts.nunito(
-                      fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
                 ),
               ],
             ),
@@ -244,12 +253,14 @@ class AnnouncementContentCard extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         child: Row(
                           children: [
-                            const Icon(Icons.image, size: 18, color: AppTheme.primary),
+                            const Icon(Icons.image,
+                                size: 18, color: AppTheme.primary),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(fileName,
                                   style: GoogleFonts.nunito(
-                                      fontSize: 13, color: const Color(0xFF374151))),
+                                      fontSize: 13,
+                                      color: const Color(0xFF374151))),
                             ),
                           ],
                         ),
@@ -277,7 +288,8 @@ class AnnouncementContentCard extends StatelessWidget {
                             style: GoogleFonts.nunito(
                                 fontSize: 13, color: const Color(0xFF374151))),
                       ),
-                      const Icon(Icons.download, size: 20, color: Color(0xFF6B7280)),
+                      const Icon(Icons.download,
+                          size: 20, color: Color(0xFF6B7280)),
                     ],
                   ),
                 ),
@@ -346,8 +358,7 @@ class AnnouncementActionButtons extends StatelessWidget {
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2))
-                  : Icon(
-                      isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  : Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                       size: 18),
               label: Text('Simpan',
                   style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),

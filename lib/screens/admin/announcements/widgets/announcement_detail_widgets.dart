@@ -10,7 +10,11 @@ class AnnouncementDetailBadge extends StatelessWidget {
   final Color color;
   final IconData icon;
 
-  const AnnouncementDetailBadge({super.key, required this.label, required this.color, required this.icon});
+  const AnnouncementDetailBadge(
+      {super.key,
+      required this.label,
+      required this.color,
+      required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +30,9 @@ class AnnouncementDetailBadge extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 6),
-          Text(label, style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+          Text(label,
+              style: GoogleFonts.nunito(
+                  fontSize: 12, fontWeight: FontWeight.w700, color: color)),
         ],
       ),
     );
@@ -39,7 +45,11 @@ class AnnouncementSectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(title, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary));
+    return Text(title,
+        style: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textPrimary));
   }
 }
 
@@ -47,7 +57,8 @@ class AnnouncementContentBlock extends StatelessWidget {
   final String content;
   final bool isItalic;
 
-  const AnnouncementContentBlock({super.key, required this.content, this.isItalic = false});
+  const AnnouncementContentBlock(
+      {super.key, required this.content, this.isItalic = false});
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +70,10 @@ class AnnouncementContentBlock extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 5, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.01),
+              blurRadius: 5,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Text(
@@ -79,7 +93,8 @@ class AnnouncementDetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const AnnouncementDetailRow({super.key, required this.label, required this.value});
+  const AnnouncementDetailRow(
+      {super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -88,12 +103,15 @@ class AnnouncementDetailRow extends StatelessWidget {
       children: [
         SizedBox(
           width: 140,
-          child: Text(label, style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
+          child: Text(label,
+              style: GoogleFonts.nunito(
+                  color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
         ),
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+            style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
             textAlign: TextAlign.right,
           ),
         ),

@@ -15,7 +15,9 @@ class UserComplaintPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = complaint['status']?.toString() ?? 'pending';
-    final category = firstString(complaint, ['category_name', 'category', 'category_title'], fallback: 'Tanpa Kategori');
+    final category = firstString(
+        complaint, ['category_name', 'category', 'category_title'],
+        fallback: 'Tanpa Kategori');
 
     return Container(
       width: double.infinity,
@@ -29,19 +31,27 @@ class UserComplaintPreviewCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            complaint['title']?.toString() ?? complaint['description']?.toString() ?? '-',
-            style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+            complaint['title']?.toString() ??
+                complaint['description']?.toString() ??
+                '-',
+            style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.category_outlined, size: 14, color: AppTheme.textSecondary),
+              const Icon(Icons.category_outlined,
+                  size: 14, color: AppTheme.textSecondary),
               const SizedBox(width: 4),
-              Text(category, style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
+              Text(category,
+                  style: GoogleFonts.nunito(
+                      color: AppTheme.textSecondary, fontSize: 12)),
               const Spacer(),
-              Text(userTimeAgo(complaint['created_at']), style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
+              Text(userTimeAgo(complaint['created_at']),
+                  style: GoogleFonts.nunito(
+                      color: AppTheme.textSecondary, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 12),

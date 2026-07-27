@@ -21,10 +21,10 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
   final _formKey = GlobalKey<FormState>();
   final AdminService _adminService = AdminService();
   final ImagePicker _picker = ImagePicker();
-  
+
   final TextEditingController _resolutionController = TextEditingController();
   final List<XFile> _selectedImages = [];
-  
+
   bool _isLoading = false;
   final int _maxImages = 3;
   static const int _maxFileSizeBytes = 2 * 1024 * 1024;
@@ -49,7 +49,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
         maxWidth: 1920,
         maxHeight: 1920,
       );
-      
+
       if (images.isNotEmpty) {
         final remainingSlots = _maxImages - _selectedImages.length;
 
@@ -73,15 +73,17 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
         if (skippedLargeFiles > 0 && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('$skippedLargeFiles foto dilewati karena ukuran > 2MB'),
+              content:
+                  Text('$skippedLargeFiles foto dilewati karena ukuran > 2MB'),
             ),
           );
         }
-        
+
         if (images.length > remainingSlots) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Hanya $_maxImages foto yang dapat dipilih')),
+              SnackBar(
+                  content: Text('Hanya $_maxImages foto yang dapat dipilih')),
             );
           }
         }
@@ -110,13 +112,14 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
         maxWidth: 1920,
         maxHeight: 1920,
       );
-      
+
       if (image != null) {
         final size = await File(image.path).length();
         if (size > _maxFileSizeBytes) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Ukuran foto terlalu besar. Maksimal 2MB')),
+              const SnackBar(
+                  content: Text('Ukuran foto terlalu besar. Maksimal 2MB')),
             );
           }
           return;
@@ -148,8 +151,9 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
 
     try {
       final photos = _selectedImages.map((img) => img.path).toList();
-      debugPrint('📎 [ResolveComplaintScreen] Selected photos: ${photos.length}');
-      
+      debugPrint(
+          '📎 [ResolveComplaintScreen] Selected photos: ${photos.length}');
+
       await _adminService.markComplaintAsResolved(
         widget.complaint['id'],
         resolution: _resolutionController.text.trim(),
@@ -280,7 +284,7 @@ class _ResolveComplaintScreenState extends State<ResolveComplaintScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            
+
             // Upload Area
             GestureDetector(
               onTap: _isLoading ? null : _showImageSourceDialog,

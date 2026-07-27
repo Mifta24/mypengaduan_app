@@ -10,7 +10,8 @@ class PopularCategoriesScreen extends StatefulWidget {
   const PopularCategoriesScreen({super.key});
 
   @override
-  State<PopularCategoriesScreen> createState() => _PopularCategoriesScreenState();
+  State<PopularCategoriesScreen> createState() =>
+      _PopularCategoriesScreenState();
 }
 
 class _PopularCategoriesScreenState extends State<PopularCategoriesScreen> {
@@ -54,9 +55,14 @@ class _PopularCategoriesScreenState extends State<PopularCategoriesScreen> {
   }
 
   static const _palette = [
-    Color(0xFF2E7D32), Color(0xFF0891B2), Color(0xFF6366F1),
-    Color(0xFFD97706), Color(0xFFDC2626), Color(0xFF0D9488),
-    Color(0xFF7C3AED), Color(0xFFEA580C),
+    Color(0xFF2E7D32),
+    Color(0xFF0891B2),
+    Color(0xFF6366F1),
+    Color(0xFFD97706),
+    Color(0xFFDC2626),
+    Color(0xFF0D9488),
+    Color(0xFF7C3AED),
+    Color(0xFFEA580C),
   ];
 
   @override
@@ -74,7 +80,9 @@ class _PopularCategoriesScreenState extends State<PopularCategoriesScreen> {
         ),
         title: Text('Kategori Keluhan',
             style: GoogleFonts.nunito(
-                fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.textPrimary)),
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                color: AppTheme.textPrimary)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Divider(height: 1, color: AppTheme.border),
@@ -91,7 +99,8 @@ class _PopularCategoriesScreenState extends State<PopularCategoriesScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.category_outlined, size: 56, color: Colors.grey.shade300),
+                  Icon(Icons.category_outlined,
+                      size: 56, color: Colors.grey.shade300),
                   const SizedBox(height: 12),
                   Text('Belum ada kategori',
                       style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
@@ -110,8 +119,7 @@ class _PopularCategoriesScreenState extends State<PopularCategoriesScreen> {
           final categories = provider.categories
               .where((c) => c.isActive)
               .toList()
-            ..sort((a, b) =>
-                (counts[b.id] ?? 0).compareTo(counts[a.id] ?? 0));
+            ..sort((a, b) => (counts[b.id] ?? 0).compareTo(counts[a.id] ?? 0));
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -193,7 +201,8 @@ class _CategoryCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 52, height: 52,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
@@ -206,21 +215,26 @@ class _CategoryCard extends StatelessWidget {
               child: Text(category.name,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.nunito(
-                      fontSize: 13, fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary),
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
-                color: count > 0 ? color.withValues(alpha: 0.10) : Colors.grey.shade100,
+                color: count > 0
+                    ? color.withValues(alpha: 0.10)
+                    : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 count > 0 ? '$count pengaduan' : 'Belum ada',
                 style: GoogleFonts.nunito(
-                    fontSize: 11, fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                     color: count > 0 ? color : Colors.grey.shade400),
               ),
             ),
@@ -272,7 +286,8 @@ class _CategoryComplaintsScreen extends StatelessWidget {
             Flexible(
               child: Text(category.name,
                   style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w700, fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
                       color: AppTheme.textPrimary),
                   overflow: TextOverflow.ellipsis),
             ),
@@ -298,8 +313,8 @@ class _CategoryComplaintsScreen extends StatelessWidget {
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: complaints.length,
-              itemBuilder: (_, i) =>
-                  _ComplaintMiniCard(complaint: complaints[i], accentColor: color),
+              itemBuilder: (_, i) => _ComplaintMiniCard(
+                  complaint: complaints[i], accentColor: color),
             ),
     );
   }
@@ -309,7 +324,8 @@ class _CategoryComplaintsScreen extends StatelessWidget {
 class _ComplaintMiniCard extends StatelessWidget {
   final Complaint complaint;
   final Color accentColor;
-  const _ComplaintMiniCard({required this.complaint, required this.accentColor});
+  const _ComplaintMiniCard(
+      {required this.complaint, required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
@@ -327,7 +343,8 @@ class _ComplaintMiniCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 42, height: 42,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(10)),
@@ -340,9 +357,11 @@ class _ComplaintMiniCard extends StatelessWidget {
                 children: [
                   Text(complaint.title,
                       style: GoogleFonts.nunito(
-                          fontSize: 13, fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimary),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 3),
                   Row(
                     children: [
@@ -353,7 +372,8 @@ class _ComplaintMiniCard extends StatelessWidget {
                         child: Text(complaint.location,
                             style: GoogleFonts.nunito(
                                 fontSize: 11, color: Colors.grey.shade400),
-                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
                       ),
                     ],
                   ),
@@ -368,7 +388,8 @@ class _ComplaintMiniCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20)),
               child: Text(statusInfo.label,
                   style: GoogleFonts.nunito(
-                      fontSize: 10, fontWeight: FontWeight.w700,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
                       color: statusInfo.color)),
             ),
           ],
@@ -380,15 +401,35 @@ class _ComplaintMiniCard extends StatelessWidget {
   ({Color color, Color bg, String label}) _statusInfo(String s) {
     switch (s) {
       case 'pending':
-        return (color: const Color(0xFFD97706), bg: const Color(0xFFFEF3C7), label: 'Menunggu');
+        return (
+          color: const Color(0xFFD97706),
+          bg: const Color(0xFFFEF3C7),
+          label: 'Menunggu'
+        );
       case 'in_progress':
-        return (color: const Color(0xFF0891B2), bg: const Color(0xFFDBEAFE), label: 'Diproses');
+        return (
+          color: const Color(0xFF0891B2),
+          bg: const Color(0xFFDBEAFE),
+          label: 'Diproses'
+        );
       case 'waiting_user_confirmation':
-        return (color: const Color(0xFFEA580C), bg: const Color(0xFFFFF7ED), label: 'Konfirmasi');
+        return (
+          color: const Color(0xFFEA580C),
+          bg: const Color(0xFFFFF7ED),
+          label: 'Konfirmasi'
+        );
       case 'resolved':
-        return (color: AppTheme.primary, bg: const Color(0xFFD1FAE5), label: 'Selesai');
+        return (
+          color: AppTheme.primary,
+          bg: const Color(0xFFD1FAE5),
+          label: 'Selesai'
+        );
       case 'rejected':
-        return (color: const Color(0xFFDC2626), bg: const Color(0xFFFEE2E2), label: 'Ditolak');
+        return (
+          color: const Color(0xFFDC2626),
+          bg: const Color(0xFFFEE2E2),
+          label: 'Ditolak'
+        );
       default:
         return (color: Colors.grey, bg: Colors.grey.shade100, label: s);
     }

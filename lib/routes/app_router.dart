@@ -21,6 +21,7 @@ import '../screens/auth/forgot_password_screen.dart';
 import '../screens/notifications/notification_settings_screen.dart';
 import '../screens/announcements/announcement_detail_screen.dart';
 import '../screens/complaints/edit_complaint_screen.dart';
+import '../screens/complaints/public_complaints_screen.dart';
 import '../screens/categories/popular_categories_screen.dart';
 import '../screens/profile/change_password_screen.dart';
 import '../models/announcement_model.dart';
@@ -67,6 +68,8 @@ class AppRouter {
   static const String editComplaint = '/edit-complaint';
   static const String popularCategories = '/popular-categories';
   static const String changePassword = '/change-password';
+  static const String publicComplaints = '/public-complaints';
+  static const String publicComplaintDetail = '/public-complaints/:id';
   static const String adminProfile = '/admin/profile';
   static const String adminProfileEdit = '/admin/profile/edit';
   static const String adminCategoriesManage = '/admin/categories';
@@ -86,7 +89,10 @@ class AppRouter {
   static const String adminUsersAdd = '/admin/users/add';
   static const String adminUsersEdit = '/admin/users/edit';
 
-  static CustomTransitionPage _adminSlidePage(GoRouterState state, Widget child) {
+  static String publicComplaintDetailPath(int id) => '/public-complaints/$id';
+
+  static CustomTransitionPage _adminSlidePage(
+      GoRouterState state, Widget child) {
     return CustomTransitionPage(
       key: state.pageKey,
       child: child,
@@ -112,41 +118,46 @@ class AppRouter {
         final isAuthenticated = authProvider.isAuthenticated;
         final user = authProvider.user;
         final isAdmin = user?.role == 'admin';
-        
+
         final isSplashRoute = state.matchedLocation == splash;
         final isLandingRoute = state.matchedLocation == landing;
         final isLoginRoute = state.matchedLocation == login;
         final isRegisterRoute = state.matchedLocation == register;
         final isForgotPassRoute = state.matchedLocation == forgotPassword;
-        final isAuthRoute = isLoginRoute || isRegisterRoute || isForgotPassRoute||isLandingRoute;
+        final isAuthRoute = isLoginRoute ||
+            isRegisterRoute ||
+            isForgotPassRoute ||
+            isLandingRoute;
         final isHomeRoute = state.matchedLocation == home;
         final isAdminRoute = state.matchedLocation == adminDashboard;
-        
-        debugPrint('GoRouter Redirect - Location: ${state.matchedLocation}, Authenticated: $isAuthenticated, Role: ${user?.role}');
-        
+
+        debugPrint(
+            'GoRouter Redirect - Location: ${state.matchedLocation}, Authenticated: $isAuthenticated, Role: ${user?.role}');
+
         // Always allow splash screen - let it handle its own navigation
         if (isSplashRoute) {
           return null;
         }
-        
+
         // Allow direct navigation to home or admin (don't redirect away)
         if (isAuthenticated && (isHomeRoute || isAdminRoute)) {
           return null;
         }
-        
+
         // If not authenticated and trying to access protected route
         if (!isAuthenticated && !isAuthRoute) {
           debugPrint('Not authenticated, redirecting to landing');
           return landing;
         }
-        
+
         // If authenticated and trying to access auth routes, redirect to proper home
         if (isAuthenticated && isAuthRoute) {
           final destination = isAdmin ? adminDashboard : home;
-          debugPrint('Authenticated accessing auth route, redirecting to $destination');
+          debugPrint(
+              'Authenticated accessing auth route, redirecting to $destination');
           return destination;
         }
-        
+
         return null;
       },
       routes: [
@@ -156,7 +167,8 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const SplashScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
           ),
@@ -167,7 +179,8 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const LandingScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
           ),
@@ -178,14 +191,56 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const LoginScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
+        ),
+        GoRoute(
+          path: publicComplaints,
+          name: 'publicComplaints',
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const PublicComplaintsScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween(
+                  begin: const Offset(1, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              );
+            },
+          ),
+        ),
+        GoRoute(
+          path: publicComplaintDetail,
+          name: 'publicComplaintDetail',
+          pageBuilder: (context, state) {
+            final id = int.parse(state.pathParameters['id']!);
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: PublicComplaintDetailScreen(complaintId: id),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return SlideTransition(
+                  position: Tween(
+                    begin: const Offset(1, 0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            );
+          },
         ),
         GoRoute(
           path: register,
@@ -193,12 +248,15 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const RegisterScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -208,7 +266,8 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const HomeScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
           ),
@@ -219,7 +278,8 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const AdminDashboardScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
           ),
@@ -230,12 +290,15 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const CreateComplaintScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(0.0, 1.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -247,12 +310,15 @@ class AppRouter {
             return CustomTransitionPage(
               key: state.pageKey,
               child: ComplaintDetailScreen(complaintId: id),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 const begin = Offset(1.0, 0.0);
                 const end = Offset.zero;
                 const curve = Curves.easeInOut;
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                return SlideTransition(position: animation.drive(tween), child: child);
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
+                return SlideTransition(
+                    position: animation.drive(tween), child: child);
               },
             );
           },
@@ -263,12 +329,15 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const ProfileScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -278,12 +347,15 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const EditProfileScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -293,12 +365,15 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const ComplaintListScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -308,12 +383,15 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const AnnouncementListScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -323,12 +401,15 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const NotificationListScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -338,12 +419,14 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const FaqScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(0.0, 1.0);
               const end = Offset.zero;
               var tween = Tween(begin: begin, end: end)
                   .chain(CurveTween(curve: Curves.easeOutCubic));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -353,12 +436,14 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const ContactScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(0.0, 1.0);
               const end = Offset.zero;
               var tween = Tween(begin: begin, end: end)
                   .chain(CurveTween(curve: Curves.easeOutCubic));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -368,12 +453,14 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const ForgotPasswordScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(0.0, 1.0);
               const end = Offset.zero;
               var tween = Tween(begin: begin, end: end)
                   .chain(CurveTween(curve: Curves.easeOutCubic));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -383,12 +470,14 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const NotificationSettingsScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               var tween = Tween(begin: begin, end: end)
                   .chain(CurveTween(curve: Curves.easeInOut));
-              return SlideTransition(position: animation.drive(tween), child: child);
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
             },
           ),
         ),
@@ -400,7 +489,8 @@ class AppRouter {
             key: state.pageKey,
             child: AnnouncementDetailScreen(
                 announcement: state.extra as Announcement),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               var tween = Tween(begin: begin, end: end)
@@ -440,7 +530,8 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const PopularCategoriesScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               var tween = Tween(begin: begin, end: end)
@@ -456,7 +547,8 @@ class AppRouter {
           pageBuilder: (context, state) => CustomTransitionPage(
             key: state.pageKey,
             child: const ChangePasswordScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(0.0, 1.0);
               const end = Offset.zero;
               var tween = Tween(begin: begin, end: end)
@@ -535,8 +627,7 @@ class AppRouter {
               state,
               CategoryComplaintsScreen(
                 categoryName: extra['categoryName'] as String,
-                complaints:
-                    extra['complaints'] as List<Map<String, dynamic>>,
+                complaints: extra['complaints'] as List<Map<String, dynamic>>,
               ),
             );
           },
@@ -685,12 +776,12 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  static const Color _bgDeep    = AppTheme.bgDeep;
-  static const Color _bgDark    = AppTheme.bgDark;
-  static const Color _bgMid     = AppTheme.bgMid;
+  static const Color _bgDeep = AppTheme.bgDeep;
+  static const Color _bgDark = AppTheme.bgDark;
+  static const Color _bgMid = AppTheme.bgMid;
   static const Color _logoGreen = AppTheme.secondary;
   static const Color _leafBadge = AppTheme.primaryLight;
-  static const Color _accent    = AppTheme.accent;
+  static const Color _accent = AppTheme.accent;
   static const Color _leafDecor = AppTheme.primaryDark;
 
   late AnimationController _ctrl;
@@ -708,7 +799,8 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
     );
     _fade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.6, curve: Curves.easeIn)),
+      CurvedAnimation(
+          parent: _ctrl, curve: const Interval(0.0, 0.6, curve: Curves.easeIn)),
     );
     _ctrl.forward();
     _initializeApp();
@@ -726,11 +818,13 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      debugPrint('Before checkAuthStatus - isAuthenticated: ${authProvider.isAuthenticated}');
+      debugPrint(
+          'Before checkAuthStatus - isAuthenticated: ${authProvider.isAuthenticated}');
       await authProvider.checkAuthStatus();
       if (!mounted) return;
 
-      debugPrint('After checkAuthStatus - isAuthenticated: ${authProvider.isAuthenticated}, user: ${authProvider.user?.name}, role: ${authProvider.user?.role}');
+      debugPrint(
+          'After checkAuthStatus - isAuthenticated: ${authProvider.isAuthenticated}, user: ${authProvider.user?.name}, role: ${authProvider.user?.role}');
       await Future.delayed(const Duration(milliseconds: 200));
 
       if (authProvider.isAuthenticated) {
@@ -769,16 +863,18 @@ class _SplashScreenState extends State<SplashScreen>
           ),
 
           // ── Leaf decorations ────────────────────────────────
-          _leaf(top: 70,  right: 20, size: 60, rot: 0.3),
-          _leaf(top: 130, left: 10,  size: 38, rot: -0.5),
+          _leaf(top: 70, right: 20, size: 60, rot: 0.3),
+          _leaf(top: 130, left: 10, size: 38, rot: -0.5),
           _leaf(top: 250, right: 40, size: 26, rot: 0.9),
-          _leaf(top: 400, left: 5,   size: 20, rot: -0.7),
-          _leaf(bottom: 220, left: 18,  size: 46, rot: -0.3),
+          _leaf(top: 400, left: 5, size: 20, rot: -0.7),
+          _leaf(bottom: 220, left: 18, size: 46, rot: -0.3),
           _leaf(bottom: 150, right: 14, size: 32, rot: 0.6),
 
           // ── Bottom wave ─────────────────────────────────────
           Positioned(
-            bottom: 0, left: 0, right: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
             child: CustomPaint(
               size: const Size(double.infinity, 160),
               painter: _SplashWavePainter(),
@@ -877,11 +973,13 @@ class _SplashScreenState extends State<SplashScreen>
             color: _logoGreen,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.campaign_rounded, size: 72, color: Colors.white),
+          child:
+              const Icon(Icons.campaign_rounded, size: 72, color: Colors.white),
         ),
         // Leaf badge kanan atas
         Positioned(
-          top: 4, right: 8,
+          top: 4,
+          right: 8,
           child: Container(
             width: 44,
             height: 44,
@@ -898,15 +996,22 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _leaf({
-    double? top, double? bottom, double? left, double? right,
-    required double size, required double rot,
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+    required double size,
+    required double rot,
   }) {
     return Positioned(
-      top: top, bottom: bottom, left: left, right: right,
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
       child: Transform.rotate(
         angle: rot,
-        child: Icon(Icons.eco_rounded, size: size,
-            color: _leafDecor.withValues(alpha: 0.45)),
+        child: Icon(Icons.eco_rounded,
+            size: size, color: _leafDecor.withValues(alpha: 0.45)),
       ),
     );
   }
@@ -916,13 +1021,15 @@ class _SplashWavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     void draw(Color color, double y0, double y1, double y2) {
-      final p = Paint()..color = color..style = PaintingStyle.fill;
+      final p = Paint()
+        ..color = color
+        ..style = PaintingStyle.fill;
       final path = Path()
         ..moveTo(0, y0 * size.height)
         ..quadraticBezierTo(size.width * 0.25, y1 * size.height,
             size.width * 0.5, y0 * size.height)
-        ..quadraticBezierTo(size.width * 0.75, y2 * size.height,
-            size.width, y0 * size.height)
+        ..quadraticBezierTo(
+            size.width * 0.75, y2 * size.height, size.width, y0 * size.height)
         ..lineTo(size.width, size.height)
         ..lineTo(0, size.height)
         ..close();

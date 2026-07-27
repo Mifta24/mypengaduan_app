@@ -159,7 +159,8 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
                   fontWeight: FontWeight.w500,
                 ),
                 indicator: UnderlineTabIndicator(
-                  borderSide: const BorderSide(color: AppTheme.primary, width: 3),
+                  borderSide:
+                      const BorderSide(color: AppTheme.primary, width: 3),
                   borderRadius: BorderRadius.circular(3),
                   insets: const EdgeInsets.symmetric(horizontal: 16),
                 ),
@@ -287,24 +288,25 @@ class _ComplaintListScreenState extends State<ComplaintListScreen>
           final complaint = filteredComplaints[index];
           return UserComplaintListCard(
             complaint: complaint,
-            onTap: () => context
-                .push('/complaint/${complaint.id}')
-                .then((r) { if (r == true) _loadComplaints(); }),
+            onTap: () => context.push('/complaint/${complaint.id}').then((r) {
+              if (r == true) _loadComplaints();
+            }),
             onEdit: complaint.status == 'pending'
                 ? () => context.push(AppRouter.editComplaint, extra: {
                       'complaint': complaint,
                       'allowEditAnyStatus': false,
-                    }).then((r) { if (r == true) _loadComplaints(); })
+                    }).then((r) {
+                      if (r == true) _loadComplaints();
+                    })
                 : null,
             onConfirm: complaint.status == 'waiting_user_confirmation'
-                ? () => context
-                    .push('/complaint/${complaint.id}')
-                    .then((r) { if (r == true) _loadComplaints(); })
+                ? () => context.push('/complaint/${complaint.id}').then((r) {
+                      if (r == true) _loadComplaints();
+                    })
                 : null,
           );
         },
       ),
     );
   }
-
 }

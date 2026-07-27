@@ -41,7 +41,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       if (success) {
         final user = authProvider.user;
-        debugPrint('Login successful - User: ${user?.name}, Role: ${user?.role}');
+        debugPrint(
+            'Login successful - User: ${user?.name}, Role: ${user?.role}');
         if (user != null && user.role == 'admin') {
           context.go(AppRouter.adminDashboard);
         } else {
@@ -53,7 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
             content: Text(authProvider.errorMessage ?? 'Login gagal'),
             backgroundColor: AppTheme.danger,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -139,11 +141,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 48),
-                      _buildFeatureItem(Icons.access_time_rounded, 'Respon cepat dalam 24 jam'),
+                      _buildFeatureItem(Icons.access_time_rounded,
+                          'Respon cepat dalam 24 jam'),
                       const SizedBox(height: 16),
-                      _buildFeatureItem(Icons.track_changes_rounded, 'Tracking status real-time'),
+                      _buildFeatureItem(Icons.track_changes_rounded,
+                          'Tracking status real-time'),
                       const SizedBox(height: 16),
-                      _buildFeatureItem(Icons.security_rounded, 'Data aman & terprivasi'),
+                      _buildFeatureItem(
+                          Icons.security_rounded, 'Data aman & terprivasi'),
                     ],
                   ),
                 ),
@@ -182,7 +187,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary.withValues(alpha: 0.3),
+                                    color:
+                                        AppTheme.primary.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),
@@ -193,7 +199,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -215,7 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     'Sistem Pengaduan Digital RT',
                                     style: GoogleFonts.nunito(
                                       fontSize: 12,
-                                      color: Colors.white.withValues(alpha: 0.85),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.85),
                                     ),
                                   ),
                                 ],
@@ -233,7 +241,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               border: Border.all(color: AppTheme.border),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primary.withValues(alpha: 0.06),
+                                  color:
+                                      AppTheme.primary.withValues(alpha: 0.06),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -280,8 +289,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                           icon: Icons.email_outlined,
                                         ),
                                         validator: (v) {
-                                          if (v == null || v.isEmpty) { return 'Email tidak boleh kosong'; }
-                                          if (!v.contains('@')) { return 'Email tidak valid'; }
+                                          if (v == null || v.isEmpty) {
+                                            return 'Email tidak boleh kosong';
+                                          }
+                                          if (!v.contains('@')) {
+                                            return 'Email tidak valid';
+                                          }
                                           return null;
                                         },
                                       ),
@@ -301,7 +314,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           suffix: IconButton(
                                             icon: Icon(
                                               _obscurePassword
-                                                  ? Icons.visibility_off_outlined
+                                                  ? Icons
+                                                      .visibility_off_outlined
                                                   : Icons.visibility_outlined,
                                               color: AppTheme.textSecondary,
                                               size: 20,
@@ -313,7 +327,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                         ),
                                         validator: (v) {
-                                          if (v == null || v.isEmpty) { return 'Password tidak boleh kosong'; }
+                                          if (v == null || v.isEmpty) {
+                                            return 'Password tidak boleh kosong';
+                                          }
                                           return null;
                                         },
                                       ),
@@ -327,9 +343,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                             width: 20,
                                             child: Checkbox(
                                               value: _rememberMe,
-                                              onChanged: (v) => setState(
-                                                  () => _rememberMe =
-                                                      v ?? false),
+                                              onChanged: (v) => setState(() =>
+                                                  _rememberMe = v ?? false),
                                               activeColor: AppTheme.primary,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
@@ -347,7 +362,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           const Spacer(),
                                           TextButton(
-                                            onPressed: () => context.push(AppRouter.forgotPassword),
+                                            onPressed: () => context
+                                                .push(AppRouter.forgotPassword),
                                             style: TextButton.styleFrom(
                                               foregroundColor: AppTheme.primary,
                                               padding: EdgeInsets.zero,
@@ -371,26 +387,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       // Login Button
                                       Consumer<AuthProvider>(
-                                        builder:
-                                            (context, authProvider, _) {
+                                        builder: (context, authProvider, _) {
                                           return SizedBox(
                                             height: 52,
                                             child: ElevatedButton(
-                                              onPressed:
-                                                  authProvider.isLoading
-                                                      ? null
-                                                      : _handleLogin,
-                                              style:
-                                                  ElevatedButton.styleFrom(
+                                              onPressed: authProvider.isLoading
+                                                  ? null
+                                                  : _handleLogin,
+                                              style: ElevatedButton.styleFrom(
                                                 backgroundColor:
                                                     AppTheme.primary,
-                                                foregroundColor:
-                                                    Colors.white,
+                                                foregroundColor: Colors.white,
                                                 elevation: 0,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          14),
+                                                      BorderRadius.circular(14),
                                                 ),
                                                 disabledBackgroundColor:
                                                     AppTheme.primary
@@ -406,8 +417,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                         valueColor:
                                                             AlwaysStoppedAnimation<
                                                                     Color>(
-                                                                Colors
-                                                                    .white),
+                                                                Colors.white),
                                                       ),
                                                     )
                                                   : Row(
@@ -416,8 +426,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                               .center,
                                                       children: [
                                                         const Icon(
-                                                            Icons
-                                                                .login_rounded,
+                                                            Icons.login_rounded,
                                                             size: 20),
                                                         const SizedBox(
                                                             width: 8),
@@ -427,8 +436,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                               .nunito(
                                                             fontSize: 16,
                                                             fontWeight:
-                                                                FontWeight
-                                                                    .w700,
+                                                                FontWeight.w700,
                                                           ),
                                                         ),
                                                       ],
@@ -458,8 +466,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () =>
-                                    context.go(AppRouter.register),
+                                onPressed: () => context.go(AppRouter.register),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
@@ -523,7 +530,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14),
+      hintStyle:
+          GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14),
       prefixIcon: Icon(icon, color: AppTheme.textSecondary, size: 20),
       suffixIcon: suffix,
       filled: true,

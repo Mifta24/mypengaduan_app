@@ -41,7 +41,9 @@ Future<void> showComplaintAttachmentDialog(
 
               return Row(
                 children: [
-                  Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  Expanded(
+                      child: Text(name,
+                          maxLines: 1, overflow: TextOverflow.ellipsis)),
                   TextButton(
                     onPressed: id <= 0
                         ? null
@@ -58,7 +60,8 @@ Future<void> showComplaintAttachmentDialog(
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Attachment berhasil dihapus'),
+                                    content:
+                                        Text('Attachment berhasil dihapus'),
                                     backgroundColor: AppTheme.success,
                                   ),
                                 );
@@ -66,12 +69,16 @@ Future<void> showComplaintAttachmentDialog(
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Gagal hapus attachment: $e'), backgroundColor: AppTheme.danger),
+                                  SnackBar(
+                                      content:
+                                          Text('Gagal hapus attachment: $e'),
+                                      backgroundColor: AppTheme.danger),
                                 );
                               }
                             }
                           },
-                    child: const Text('Hapus', style: TextStyle(color: AppTheme.danger)),
+                    child: const Text('Hapus',
+                        style: TextStyle(color: AppTheme.danger)),
                   ),
                 ],
               );
@@ -79,7 +86,9 @@ Future<void> showComplaintAttachmentDialog(
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Tutup')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tutup')),
         ],
       ),
     ),

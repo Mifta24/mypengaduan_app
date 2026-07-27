@@ -16,14 +16,15 @@ class AnnouncementListScreen extends StatefulWidget {
   State<AnnouncementListScreen> createState() => _AnnouncementListScreenState();
 }
 
-class _AnnouncementListScreenState extends State<AnnouncementListScreen> with AutomaticKeepAliveClientMixin {
+class _AnnouncementListScreenState extends State<AnnouncementListScreen>
+    with AutomaticKeepAliveClientMixin {
   final TextEditingController _searchController = TextEditingController();
   final AnnouncementService _announcementService = AnnouncementService();
   String _selectedPriority = 'Semua Prioritas';
   List<models.Announcement> _announcements = [];
   bool _isLoading = false;
   String? _errorMessage;
-  
+
   // Static variable to track if data has been loaded across all instances
   static bool _hasLoadedDataGlobally = false;
   static List<models.Announcement> _cachedAnnouncements = [];
@@ -34,16 +35,18 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
   @override
   void initState() {
     super.initState();
-    debugPrint('📢 [AnnouncementListScreen] Screen initialized - will load after visible');
+    debugPrint(
+        '📢 [AnnouncementListScreen] Screen initialized - will load after visible');
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
+
     // Use cached data if available
     if (_hasLoadedDataGlobally && _cachedAnnouncements.isNotEmpty) {
-      debugPrint('Using cached announcements (${_cachedAnnouncements.length} items)');
+      debugPrint(
+          'Using cached announcements (${_cachedAnnouncements.length} items)');
       _announcements = _cachedAnnouncements;
       setState(() {});
     } else if (!_hasLoadedOnce) {
@@ -51,7 +54,8 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       _hasLoadedOnce = true;
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted && !_hasLoadedDataGlobally) {
-          debugPrint('📢 [AnnouncementListScreen] Screen visible - loading announcements now');
+          debugPrint(
+              '📢 [AnnouncementListScreen] Screen visible - loading announcements now');
           _loadAnnouncements();
         }
       });
@@ -72,7 +76,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       debugPrint('Already loading, skipping...');
       return;
     }
-    
+
     // Skip if already loaded globally and not forcing refresh
     if (_hasLoadedDataGlobally && !forceRefresh) {
       debugPrint('Announcements already loaded globally, skipping...');
@@ -93,7 +97,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
         page: 1,
         perPage: 50,
       );
-      
+
       if (mounted) {
         setState(() {
           _announcements = response.data;
@@ -105,19 +109,19 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       }
     } catch (e) {
       debugPrint('Error loading announcements: $e');
-      
+
       // Check if it's token expiration error
       if (e.toString().contains('Token expired') && mounted) {
         // Auto-logout and redirect to landing page
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         await authProvider.logout();
-        
+
         if (mounted) {
           context.go(AppRouter.landing);
         }
         return;
       }
-      
+
       if (mounted) {
         setState(() {
           _errorMessage = e.toString();
@@ -185,7 +189,8 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       };
 
       final matchesPriority = _selectedPriority == 'Semua Prioritas' ||
-          announcement.priority.toLowerCase() == priorityMap[_selectedPriority]?.toLowerCase();
+          announcement.priority.toLowerCase() ==
+              priorityMap[_selectedPriority]?.toLowerCase();
 
       return matchesSearch && matchesPriority;
     }).toList();
@@ -205,7 +210,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    
+
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
@@ -383,12 +388,14 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
                             ),
                           )
                         : RefreshIndicator(
-                            onRefresh: () => _loadAnnouncements(forceRefresh: true),
+                            onRefresh: () =>
+                                _loadAnnouncements(forceRefresh: true),
                             child: ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: _filteredAnnouncements.length,
                               itemBuilder: (context, index) {
-                                final announcement = _filteredAnnouncements[index];
+                                final announcement =
+                                    _filteredAnnouncements[index];
                                 return AnnouncementListCard(
                                   announcement: announcement,
                                   onTap: () => context.push(
@@ -404,5 +411,4 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> with Au
       ),
     );
   }
-
 }

@@ -3,6 +3,135 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 
+class ComplaintVisibilitySelector extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  const ComplaintVisibilitySelector({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _VisibilityOption(
+          value: 'public',
+          groupValue: value,
+          icon: Icons.public_rounded,
+          title: 'Publik',
+          description:
+              'Isi dan progres dapat dilihat semua orang. Identitas Anda tetap dirahasiakan.',
+          onChanged: onChanged,
+        ),
+        const SizedBox(height: 10),
+        _VisibilityOption(
+          value: 'private',
+          groupValue: value,
+          icon: Icons.lock_outline_rounded,
+          title: 'Privat',
+          description:
+              'Hanya Anda dan petugas berwenang yang dapat melihat pengaduan.',
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+class _VisibilityOption extends StatelessWidget {
+  final String value;
+  final String groupValue;
+  final IconData icon;
+  final String title;
+  final String description;
+  final ValueChanged<String> onChanged;
+
+  const _VisibilityOption({
+    required this.value,
+    required this.groupValue,
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = value == groupValue;
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => onChanged(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppTheme.primary.withValues(alpha: 0.07)
+              : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? AppTheme.primary : AppTheme.border,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              margin: const EdgeInsets.only(top: 1),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected ? AppTheme.primary : Colors.transparent,
+                border: Border.all(
+                  color: selected ? AppTheme.primary : AppTheme.border,
+                  width: 2,
+                ),
+              ),
+              child: selected
+                  ? const Icon(Icons.check, size: 13, color: Colors.white)
+                  : null,
+            ),
+            const SizedBox(width: 4),
+            Icon(icon,
+                size: 21,
+                color: selected ? AppTheme.primary : AppTheme.textSecondary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    description,
+                    style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Step Indicator ───────────────────────────────────────────────────────────
 class ComplaintStepIndicator extends StatelessWidget {
   final int current; // 1-based
@@ -20,7 +149,9 @@ class ComplaintStepIndicator extends StatelessWidget {
           if (i.isOdd) {
             final passed = (i ~/ 2) + 1 < current;
             return Expanded(
-              child: Container(height: 2, color: passed ? AppTheme.primary : AppTheme.border),
+              child: Container(
+                  height: 2,
+                  color: passed ? AppTheme.primary : AppTheme.border),
             );
           }
           final step = i ~/ 2 + 1;
@@ -33,10 +164,14 @@ class ComplaintStepIndicator extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: (isActive || isDone) ? AppTheme.primary : Colors.transparent,
+                  color: (isActive || isDone)
+                      ? AppTheme.primary
+                      : Colors.transparent,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: (isActive || isDone) ? AppTheme.primary : AppTheme.border,
+                    color: (isActive || isDone)
+                        ? AppTheme.primary
+                        : AppTheme.border,
                     width: 2,
                   ),
                 ),
@@ -47,7 +182,8 @@ class ComplaintStepIndicator extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isActive ? Colors.white : Colors.grey.shade400,
+                            color:
+                                isActive ? Colors.white : Colors.grey.shade400,
                           )),
                 ),
               ),
@@ -70,7 +206,8 @@ class ComplaintStepIndicator extends StatelessWidget {
 class ImageSourceSheet extends StatelessWidget {
   final VoidCallback onCamera;
   final VoidCallback onGallery;
-  const ImageSourceSheet({super.key, required this.onCamera, required this.onGallery});
+  const ImageSourceSheet(
+      {super.key, required this.onCamera, required this.onGallery});
 
   @override
   Widget build(BuildContext context) {
@@ -85,14 +222,18 @@ class ImageSourceSheet extends StatelessWidget {
           children: [
             const SizedBox(height: 12),
             Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                  color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2)),
             ),
             const SizedBox(height: 20),
             Text('Pilih Sumber Gambar',
                 style: GoogleFonts.nunito(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary)),
             const SizedBox(height: 12),
             _tile(context, Icons.camera_alt_rounded, 'Kamera', onCamera),
             _tile(context, Icons.photo_library_rounded, 'Galeri', onGallery),
@@ -103,7 +244,8 @@ class ImageSourceSheet extends StatelessWidget {
     );
   }
 
-  Widget _tile(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+  Widget _tile(
+      BuildContext context, IconData icon, String label, VoidCallback onTap) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(10),
@@ -141,7 +283,8 @@ class DashedBorderPainter extends CustomPainter {
 
     final path = Path()
       ..addRRect(RRect.fromRectAndRadius(
-          Rect.fromLTWH(0, 0, size.width, size.height), const Radius.circular(r)));
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          const Radius.circular(r)));
 
     final dest = Path();
     for (final m in path.computeMetrics()) {

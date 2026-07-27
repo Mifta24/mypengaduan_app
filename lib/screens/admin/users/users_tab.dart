@@ -245,7 +245,7 @@ class _AdminUsersTabState extends State<AdminUsersTab>
   Widget build(BuildContext context) {
     super.build(context);
     final filtered = _users.where((u) {
-      final name  = u['name']?.toString().toLowerCase()  ?? '';
+      final name = u['name']?.toString().toLowerCase() ?? '';
       final email = u['email']?.toString().toLowerCase() ?? '';
       final q = _searchQuery.toLowerCase();
       return q.isEmpty || name.contains(q) || email.contains(q);
@@ -265,7 +265,8 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                   style: GoogleFonts.nunito(fontSize: 14),
                   decoration: InputDecoration(
                     hintText: 'Cari nama atau email pengguna...',
-                    hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+                    hintStyle: GoogleFonts.nunito(
+                        fontSize: 14, color: Colors.grey.shade400),
                     prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
@@ -277,10 +278,18 @@ class _AdminUsersTabState extends State<AdminUsersTab>
                         : null,
                     filled: true,
                     fillColor: Colors.grey.shade50,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppTheme.border)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppTheme.border)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                            color: AppTheme.primary, width: 1.5)),
                   ),
                   onChanged: (v) => setState(() => _searchQuery = v),
                   onSubmitted: (_) => _loadUsers(forceRefresh: true),
@@ -290,13 +299,17 @@ class _AdminUsersTabState extends State<AdminUsersTab>
               ElevatedButton.icon(
                 onPressed: _navigateToAddUser,
                 icon: const Icon(Icons.person_add, size: 16),
-                label: Text('Tambah', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 13)),
+                label: Text('Tambah',
+                    style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w700, fontSize: 13)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                 ),
               ),
             ],
@@ -307,7 +320,8 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         // ── Users list ───────────────────────────────────────
         Expanded(
           child: !_hasLoadedData && _users.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primary))
               : filtered.isEmpty
                   ? const AdminEmptyState(
                       icon: Icons.people_outline,
@@ -374,7 +388,8 @@ class _AdminUsersTabState extends State<AdminUsersTab>
         onToggleVerification: _toggleUserVerification,
         onToggleEmailVerification: _toggleEmailVerification,
         onToggleStatus: _toggleUserStatus,
-        onResetPassword: (id, {String? userName}) => _resetUserPassword(id, userName ?? ''),
+        onResetPassword: (id, {String? userName}) =>
+            _resetUserPassword(id, userName ?? ''),
         onDelete: _confirmDeleteUser,
         onShowAllComplaints: _showAllUserComplaints,
       ),
@@ -517,7 +532,8 @@ class _AdminUsersTabState extends State<AdminUsersTab>
     if (id == 0) return;
     final originalRole = detail['role']?.toString() ?? 'user';
 
-    final newRole = await context.push<String>(AppRouter.adminUsersEdit, extra: detail);
+    final newRole =
+        await context.push<String>(AppRouter.adminUsersEdit, extra: detail);
 
     if (newRole == null || !mounted) return;
 

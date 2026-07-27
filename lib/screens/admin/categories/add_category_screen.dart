@@ -57,7 +57,9 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil ditambahkan'), backgroundColor: AppTheme.success),
+          const SnackBar(
+              content: Text('Kategori berhasil ditambahkan'),
+              backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
@@ -65,7 +67,9 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambahkan: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal menambahkan: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -76,12 +80,17 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: Text('Tambah Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        title: Text('Tambah Kategori',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         actions: [
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
             )
           else
             IconButton(
@@ -102,16 +111,19 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               decoration: BoxDecoration(
                 color: AppTheme.primary.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                border:
+                    Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, color: AppTheme.primary, size: 20),
+                  Icon(Icons.info_outline_rounded,
+                      color: AppTheme.primary, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Kategori digunakan untuk mengelompokkan keluhan berdasarkan jenisnya.',
-                      style: GoogleFonts.nunito(color: AppTheme.textPrimary, fontSize: 13),
+                      style: GoogleFonts.nunito(
+                          color: AppTheme.textPrimary, fontSize: 13),
                     ),
                   ),
                 ],
@@ -120,7 +132,11 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             const SizedBox(height: 24),
 
             // ── Nama ─────────────────────────────────────────
-            Text('Nama Kategori *', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            Text('Nama Kategori *',
+                style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 6),
             TextFormField(
               controller: _nameController,
@@ -129,7 +145,9 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                 hint: 'Contoh: Fasilitas Umum',
                 prefixIcon: const Icon(Icons.category_outlined, size: 20),
               ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama kategori harus diisi' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Nama kategori harus diisi'
+                  : null,
               onChanged: (_) {
                 if (_slugController.text.isEmpty) _generateSlug();
               },
@@ -137,7 +155,11 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             const SizedBox(height: 16),
 
             // ── Slug ─────────────────────────────────────────
-            Text('Slug (opsional)', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            Text('Slug (opsional)',
+                style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 6),
             TextFormField(
               controller: _slugController,
@@ -155,7 +177,11 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             const SizedBox(height: 16),
 
             // ── Deskripsi ─────────────────────────────────────
-            Text('Deskripsi (opsional)', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            Text('Deskripsi (opsional)',
+                style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 6),
             TextFormField(
               controller: _descriptionController,
@@ -185,10 +211,17 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                 ),
               ),
               child: SwitchListTile(
-                title: Text('Status Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+                title: Text('Status Kategori',
+                    style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: AppTheme.textPrimary)),
                 subtitle: Text(
-                  _isActive ? 'Aktif — muncul di form pengaduan' : 'Nonaktif — tidak muncul',
-                  style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                  _isActive
+                      ? 'Aktif — muncul di form pengaduan'
+                      : 'Nonaktif — tidak muncul',
+                  style: GoogleFonts.nunito(
+                      fontSize: 12, color: AppTheme.textSecondary),
                 ),
                 value: _isActive,
                 onChanged: (v) => setState(() => _isActive = v),
@@ -205,7 +238,11 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             ElevatedButton.icon(
               onPressed: _isLoading ? null : _submit,
               icon: _isLoading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.save_rounded, size: 18),
               label: Text(
                 _isLoading ? 'Menyimpan...' : 'Simpan Kategori',
@@ -215,7 +252,8 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),

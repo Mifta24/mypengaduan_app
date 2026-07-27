@@ -87,7 +87,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                 : await _complaintService.getComplaintDetail(id);
 
         if (!mounted) return;
-        if (complaint == null) throw Exception('Detail pengaduan tidak ditemukan');
+        if (complaint == null)
+          throw Exception('Detail pengaduan tidak ditemukan');
 
         _complaint = complaint;
         if (complaintData is Map) {
@@ -148,7 +149,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
 
     setState(() => _isLoading = true);
     try {
-      final response = await _complaintService.confirmResolution(_complaint!.id);
+      final response =
+          await _complaintService.confirmResolution(_complaint!.id);
       if (!mounted) return;
       if (response.success) {
         await _loadComplaint();
@@ -227,8 +229,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
 
   Future<void> _submitResponse() async {
     if (_responseController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Pesan tidak boleh kosong')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pesan tidak boleh kosong')));
       return;
     }
     setState(() => _isSubmittingResponse = true);
@@ -324,7 +326,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           if (!_isAdminSession && c.status == 'waiting_user_confirmation')
             TextButton.icon(
               onPressed: _confirmResolution,
-              icon: const Icon(Icons.verified, size: 17, color: AppTheme.primary),
+              icon:
+                  const Icon(Icons.verified, size: 17, color: AppTheme.primary),
               label: Text('Konfirmasi',
                   style: GoogleFonts.nunito(
                       color: AppTheme.primary,
@@ -367,7 +370,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                 PopupMenuItem(
                     value: 'delete',
                     child: Row(children: [
-                      const Icon(Icons.delete, size: 18, color: AppTheme.danger),
+                      const Icon(Icons.delete,
+                          size: 18, color: AppTheme.danger),
                       const SizedBox(width: 8),
                       Text('Hapus',
                           style: GoogleFonts.nunito(color: AppTheme.danger))

@@ -17,11 +17,13 @@ class AdminStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding:
+          padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1), // softer background
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withValues(alpha: 0.2)), // delicate border
+        border:
+            Border.all(color: color.withValues(alpha: 0.2)), // delicate border
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

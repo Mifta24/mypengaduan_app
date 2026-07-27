@@ -10,7 +10,11 @@ class UserDetailBadge extends StatelessWidget {
   final Color color;
   final IconData icon;
 
-  const UserDetailBadge({super.key, required this.label, required this.color, required this.icon});
+  const UserDetailBadge(
+      {super.key,
+      required this.label,
+      required this.color,
+      required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +30,9 @@ class UserDetailBadge extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 6),
-          Text(label, style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+          Text(label,
+              style: GoogleFonts.nunito(
+                  fontSize: 12, fontWeight: FontWeight.w700, color: color)),
         ],
       ),
     );
@@ -43,7 +49,11 @@ class UserDetailSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(title, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        Text(title,
+            style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary)),
         const Spacer(),
         if (action != null) action!,
       ],
@@ -56,7 +66,11 @@ class UserDetailStatCard extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  const UserDetailStatCard({super.key, required this.title, required this.value, required this.icon});
+  const UserDetailStatCard(
+      {super.key,
+      required this.title,
+      required this.value,
+      required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +81,10 @@ class UserDetailStatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 5, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.01),
+              blurRadius: 5,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -75,9 +92,15 @@ class UserDetailStatCard extends StatelessWidget {
         children: [
           Icon(icon, color: AppTheme.primary, size: 24),
           const SizedBox(height: 12),
-          Text(value, style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          Text(value,
+              style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 4),
-          Text(title, style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+          Text(title,
+              style: GoogleFonts.nunito(
+                  fontSize: 12, color: AppTheme.textSecondary)),
         ],
       ),
     );
@@ -88,7 +111,8 @@ class UserDetailContactRow extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const UserDetailContactRow({super.key, required this.icon, required this.text});
+  const UserDetailContactRow(
+      {super.key, required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +120,10 @@ class UserDetailContactRow extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: AppTheme.textSecondary),
         const SizedBox(width: 12),
-        Expanded(child: Text(text, style: GoogleFonts.nunito(fontWeight: FontWeight.w600, color: AppTheme.textPrimary))),
+        Expanded(
+            child: Text(text,
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w600, color: AppTheme.textPrimary))),
       ],
     );
   }
@@ -107,7 +134,11 @@ class UserDetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const UserDetailRow({super.key, required this.icon, required this.label, required this.value});
+  const UserDetailRow(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -120,9 +151,12 @@ class UserDetailRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              Text(label,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600])),
               const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(value,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -135,7 +169,8 @@ class UserDetailEmptyTile extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const UserDetailEmptyTile({super.key, required this.title, required this.subtitle});
+  const UserDetailEmptyTile(
+      {super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -150,11 +185,17 @@ class UserDetailEmptyTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_rounded, size: 32, color: AppTheme.textSecondary.withValues(alpha: 0.5)),
+          Icon(Icons.inbox_rounded,
+              size: 32, color: AppTheme.textSecondary.withValues(alpha: 0.5)),
           const SizedBox(height: 8),
-          Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          Text(title,
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
           const SizedBox(height: 4),
-          Text(subtitle, style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12), textAlign: TextAlign.center),
+          Text(subtitle,
+              style: GoogleFonts.nunito(
+                  color: AppTheme.textSecondary, fontSize: 12),
+              textAlign: TextAlign.center),
         ],
       ),
     );

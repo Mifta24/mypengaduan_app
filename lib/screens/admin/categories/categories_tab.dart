@@ -108,13 +108,17 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
       await _loadCategories(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Status berhasil diubah'), backgroundColor: AppTheme.success),
+          const SnackBar(
+              content: Text('Status berhasil diubah'),
+              backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal ubah status: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal ubah status: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -132,13 +136,17 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
       await _loadCategories(forceRefresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: AppTheme.success),
+          const SnackBar(
+              content: Text('Kategori berhasil dihapus'),
+              backgroundColor: AppTheme.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal hapus: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal hapus: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -150,22 +158,27 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
       final confirmed = await showAdminConfirmDialog(
         context,
         title: 'Hapus Massal',
-        message: 'Hapus ${_selectedIds.length} kategori sekaligus? Tindakan ini tidak dapat dibatalkan.',
+        message:
+            'Hapus ${_selectedIds.length} kategori sekaligus? Tindakan ini tidak dapat dibatalkan.',
       );
       if (!confirmed) return;
     }
     try {
-      await _adminService.bulkActionCategories(ids: _selectedIds.toList(), action: action);
+      await _adminService.bulkActionCategories(
+          ids: _selectedIds.toList(), action: action);
       await _loadCategories(forceRefresh: true);
       if (!mounted) return;
       setState(() => _selectedIds.clear());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil dijalankan'), backgroundColor: AppTheme.success),
+        const SnackBar(
+            content: Text('Berhasil dijalankan'),
+            backgroundColor: AppTheme.success),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal: $e'), backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -180,7 +193,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
         .where((id) => id > 0)
         .toSet();
     final selectedCount = _selectedIds.where(visibleIds.contains).length;
-    final allSelected = visibleIds.isNotEmpty && selectedCount == visibleIds.length;
+    final allSelected =
+        visibleIds.isNotEmpty && selectedCount == visibleIds.length;
 
     return Column(
       children: [
@@ -196,7 +210,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                   style: GoogleFonts.nunito(fontSize: 14),
                   decoration: InputDecoration(
                     hintText: 'Cari kategori...',
-                    hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+                    hintStyle: GoogleFonts.nunito(
+                        fontSize: 14, color: Colors.grey.shade400),
                     prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
@@ -211,10 +226,18 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                         : null,
                     filled: true,
                     fillColor: Colors.grey.shade50,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.border)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppTheme.border)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppTheme.border)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                            color: AppTheme.primary, width: 1.5)),
                   ),
                   onChanged: (v) => setState(() {
                     _searchQuery = v;
@@ -228,14 +251,23 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                 height: 44,
                 width: 44,
                 decoration: BoxDecoration(
-                  border: Border.all(color: _selectedStatus != null ? AppTheme.primary : AppTheme.border),
+                  border: Border.all(
+                      color: _selectedStatus != null
+                          ? AppTheme.primary
+                          : AppTheme.border),
                   borderRadius: BorderRadius.circular(10),
-                  color: _selectedStatus != null ? AppTheme.primary.withValues(alpha: 0.06) : Colors.grey.shade50,
+                  color: _selectedStatus != null
+                      ? AppTheme.primary.withValues(alpha: 0.06)
+                      : Colors.grey.shade50,
                 ),
                 child: PopupMenuButton<String>(
                   tooltip: 'Filter Status',
                   padding: EdgeInsets.zero,
-                  icon: Icon(Icons.filter_list, size: 20, color: _selectedStatus != null ? AppTheme.primary : Colors.grey.shade600),
+                  icon: Icon(Icons.filter_list,
+                      size: 20,
+                      color: _selectedStatus != null
+                          ? AppTheme.primary
+                          : Colors.grey.shade600),
                   onSelected: (v) => setState(() {
                     _selectedStatus = v == 'all' ? null : v;
                     _categories = _applyFilters(_rawCategories);
@@ -250,17 +282,22 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
               const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () async {
-                  final result = await context.push(AppRouter.adminCategoriesAdd);
+                  final result =
+                      await context.push(AppRouter.adminCategoriesAdd);
                   if (result == true) _loadCategories(forceRefresh: true);
                 },
                 icon: const Icon(Icons.add, size: 16),
-                label: Text('Tambah', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 13)),
+                label: Text('Tambah',
+                    style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w700, fontSize: 13)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                 ),
               ),
             ],
@@ -277,11 +314,16 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                 ActionChip(
                   label: Text(
                     'Status: ${_selectedStatus == "active" ? "Aktif" : "Nonaktif"}',
-                    style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        color: AppTheme.primary,
+                        fontWeight: FontWeight.w600),
                   ),
-                  avatar: const Icon(Icons.close, size: 14, color: AppTheme.primary),
+                  avatar: const Icon(Icons.close,
+                      size: 14, color: AppTheme.primary),
                   backgroundColor: AppTheme.primary.withValues(alpha: 0.08),
-                  side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.3)),
+                  side: BorderSide(
+                      color: AppTheme.primary.withValues(alpha: 0.3)),
                   onPressed: () => setState(() {
                     _selectedStatus = null;
                     _categories = _applyFilters(_rawCategories);
@@ -311,25 +353,33 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                       }
                     }),
                     activeColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4)),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   '$selectedCount dipilih',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary, fontSize: 13),
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                      fontSize: 13),
                 ),
                 const Spacer(),
-                _buildBulkBtn('Aktif', AppTheme.success, Icons.check_circle_outline, () => _bulkAction('activate')),
+                _buildBulkBtn('Aktif', AppTheme.success,
+                    Icons.check_circle_outline, () => _bulkAction('activate')),
                 const SizedBox(width: 6),
-                _buildBulkBtn('Nonaktif', AppTheme.warning, Icons.cancel_outlined, () => _bulkAction('deactivate')),
+                _buildBulkBtn('Nonaktif', AppTheme.warning,
+                    Icons.cancel_outlined, () => _bulkAction('deactivate')),
                 const SizedBox(width: 6),
-                _buildBulkBtn('Hapus', AppTheme.danger, Icons.delete_outline, () => _bulkAction('delete')),
+                _buildBulkBtn('Hapus', AppTheme.danger, Icons.delete_outline,
+                    () => _bulkAction('delete')),
                 const SizedBox(width: 6),
                 GestureDetector(
                   onTap: () => setState(() => _selectedIds.clear()),
-                  child: Icon(Icons.close, size: 18, color: Colors.grey.shade500),
+                  child:
+                      Icon(Icons.close, size: 18, color: Colors.grey.shade500),
                 ),
               ],
             ),
@@ -340,7 +390,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
         // ── Categories list ────────────────────────────────────
         Expanded(
           child: !_hasLoadedData && _categories.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primary))
               : _categories.isEmpty
                   ? const AdminEmptyState(
                       icon: Icons.category_outlined,
@@ -352,7 +403,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                         itemCount: _categories.length,
-                        itemBuilder: (_, i) => _buildCategoryCard(_categories[i]),
+                        itemBuilder: (_, i) =>
+                            _buildCategoryCard(_categories[i]),
                       ),
                     ),
         ),
@@ -360,7 +412,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
     );
   }
 
-  Widget _buildBulkBtn(String label, Color color, IconData icon, VoidCallback onTap) {
+  Widget _buildBulkBtn(
+      String label, Color color, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -375,7 +428,9 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
           children: [
             Icon(icon, size: 12, color: color),
             const SizedBox(width: 4),
-            Text(label, style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+            Text(label,
+                style: GoogleFonts.nunito(
+                    fontSize: 11, fontWeight: FontWeight.w700, color: color)),
           ],
         ),
       ),
@@ -427,7 +482,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                   }
                 }),
                 activeColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4)),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
@@ -451,7 +507,10 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                 children: [
                   Text(
                     name,
-                    style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -459,7 +518,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                     const SizedBox(height: 2),
                     Text(
                       description,
-                      style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                      style: GoogleFonts.nunito(
+                          fontSize: 12, color: AppTheme.textSecondary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -470,7 +530,9 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                       _miniChip(
                         isActive ? 'Aktif' : 'Nonaktif',
                         isActive ? AppTheme.primary : Colors.grey,
-                        isActive ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                        isActive
+                            ? Icons.check_circle_rounded
+                            : Icons.cancel_rounded,
                       ),
                       const SizedBox(width: 6),
                       _miniChip(
@@ -486,7 +548,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
             // More menu
             PopupMenuButton<String>(
               padding: EdgeInsets.zero,
-              icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
+              icon:
+                  Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
               onSelected: (value) async {
                 switch (value) {
                   case 'edit':
@@ -507,13 +570,19 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
               itemBuilder: (_) => [
                 const PopupMenuItem(
                   value: 'edit',
-                  child: Row(children: [Icon(Icons.edit_outlined, size: 16), SizedBox(width: 8), Text('Edit')]),
+                  child: Row(children: [
+                    Icon(Icons.edit_outlined, size: 16),
+                    SizedBox(width: 8),
+                    Text('Edit')
+                  ]),
                 ),
                 PopupMenuItem(
                   value: 'toggle',
                   child: Row(children: [
                     Icon(
-                      isActive ? Icons.toggle_off_outlined : Icons.toggle_on_outlined,
+                      isActive
+                          ? Icons.toggle_off_outlined
+                          : Icons.toggle_on_outlined,
                       size: 16,
                       color: isActive ? AppTheme.warning : AppTheme.success,
                     ),
@@ -524,7 +593,8 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(children: [
-                    Icon(Icons.delete_outline, size: 16, color: AppTheme.danger),
+                    Icon(Icons.delete_outline,
+                        size: 16, color: AppTheme.danger),
                     SizedBox(width: 8),
                     Text('Hapus', style: TextStyle(color: AppTheme.danger)),
                   ]),
@@ -549,7 +619,9 @@ class _AdminCategoriesTabState extends State<AdminCategoriesTab>
         children: [
           Icon(icon, size: 10, color: color),
           const SizedBox(width: 3),
-          Text(label, style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
+          Text(label,
+              style: GoogleFonts.nunito(
+                  fontSize: 10, fontWeight: FontWeight.w700, color: color)),
         ],
       ),
     );

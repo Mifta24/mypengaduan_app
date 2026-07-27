@@ -7,7 +7,8 @@ InputDecoration userFormFieldDecoration({
   String? hint,
   String? errorText,
 }) {
-  return AppTheme.inputDecoration(label: label, hint: hint, errorText: errorText);
+  return AppTheme.inputDecoration(
+      label: label, hint: hint, errorText: errorText);
 }
 
 Map<String, dynamic> buildUserProfilePayload({

@@ -21,15 +21,20 @@ class ComplaintStatusInfo {
 ComplaintStatusInfo complaintStatusInfo(String status) {
   switch (status) {
     case 'pending':
-      return const ComplaintStatusInfo('Menunggu', Color(0xFFD97706), Color(0xFFFEF3C7));
+      return const ComplaintStatusInfo(
+          'Menunggu', Color(0xFFD97706), Color(0xFFFEF3C7));
     case 'in_progress':
-      return const ComplaintStatusInfo('Diproses', Color(0xFF0891B2), Color(0xFFDBEAFE));
+      return const ComplaintStatusInfo(
+          'Diproses', Color(0xFF0891B2), Color(0xFFDBEAFE));
     case 'waiting_user_confirmation':
-      return const ComplaintStatusInfo('Menunggu Konfirmasi', Color(0xFFEA580C), Color(0xFFFFF7ED));
+      return const ComplaintStatusInfo(
+          'Menunggu Konfirmasi', Color(0xFFEA580C), Color(0xFFFFF7ED));
     case 'resolved':
-      return ComplaintStatusInfo('Selesai', AppTheme.primary, const Color(0xFFD1FAE5));
+      return ComplaintStatusInfo(
+          'Selesai', AppTheme.primary, const Color(0xFFD1FAE5));
     case 'rejected':
-      return const ComplaintStatusInfo('Ditolak', Color(0xFFDC2626), Color(0xFFFEE2E2));
+      return const ComplaintStatusInfo(
+          'Ditolak', Color(0xFFDC2626), Color(0xFFFEE2E2));
     default:
       return ComplaintStatusInfo(status, Colors.grey, Colors.grey.shade100);
   }
@@ -63,8 +68,13 @@ List<String> extractResolutionPhotoUrls(dynamic source) {
   if (source is! Map) return const [];
   final data = Map<String, dynamic>.from(source);
   const keys = [
-    'resolution_attachments', 'resolution_photos', 'resolved_photos',
-    'documentation_photos', 'resolution_images', 'resolve_photos', 'photos',
+    'resolution_attachments',
+    'resolution_photos',
+    'resolved_photos',
+    'documentation_photos',
+    'resolution_images',
+    'resolve_photos',
+    'photos',
   ];
   final results = <String>[];
   for (final key in keys) {
@@ -96,17 +106,22 @@ String _extractMediaUrl(dynamic item) {
   if (item is String) return item.trim();
   if (item is Map) {
     final m = Map<String, dynamic>.from(item);
-    return (m['url'] ?? m['file_url'] ?? m['photo_url'] ??
-            m['path'] ?? m['file_path'] ?? m['name'])
-        ?.toString()
-        .trim() ??
+    return (m['url'] ??
+                m['file_url'] ??
+                m['photo_url'] ??
+                m['path'] ??
+                m['file_path'] ??
+                m['name'])
+            ?.toString()
+            .trim() ??
         '';
   }
   return '';
 }
 
 bool _isResolutionAttachment(dynamic item, String sourceKey) {
-  if (sourceKey == 'resolution_attachments' || sourceKey == 'resolution_photos') return true;
+  if (sourceKey == 'resolution_attachments' || sourceKey == 'resolution_photos')
+    return true;
   if (item is Map) {
     final type = Map<String, dynamic>.from(item)['attachment_type']
             ?.toString()
@@ -126,7 +141,8 @@ void showComplaintFullImage(BuildContext context, String imageUrl) {
         children: [
           Center(
             child: InteractiveViewer(
-              child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
+              child:
+                  CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
             ),
           ),
           Positioned(
@@ -188,11 +204,18 @@ Future<void> exportComplaintPdf(Complaint complaint) async {
             ['Status', statusText],
             ['Kategori', complaint.category?.name ?? '-'],
             ['Lokasi', complaint.location],
-            ['Tanggal Kejadian', DateFormat('dd/MM/yyyy').format(complaint.reportDate)],
-            ['Tanggal Dibuat', DateFormat('dd/MM/yyyy HH:mm').format(complaint.createdAt)],
+            [
+              'Tanggal Kejadian',
+              DateFormat('dd/MM/yyyy').format(complaint.reportDate)
+            ],
+            [
+              'Tanggal Dibuat',
+              DateFormat('dd/MM/yyyy HH:mm').format(complaint.createdAt)
+            ],
             ['Deskripsi', complaint.description],
           ],
-          headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          headerStyle:
+              pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
           cellStyle: const pw.TextStyle(fontSize: 9),
           headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
           cellAlignment: pw.Alignment.topLeft,
@@ -220,5 +243,5 @@ BoxDecoration get complaintCardDecoration => BoxDecoration(
     );
 
 // Shared section title style
-TextStyle complaintSectionTitle(BuildContext context) =>
-    GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary);
+TextStyle complaintSectionTitle(BuildContext context) => GoogleFonts.nunito(
+    fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary);

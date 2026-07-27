@@ -25,10 +25,16 @@ class UserListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final role = user['role']?.toString() ?? 'user';
-    final isVerified = parseUserBool(user['is_user_verified']) || parseUserBool(user['is_verified']);
+    final isVerified = parseUserBool(user['is_user_verified']) ||
+        parseUserBool(user['is_verified']);
     final name = user['name']?.toString() ?? 'Pengguna';
     final email = user['email']?.toString() ?? '';
-    final initials = name.trim().split(' ').take(2).map((w) => w.isEmpty ? '' : w[0].toUpperCase()).join();
+    final initials = name
+        .trim()
+        .split(' ')
+        .take(2)
+        .map((w) => w.isEmpty ? '' : w[0].toUpperCase())
+        .join();
     final avatarColor = isVerified ? AppTheme.primary : const Color(0xFFD97706);
     final id = parseUserId(user['id']);
 
@@ -47,10 +53,15 @@ class UserListCard extends StatelessWidget {
             Container(
               width: 42,
               height: 42,
-              decoration: BoxDecoration(color: avatarColor.withValues(alpha: 0.15), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                  color: avatarColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle),
               child: Center(
                 child: Text(initials,
-                    style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w800, color: avatarColor)),
+                    style: GoogleFonts.nunito(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: avatarColor)),
               ),
             ),
             const SizedBox(width: 12),
@@ -59,11 +70,17 @@ class UserListCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name,
-                      style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                      style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                   Text(email,
-                      style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                      style: GoogleFonts.nunito(
+                          fontSize: 12, color: AppTheme.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
@@ -72,9 +89,13 @@ class UserListCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: (role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primary).withValues(alpha: 0.1),
+                    color: (role == 'admin'
+                            ? const Color(0xFF6366F1)
+                            : AppTheme.primary)
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -82,7 +103,9 @@ class UserListCard extends StatelessWidget {
                     style: GoogleFonts.nunito(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primary),
+                        color: role == 'admin'
+                            ? const Color(0xFF6366F1)
+                            : AppTheme.primary),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -90,9 +113,13 @@ class UserListCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isVerified ? Icons.verified_rounded : Icons.cancel_rounded,
+                      isVerified
+                          ? Icons.verified_rounded
+                          : Icons.cancel_rounded,
                       size: 13,
-                      color: isVerified ? AppTheme.primary : const Color(0xFFD97706),
+                      color: isVerified
+                          ? AppTheme.primary
+                          : const Color(0xFFD97706),
                     ),
                     const SizedBox(width: 3),
                     Text(
@@ -100,7 +127,9 @@ class UserListCard extends StatelessWidget {
                       style: GoogleFonts.nunito(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: isVerified ? AppTheme.primary : const Color(0xFFD97706)),
+                          color: isVerified
+                              ? AppTheme.primary
+                              : const Color(0xFFD97706)),
                     ),
                   ],
                 ),
@@ -109,7 +138,8 @@ class UserListCard extends StatelessWidget {
             const SizedBox(width: 4),
             PopupMenuButton<String>(
               padding: EdgeInsets.zero,
-              icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
+              icon:
+                  Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
               onSelected: (value) {
                 switch (value) {
                   case 'verify':
@@ -129,7 +159,8 @@ class UserListCard extends StatelessWidget {
                   const PopupMenuItem(
                       value: 'verify',
                       child: Row(children: [
-                        Icon(Icons.verified_user, size: 16, color: AppTheme.primary),
+                        Icon(Icons.verified_user,
+                            size: 16, color: AppTheme.primary),
                         SizedBox(width: 8),
                         Text('Verifikasi'),
                       ])),
@@ -137,7 +168,8 @@ class UserListCard extends StatelessWidget {
                   const PopupMenuItem(
                       value: 'make_admin',
                       child: Row(children: [
-                        Icon(Icons.admin_panel_settings, size: 16, color: Colors.indigo),
+                        Icon(Icons.admin_panel_settings,
+                            size: 16, color: Colors.indigo),
                         SizedBox(width: 8),
                         Text('Jadikan Admin'),
                       ])),

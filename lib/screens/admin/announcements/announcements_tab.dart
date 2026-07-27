@@ -86,8 +86,7 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
 
     if (!mounted) return;
 
-    debugPrint(
-        'Admin Announcements: Loading... (forceRefresh: $forceRefresh)');
+    debugPrint('Admin Announcements: Loading... (forceRefresh: $forceRefresh)');
     setState(() => _isLoading = true);
 
     try {
@@ -124,7 +123,8 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
     final confirmed = await showAdminConfirmDialog(
       context,
       title: 'Konfirmasi Hapus',
-      message: 'Apakah Anda yakin ingin menghapus pengumuman ini? Tindakan ini tidak dapat dibatalkan.',
+      message:
+          'Apakah Anda yakin ingin menghapus pengumuman ini? Tindakan ini tidak dapat dibatalkan.',
     );
     if (!confirmed) return;
     try {
@@ -149,10 +149,12 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
   }
 
   void _showAnnouncementDetailDialog(dynamic announcement) {
-    context.push(
+    context
+        .push(
       AppRouter.adminAnnouncementDetail,
       extra: Map<String, dynamic>.from(announcement as Map),
-    ).then((changed) {
+    )
+        .then((changed) {
       if (changed == true) {
         _loadAnnouncements(forceRefresh: true);
       }
@@ -200,8 +202,10 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
       if (_selectedStatus == null) return matchSearch;
       // Use computed `status` field from API ('published' | 'unpublished')
       final status = a['status']?.toString() ?? '';
-      if (_selectedStatus == 'published') return matchSearch && status == 'published';
-      if (_selectedStatus == 'draft') return matchSearch && status != 'published';
+      if (_selectedStatus == 'published')
+        return matchSearch && status == 'published';
+      if (_selectedStatus == 'draft')
+        return matchSearch && status != 'published';
       return matchSearch;
     }).toList();
 
@@ -238,12 +242,10 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
                             horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(color: AppTheme.border)),
+                            borderSide: BorderSide(color: AppTheme.border)),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(color: AppTheme.border)),
+                            borderSide: BorderSide(color: AppTheme.border)),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(
@@ -265,20 +267,17 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
         Expanded(
           child: !_hasLoadedDataGlobally && _isLoading
               ? const Center(
-                  child:
-                      CircularProgressIndicator(color: AppTheme.primary))
+                  child: CircularProgressIndicator(color: AppTheme.primary))
               : filtered.isEmpty
                   ? const AdminEmptyState(
                       icon: Icons.announcement_outlined,
                       title: 'Tidak ada pengumuman',
                     )
                   : RefreshIndicator(
-                      onRefresh: () =>
-                          _loadAnnouncements(forceRefresh: true),
+                      onRefresh: () => _loadAnnouncements(forceRefresh: true),
                       color: AppTheme.primary,
                       child: ListView.builder(
-                        padding:
-                            const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                         itemCount: filtered.length,
                         itemBuilder: (_, i) =>
                             _buildAnnouncementCard(filtered[i]),
@@ -303,22 +302,19 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
           hint: Text('Semua',
               style: GoogleFonts.nunito(
                   fontSize: 13, color: Colors.grey.shade500)),
-          style: GoogleFonts.nunito(
-              fontSize: 13, color: AppTheme.textPrimary),
+          style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary),
           icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
           items: [
             DropdownMenuItem(
                 value: null,
-                child: Text('Semua',
-                    style: GoogleFonts.nunito(fontSize: 13))),
+                child: Text('Semua', style: GoogleFonts.nunito(fontSize: 13))),
             DropdownMenuItem(
                 value: 'published',
-                child: Text('Published',
-                    style: GoogleFonts.nunito(fontSize: 13))),
+                child:
+                    Text('Published', style: GoogleFonts.nunito(fontSize: 13))),
             DropdownMenuItem(
                 value: 'draft',
-                child:
-                    Text('Draft', style: GoogleFonts.nunito(fontSize: 13))),
+                child: Text('Draft', style: GoogleFonts.nunito(fontSize: 13))),
           ],
           onChanged: (v) => setState(() => _selectedStatus = v),
         ),
@@ -327,18 +323,16 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
   }
 
   Widget _buildAnnouncementCard(dynamic a) {
-    final status   = a['status']?.toString() ?? '';
+    final status = a['status']?.toString() ?? '';
     final isPublished = status == 'published';
-    final priority =
-        a['priority']?.toString().toLowerCase() ?? 'medium';
+    final priority = a['priority']?.toString().toLowerCase() ?? 'medium';
     final priorityColor = _priorityColor(priority);
     final priorityLabel = _priorityLabel(priority);
 
     final viewsCount = (a['views_count'] as num?)?.toInt() ?? 0;
     final title = a['title']?.toString() ?? 'Tanpa Judul';
-    final publishedAt = a['published_at']?.toString() ??
-        a['created_at']?.toString() ??
-        '';
+    final publishedAt =
+        a['published_at']?.toString() ?? a['created_at']?.toString() ?? '';
     String dateStr = '';
     if (publishedAt.isNotEmpty) {
       try {
@@ -441,7 +435,8 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
                                       horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: isPublished
-                                        ? AppTheme.primary.withValues(alpha: 0.1)
+                                        ? AppTheme.primary
+                                            .withValues(alpha: 0.1)
                                         : Colors.grey.shade200,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -498,33 +493,29 @@ class _AdminAnnouncementsTabState extends State<AdminAnnouncementsTab>
                               minimumSize: Size.zero,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
-                              tapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: Text('Edit',
                                 style: GoogleFonts.nunito(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600)),
+                                    fontSize: 12, fontWeight: FontWeight.w600)),
                           ),
                           Container(
                               width: 1,
                               height: 14,
                               color: Colors.grey.shade300),
                           TextButton(
-                            onPressed: () => _deleteAnnouncement(
-                                _toInt(a['id'])),
+                            onPressed: () =>
+                                _deleteAnnouncement(_toInt(a['id'])),
                             style: TextButton.styleFrom(
                               foregroundColor: AppTheme.danger,
                               minimumSize: Size.zero,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
-                              tapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: Text('Hapus',
                                 style: GoogleFonts.nunito(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600)),
+                                    fontSize: 12, fontWeight: FontWeight.w600)),
                           ),
                         ],
                       ),

@@ -52,7 +52,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               const SizedBox(height: 16),
               Text('Keluar dari Akun?',
                   style: GoogleFonts.nunito(
-                      fontSize: 17, fontWeight: FontWeight.w800,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
                       color: AppTheme.textPrimary)),
               const SizedBox(height: 6),
               Text('Anda akan keluar dari sesi admin ini.',
@@ -73,8 +74,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             borderRadius: BorderRadius.circular(10)),
                       ),
                       child: Text('Batal',
-                          style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w700)),
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -90,8 +91,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             borderRadius: BorderRadius.circular(10)),
                       ),
                       child: Text('Keluar',
-                          style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w700)),
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ],
@@ -104,9 +105,15 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
     if (result == true && mounted) {
       final auth = context.read<AuthProvider>();
-      try { context.read<ComplaintProvider>().clear(); } catch (_) {}
-      try { context.read<NotificationProvider>().clear(); } catch (_) {}
-      try { context.read<AnnouncementProvider>().clear(); } catch (_) {}
+      try {
+        context.read<ComplaintProvider>().clear();
+      } catch (_) {}
+      try {
+        context.read<NotificationProvider>().clear();
+      } catch (_) {}
+      try {
+        context.read<AnnouncementProvider>().clear();
+      } catch (_) {}
       await auth.logout();
       if (mounted) context.go(AppRouter.landing);
     }
@@ -221,7 +228,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    width: 90, height: 90,
+                    width: 90,
+                    height: 90,
                     decoration: BoxDecoration(
                       color: AppTheme.secondary,
                       shape: BoxShape.circle,
@@ -229,7 +237,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                       boxShadow: [
                         BoxShadow(
                           color: AppTheme.primary.withValues(alpha: 0.45),
-                          blurRadius: 20, spreadRadius: 2,
+                          blurRadius: 20,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
@@ -237,7 +246,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                       child: user.avatar != null
                           ? Image.network(
                               user.avatar!,
-                              width: 90, height: 90,
+                              width: 90,
+                              height: 90,
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Center(
                                 child: Text(
@@ -266,16 +276,17 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   ),
                   // Admin badge
                   Positioned(
-                    bottom: 0, right: 0,
+                    bottom: 0,
+                    right: 0,
                     child: Container(
-                      width: 28, height: 28,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         color: const Color(0xFF6366F1),
                         shape: BoxShape.circle,
                         border: Border.all(color: AppTheme.bgDark, width: 2),
                       ),
-                      child: const Icon(
-                          Icons.admin_panel_settings_rounded,
+                      child: const Icon(Icons.admin_panel_settings_rounded,
                           size: 14, color: Colors.white),
                     ),
                   ),
@@ -300,7 +311,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               // Badges
               Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 8, runSpacing: 6,
+                spacing: 8,
+                runSpacing: 6,
                 children: [
                   _badge('ADMIN', const Color(0xFF6366F1),
                       icon: Icons.admin_panel_settings_rounded),
@@ -317,19 +329,21 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         ),
         // Leaf decorations
         Positioned(
-          top: 60, right: 16,
+          top: 60,
+          right: 16,
           child: Transform.rotate(
             angle: 0.3,
-            child: Icon(Icons.eco_rounded, size: 40,
-                color: AppTheme.primaryDark.withValues(alpha: 0.4)),
+            child: Icon(Icons.eco_rounded,
+                size: 40, color: AppTheme.primaryDark.withValues(alpha: 0.4)),
           ),
         ),
         Positioned(
-          top: 80, left: 12,
+          top: 80,
+          left: 12,
           child: Transform.rotate(
             angle: -0.5,
-            child: Icon(Icons.eco_rounded, size: 28,
-                color: AppTheme.primaryDark.withValues(alpha: 0.35)),
+            child: Icon(Icons.eco_rounded,
+                size: 28, color: AppTheme.primaryDark.withValues(alpha: 0.35)),
           ),
         ),
       ],
@@ -387,7 +401,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               _buildInfoTile(e.value),
               if (!isLast)
                 Divider(
-                    height: 1, indent: 56, endIndent: 16,
+                    height: 1,
+                    indent: 56,
+                    endIndent: 16,
                     color: AppTheme.border),
             ],
           );
@@ -402,7 +418,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       child: Row(
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: AppTheme.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
@@ -475,9 +492,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                         style: GoogleFonts.nunito(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: verified
-                              ? AppTheme.primary
-                              : AppTheme.warning,
+                          color: verified ? AppTheme.primary : AppTheme.warning,
                         ),
                       ),
                     ),
@@ -556,7 +571,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         child: Row(
           children: [
             Container(
-              width: 36, height: 36,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(10),
@@ -611,8 +627,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           height: 50,
           child: OutlinedButton.icon(
             onPressed: _confirmLogout,
-            icon: Icon(Icons.logout_rounded,
-                size: 18, color: AppTheme.danger),
+            icon: Icon(Icons.logout_rounded, size: 18, color: AppTheme.danger),
             label: Text('Keluar',
                 style: GoogleFonts.nunito(
                     fontSize: 15,
@@ -632,8 +647,18 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   String _formatDate(DateTime? date) {
     if (date == null) return '-';
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }

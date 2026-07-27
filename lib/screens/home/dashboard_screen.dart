@@ -67,9 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth    = Provider.of<AuthProvider>(context);
-    final cp      = Provider.of<ComplaintProvider>(context);
-    final np      = Provider.of<NotificationProvider>(context);
+    final auth = Provider.of<AuthProvider>(context);
+    final cp = Provider.of<ComplaintProvider>(context);
+    final np = Provider.of<NotificationProvider>(context);
     final waiting = _waitingCount(cp.statistics);
 
     return Scaffold(
@@ -183,9 +183,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             constraints: const BoxConstraints(
                                 minWidth: 16, minHeight: 16),
                             child: Text(
-                              np.unreadCount > 99
-                                  ? '99+'
-                                  : '${np.unreadCount}',
+                              np.unreadCount > 99 ? '99+' : '${np.unreadCount}',
                               style: GoogleFonts.nunito(
                                   color: Colors.white,
                                   fontSize: 9,
@@ -280,4 +278,3 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
-

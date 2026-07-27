@@ -53,10 +53,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_off_rounded, size: 64, color: Colors.grey.shade300),
+                  Icon(Icons.person_off_rounded,
+                      size: 64, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
                   Text('Tidak ada data profil',
-                      style: GoogleFonts.nunito(fontSize: 16, color: AppTheme.textSecondary)),
+                      style: GoogleFonts.nunito(
+                          fontSize: 16, color: AppTheme.textSecondary)),
                 ],
               ),
             );
@@ -112,7 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    width: 90, height: 90,
+                    width: 90,
+                    height: 90,
                     decoration: BoxDecoration(
                       color: AppTheme.secondary,
                       shape: BoxShape.circle,
@@ -120,7 +123,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       boxShadow: [
                         BoxShadow(
                           color: AppTheme.primary.withValues(alpha: 0.4),
-                          blurRadius: 20, spreadRadius: 2,
+                          blurRadius: 20,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
@@ -128,7 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: user.avatar != null
                           ? Image.network(
                               user.avatar!,
-                              width: 90, height: 90,
+                              width: 90,
+                              height: 90,
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Center(
                                 child: Text(
@@ -158,15 +163,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Verified badge
                   if (user.isUserVerified)
                     Positioned(
-                      bottom: 0, right: 0,
+                      bottom: 0,
+                      right: 0,
                       child: Container(
-                        width: 26, height: 26,
+                        width: 26,
+                        height: 26,
                         decoration: BoxDecoration(
                           color: AppTheme.primaryLight,
                           shape: BoxShape.circle,
                           border: Border.all(color: AppTheme.bgDark, width: 2),
                         ),
-                        child: const Icon(Icons.check, size: 14, color: Colors.white),
+                        child: const Icon(Icons.check,
+                            size: 14, color: Colors.white),
                       ),
                     ),
                 ],
@@ -175,22 +183,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Name
               Text(user.name,
                   style: GoogleFonts.nunito(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white),
                   textAlign: TextAlign.center),
               const SizedBox(height: 4),
               // Email
               Text(user.email,
                   style: GoogleFonts.nunito(
-                      fontSize: 13, color: Colors.white.withValues(alpha: 0.75)),
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.75)),
                   textAlign: TextAlign.center),
               const SizedBox(height: 16),
               // Badges row
               Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 8, runSpacing: 6,
+                spacing: 8,
+                runSpacing: 6,
                 children: [
-                  _badge(user.role == 'admin' ? 'Admin' : 'Warga',
-                      user.role == 'admin' ? const Color(0xFF6366F1) : AppTheme.primaryLight),
+                  _badge(
+                      user.role == 'admin' ? 'Admin' : 'Warga',
+                      user.role == 'admin'
+                          ? const Color(0xFF6366F1)
+                          : AppTheme.primaryLight),
                   if (user.isUserVerified)
                     _badge('Terverifikasi', AppTheme.primary,
                         icon: Icons.verified_rounded),
@@ -203,13 +218,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         // Leaf decorations
-        Positioned(top: 60, right: 16,
-            child: Transform.rotate(angle: 0.3,
-                child: Icon(Icons.eco_rounded, size: 40,
+        Positioned(
+            top: 60,
+            right: 16,
+            child: Transform.rotate(
+                angle: 0.3,
+                child: Icon(Icons.eco_rounded,
+                    size: 40,
                     color: AppTheme.primaryDark.withValues(alpha: 0.4)))),
-        Positioned(top: 80, left: 12,
-            child: Transform.rotate(angle: -0.5,
-                child: Icon(Icons.eco_rounded, size: 28,
+        Positioned(
+            top: 80,
+            left: 12,
+            child: Transform.rotate(
+                angle: -0.5,
+                child: Icon(Icons.eco_rounded,
+                    size: 28,
                     color: AppTheme.primaryDark.withValues(alpha: 0.35)))),
       ],
     );
@@ -232,7 +255,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
           Text(label,
               style: GoogleFonts.nunito(
-                  fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white)),
         ],
       ),
     );
@@ -245,7 +270,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text('Informasi Pribadi',
             style: GoogleFonts.nunito(
-                fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary)),
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
@@ -255,9 +282,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: Column(
             children: [
-              _infoTile(Icons.phone_rounded, 'Nomor Telepon', user.phone ?? 'Belum diatur'),
+              _infoTile(Icons.phone_rounded, 'Nomor Telepon',
+                  user.phone ?? 'Belum diatur'),
               _divider(),
-              _infoTile(Icons.location_on_rounded, 'Alamat', user.address ?? 'Belum diatur'),
+              _infoTile(Icons.location_on_rounded, 'Alamat',
+                  user.address ?? 'Belum diatur'),
               if (user.nik?.isNotEmpty == true) ...[
                 _divider(),
                 _infoTile(Icons.credit_card_rounded, 'NIK', user.nik!),
@@ -283,7 +312,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: AppTheme.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
@@ -301,7 +331,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 2),
                 Text(value,
                     style: GoogleFonts.nunito(
-                        fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary)),
               ],
             ),
           ),
@@ -317,7 +349,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text('Pengaturan Akun',
             style: GoogleFonts.nunito(
-                fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary)),
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
@@ -331,8 +365,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context,
                 icon: Icons.edit_rounded,
                 label: 'Edit Profil',
-                onTap: () => context.push(AppRouter.editProfile)
-                    .then((r) { if (r == true) _loadProfile(); }),
+                onTap: () => context.push(AppRouter.editProfile).then((r) {
+                  if (r == true) _loadProfile();
+                }),
               ),
               _divider(),
               _divider(),
@@ -356,7 +391,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _actionTile(BuildContext context, {
+  Widget _actionTile(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -369,7 +405,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           children: [
             Container(
-              width: 36, height: 36,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(10),
@@ -381,9 +418,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Expanded(
               child: Text(label,
                   style: GoogleFonts.nunito(
-                      fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary)),
             ),
-            Icon(Icons.chevron_right_rounded, size: 20, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right_rounded,
+                size: 20, color: Colors.grey.shade400),
           ],
         ),
       ),
@@ -397,13 +437,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       height: 52,
       child: OutlinedButton.icon(
         onPressed: () => _showLogoutDialog(context),
-        icon: const Icon(Icons.logout_rounded, size: 18, color: Color(0xFFEF4444)),
+        icon: const Icon(Icons.logout_rounded,
+            size: 18, color: Color(0xFFEF4444)),
         label: Text('Keluar',
             style: GoogleFonts.nunito(
-                fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFFEF4444))),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFFEF4444))),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFEF4444)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           backgroundColor: const Color(0xFFFEF2F2),
         ),
       ),
@@ -429,15 +473,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           FilledButton(
             onPressed: () async {
               Navigator.pop(dCtx);
-              try { ctx.read<ComplaintProvider>().clear(); } catch (_) {}
-              try { ctx.read<NotificationProvider>().clear(); } catch (_) {}
-              try { ctx.read<AnnouncementProvider>().clear(); } catch (_) {}
+              try {
+                ctx.read<ComplaintProvider>().clear();
+              } catch (_) {}
+              try {
+                ctx.read<NotificationProvider>().clear();
+              } catch (_) {}
+              try {
+                ctx.read<AnnouncementProvider>().clear();
+              } catch (_) {}
               final authProvider = ctx.read<AuthProvider>();
               await authProvider.logout();
               if (mounted && ctx.mounted) ctx.go(AppRouter.landing);
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Keluar', style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+            child: Text('Keluar',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -445,7 +496,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _fmt(DateTime d) {
-    const m = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+    const m = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agt',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
+    ];
     return '${d.day} ${m[d.month - 1]} ${d.year}';
   }
 }

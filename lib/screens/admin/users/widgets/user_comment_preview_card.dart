@@ -13,7 +13,8 @@ class UserCommentPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = firstString(comment, ['content', 'comment', 'message'], fallback: '-');
+    final content =
+        firstString(comment, ['content', 'comment', 'message'], fallback: '-');
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -27,13 +28,20 @@ class UserCommentPreviewCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.format_quote_rounded, color: AppTheme.primary.withValues(alpha: 0.5)),
+              Icon(Icons.format_quote_rounded,
+                  color: AppTheme.primary.withValues(alpha: 0.5)),
               const SizedBox(width: 8),
-              Expanded(child: Text(content, style: GoogleFonts.nunito(fontWeight: FontWeight.w600, color: AppTheme.textPrimary))),
+              Expanded(
+                  child: Text(content,
+                      style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary))),
             ],
           ),
           const SizedBox(height: 12),
-          Text(userTimeAgo(comment['created_at']), style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
+          Text(userTimeAgo(comment['created_at']),
+              style: GoogleFonts.nunito(
+                  color: AppTheme.textSecondary, fontSize: 12)),
         ],
       ),
     );

@@ -34,8 +34,11 @@ class CategoryComplaintTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              complaint['title']?.toString() ?? complaint['description']?.toString() ?? '-',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+              complaint['title']?.toString() ??
+                  complaint['description']?.toString() ??
+                  '-',
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -48,7 +51,9 @@ class CategoryComplaintTile extends StatelessWidget {
                   icon: Icons.info_outline_rounded,
                 ),
                 const Spacer(),
-                Text(categoryTimeAgo(complaint['created_at']), style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                Text(categoryTimeAgo(complaint['created_at']),
+                    style: GoogleFonts.nunito(
+                        fontSize: 12, color: AppTheme.textSecondary)),
               ],
             ),
           ],

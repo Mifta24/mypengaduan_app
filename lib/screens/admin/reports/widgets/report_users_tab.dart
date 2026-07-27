@@ -39,30 +39,47 @@ class ReportUsersTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Laporan Pengguna', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('Laporan Pengguna',
+              style: GoogleFonts.nunito(
+                  fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text('Laporan detail dan analisis pengguna sistem', style: GoogleFonts.nunito(color: Colors.grey.shade600)),
+          Text('Laporan detail dan analisis pengguna sistem',
+              style: GoogleFonts.nunito(color: Colors.grey.shade600)),
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
               final crossAxisCount = width < 560 ? 2 : (width < 900 ? 3 : 4);
-              final itemWidth = (width - (8 * (crossAxisCount - 1))) / crossAxisCount;
+              final itemWidth =
+                  (width - (8 * (crossAxisCount - 1))) / crossAxisCount;
 
               return Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  SizedBox(width: itemWidth, child: ReportMetricTile(title: 'Total Pengguna', value: '$total')),
-                  SizedBox(width: itemWidth, child: ReportMetricTile(title: 'Aktif', value: '$active')),
-                  SizedBox(width: itemWidth, child: ReportMetricTile(title: 'Tidak Aktif', value: '$inactive')),
-                  SizedBox(width: itemWidth, child: ReportMetricTile(title: 'Bulan Ini', value: '$monthCount')),
+                  SizedBox(
+                      width: itemWidth,
+                      child: ReportMetricTile(
+                          title: 'Total Pengguna', value: '$total')),
+                  SizedBox(
+                      width: itemWidth,
+                      child:
+                          ReportMetricTile(title: 'Aktif', value: '$active')),
+                  SizedBox(
+                      width: itemWidth,
+                      child: ReportMetricTile(
+                          title: 'Tidak Aktif', value: '$inactive')),
+                  SizedBox(
+                      width: itemWidth,
+                      child: ReportMetricTile(
+                          title: 'Bulan Ini', value: '$monthCount')),
                 ],
               );
             },
           ),
           const SizedBox(height: 12),
-          Text('Daftar Pengguna', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+          Text('Daftar Pengguna',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text('Total $total pengguna ditemukan'),
           const SizedBox(height: 8),
@@ -71,21 +88,27 @@ class ReportUsersTab extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Column(
                 children: [
-                  Icon(Icons.people_outline, size: 48, color: Colors.grey.shade400),
+                  Icon(Icons.people_outline,
+                      size: 48, color: Colors.grey.shade400),
                   const SizedBox(height: 8),
                   Text(
-                    periodFilter == 'all' ? 'Belum ada data pengguna.' : 'Tidak ada pengguna terdaftar pada periode ini.',
+                    periodFilter == 'all'
+                        ? 'Belum ada data pengguna.'
+                        : 'Tidak ada pengguna terdaftar pada periode ini.',
                     style: GoogleFonts.nunito(color: Colors.grey.shade600),
                   ),
                   if (periodFilter != 'all') ...[
                     const SizedBox(height: 8),
-                    TextButton(onPressed: onShowAllData, child: const Text('Tampilkan Semua Data')),
+                    TextButton(
+                        onPressed: onShowAllData,
+                        child: const Text('Tampilkan Semua Data')),
                   ],
                 ],
               ),
             )
           else
-            ...items.map((user) => _UserReportCard(user: user, provider: provider)),
+            ...items
+                .map((user) => _UserReportCard(user: user, provider: provider)),
         ],
       ),
     );
@@ -106,7 +129,8 @@ class _UserReportCard extends StatelessWidget {
     final isActive = provider.toBool(user['is_active']);
     final complaintsCount = provider.toInt(user['complaints_count']);
     final created = provider.parseDate(user['created_at']);
-    final emailVerified = provider.toBool(user['is_email_verified']) || user['email_verified_at'] != null;
+    final emailVerified = provider.toBool(user['is_email_verified']) ||
+        user['email_verified_at'] != null;
     final initials = reportInitials(name);
 
     return AdminInfoCard(
@@ -121,28 +145,46 @@ class _UserReportCard extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: Colors.blue.withValues(alpha: 0.15),
-                child: Text(initials, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.blue)),
+                child: Text(initials,
+                    style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: Colors.blue)),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(name,
+                        style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w700, fontSize: 16),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
-                    Text(email, style: GoogleFonts.nunito(color: Colors.grey[600], fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(email,
+                        style: GoogleFonts.nunito(
+                            color: Colors.grey[600], fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isActive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                  color: isActive
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   isActive ? 'Aktif' : 'Tidak Aktif',
-                  style: GoogleFonts.nunito(color: isActive ? Colors.green : Colors.red, fontSize: 11, fontWeight: FontWeight.w700),
+                  style: GoogleFonts.nunito(
+                      color: isActive ? Colors.green : Colors.red,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -153,7 +195,9 @@ class _UserReportCard extends StatelessWidget {
               children: [
                 Icon(Icons.phone, size: 14, color: Colors.grey[600]),
                 const SizedBox(width: 6),
-                Text(phone, style: GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13)),
+                Text(phone,
+                    style: GoogleFonts.nunito(
+                        color: Colors.grey[700], fontSize: 13)),
               ],
             ),
             const SizedBox(height: 4),
@@ -164,18 +208,25 @@ class _UserReportCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 'Bergabung: ${created == null ? '-' : DateFormat('dd/MM/yyyy').format(created)}',
-                style: GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13),
+                style:
+                    GoogleFonts.nunito(color: Colors.grey[700], fontSize: 13),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(emailVerified ? Icons.verified : Icons.warning_amber, size: 14, color: emailVerified ? Colors.blue : Colors.orange),
+              Icon(emailVerified ? Icons.verified : Icons.warning_amber,
+                  size: 14, color: emailVerified ? Colors.blue : Colors.orange),
               const SizedBox(width: 6),
               Text(
-                emailVerified ? 'Email terverifikasi' : 'Email belum terverifikasi',
-                style: GoogleFonts.nunito(color: emailVerified ? Colors.blue[700] : Colors.orange[700], fontSize: 13),
+                emailVerified
+                    ? 'Email terverifikasi'
+                    : 'Email belum terverifikasi',
+                style: GoogleFonts.nunito(
+                    color:
+                        emailVerified ? Colors.blue[700] : Colors.orange[700],
+                    fontSize: 13),
               ),
             ],
           ),
@@ -183,7 +234,8 @@ class _UserReportCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -195,7 +247,10 @@ class _UserReportCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       '$complaintsCount keluhan',
-                      style: GoogleFonts.nunito(color: Colors.grey[800], fontSize: 12, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.nunito(
+                          color: Colors.grey[800],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -208,7 +263,8 @@ class _UserReportCard extends StatelessWidget {
             child: OutlinedButton(
               onPressed: () => _showUserDetailDialog(context, user),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 minimumSize: const Size(0, 32),
               ),
               child: Text('Detail', style: GoogleFonts.nunito(fontSize: 12)),
@@ -233,12 +289,15 @@ class _UserReportCard extends StatelessWidget {
               Text('Email: ${user['email'] ?? '-'}'),
               Text('Telepon: ${user['phone'] ?? '-'}'),
               Text('Role: ${user['role'] ?? 'user'}'),
-              Text('Status: ${provider.toBool(user['is_active']) ? 'Aktif' : 'Tidak Aktif'}'),
+              Text(
+                  'Status: ${provider.toBool(user['is_active']) ? 'Aktif' : 'Tidak Aktif'}'),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tutup')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup')),
         ],
       ),
     );

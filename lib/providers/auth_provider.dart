@@ -49,7 +49,8 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Login
-  Future<bool> login(String email, String password, {bool rememberMe = true}) async {
+  Future<bool> login(String email, String password,
+      {bool rememberMe = true}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -148,16 +149,16 @@ class AuthProvider extends ChangeNotifier {
   // Logout
   Future<void> logout() async {
     debugPrint('🚪 [AuthProvider] Logout started - clearing data immediately');
-    
+
     // Clear state FIRST before calling service
     _user = null;
     _isAuthenticated = false;
     _errorMessage = null;
     _isLoading = false;
     notifyListeners();
-    
+
     debugPrint('✅ [AuthProvider] State cleared, now calling logout service');
-    
+
     // Then call logout service (async in background)
     try {
       await _authService.logout();

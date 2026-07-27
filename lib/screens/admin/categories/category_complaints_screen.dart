@@ -37,10 +37,12 @@ class CategoryComplaintsScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppTheme.surface,
         appBar: AppBar(
-          title: Text('Keluhan — $categoryName', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+          title: Text('Keluhan — $categoryName',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
           bottom: TabBar(
             isScrollable: true,
-            labelStyle: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 13),
+            labelStyle:
+                GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 13),
             unselectedLabelStyle: GoogleFonts.nunito(fontSize: 13),
             indicatorColor: AppTheme.primary,
             labelColor: AppTheme.primary,
@@ -79,7 +81,8 @@ class _ComplaintStatusList extends StatelessWidget {
           children: [
             Icon(Icons.inbox_rounded, size: 48, color: Colors.grey.shade300),
             const SizedBox(height: 12),
-            Text('Belum ada keluhan', style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
+            Text('Belum ada keluhan',
+                style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
           ],
         ),
       );
@@ -112,8 +115,11 @@ class _ComplaintStatusList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  complaint['title']?.toString() ?? complaint['description']?.toString() ?? '-',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  complaint['title']?.toString() ??
+                      complaint['description']?.toString() ??
+                      '-',
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -121,20 +127,28 @@ class _ComplaintStatusList extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: color.withValues(alpha: 0.3)),
                       ),
-                      child: Text(label, style: GoogleFonts.nunito(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+                      child: Text(label,
+                          style: GoogleFonts.nunito(
+                              color: color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700)),
                     ),
                     const Spacer(),
                     Text(
                       complaint['created_at'] != null
-                          ? DateFormat('d MMM y').format(DateTime.parse(complaint['created_at'].toString()).toLocal())
+                          ? DateFormat('d MMM y').format(
+                              DateTime.parse(complaint['created_at'].toString())
+                                  .toLocal())
                           : '-',
-                      style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12),
+                      style: GoogleFonts.nunito(
+                          color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),
