@@ -52,7 +52,10 @@ List<Map<String, dynamic>> extractComplaintAttachments(dynamic complaint) {
 
   final raw = complaint['attachments'];
   if (raw is List) {
-    return raw.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+    return raw
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
   }
 
   return const [];

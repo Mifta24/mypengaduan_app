@@ -56,7 +56,9 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         ),
         title: Text('Notifikasi',
             style: GoogleFonts.nunito(
-                color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 18)),
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 18)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Divider(height: 1, color: AppTheme.border),
@@ -72,16 +74,20 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   if (ok && mounted) {
                     messenger.showSnackBar(SnackBar(
                       content: Text('Semua notifikasi sudah dibaca',
-                          style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+                          style:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w500)),
                       backgroundColor: AppTheme.primary,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ));
                   }
                 },
                 child: Text('Baca Semua',
                     style: GoogleFonts.nunito(
-                        fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primary)),
               );
             },
           ),
@@ -118,7 +124,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                   const SizedBox(height: 16),
                   Text('Tidak ada notifikasi',
                       style: GoogleFonts.nunito(
-                          fontSize: 16, fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                           color: AppTheme.textSecondary)),
                   const SizedBox(height: 6),
                   Text('Notifikasi akan muncul di sini',
@@ -132,7 +139,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
           // List
           final notifs = provider.notifications;
           final unread = notifs.where((n) => !n.isRead).toList();
-          final read   = notifs.where((n) => n.isRead).toList();
+          final read = notifs.where((n) => n.isRead).toList();
 
           return RefreshIndicator(
             onRefresh: _load,
@@ -178,25 +185,30 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       children: [
         Text(label,
             style: GoogleFonts.nunito(
-                fontSize: 13, fontWeight: FontWeight.w700,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
                 color: AppTheme.textSecondary)),
         if (count != null) ...[
           const SizedBox(width: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
             decoration: BoxDecoration(
-              color: AppTheme.primary, borderRadius: BorderRadius.circular(20),
+              color: AppTheme.primary,
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Text('$count',
                 style: GoogleFonts.nunito(
-                    fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white)),
           ),
         ],
       ],
     );
   }
 
-  Future<void> _navigateFromNotif(BuildContext ctx, NotificationModel notif) async {
+  Future<void> _navigateFromNotif(
+      BuildContext ctx, NotificationModel notif) async {
     final type = notif.type.toLowerCase();
     final data = notif.data ?? {};
 
@@ -224,7 +236,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
             duration: const Duration(seconds: 2),
             backgroundColor: AppTheme.primary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ));
         }
         try {
@@ -249,13 +262,16 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     }
   }
 
-  Future<void> _deleteNotification(BuildContext context, NotificationModel notif) async {
+  Future<void> _deleteNotification(
+      BuildContext context, NotificationModel notif) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Hapus Notifikasi?', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
-        content: Text('Notifikasi ini akan dihapus secara permanen.', style: GoogleFonts.nunito()),
+        title: Text('Hapus Notifikasi?',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        content: Text('Notifikasi ini akan dihapus secara permanen.',
+            style: GoogleFonts.nunito()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -264,7 +280,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+            child: Text('Hapus',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -278,7 +295,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
 
     if (!success && context.mounted) {
       messenger.showSnackBar(SnackBar(
-        content: Text('Gagal menghapus notifikasi', style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+        content: Text('Gagal menghapus notifikasi',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
         backgroundColor: AppTheme.danger,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -287,9 +305,15 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
   }
 
   Future<void> _logout(BuildContext ctx) async {
-    try { ctx.read<ComplaintProvider>().clear(); } catch (_) {}
-    try { ctx.read<NotificationProvider>().clear(); } catch (_) {}
-    try { ctx.read<AnnouncementProvider>().clear(); } catch (_) {}
+    try {
+      ctx.read<ComplaintProvider>().clear();
+    } catch (_) {}
+    try {
+      ctx.read<NotificationProvider>().clear();
+    } catch (_) {}
+    try {
+      ctx.read<AnnouncementProvider>().clear();
+    } catch (_) {}
     await ctx.read<AuthProvider>().logout();
   }
 }
@@ -305,7 +329,7 @@ class _NotifCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final unread = !notif.isRead;
     final iconColor = _iconColor(notif.type);
-    final iconBg   = iconColor.withValues(alpha: 0.12);
+    final iconBg = iconColor.withValues(alpha: 0.12);
 
     return Dismissible(
       key: key!,
@@ -325,102 +349,114 @@ class _NotifCard extends StatelessWidget {
         child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
       ),
       child: GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: unread ? AppTheme.primary.withValues(alpha: 0.04) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: unread ? AppTheme.primary.withValues(alpha: 0.25) : AppTheme.border,
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: unread
+                ? AppTheme.primary.withValues(alpha: 0.04)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: unread
+                  ? AppTheme.primary.withValues(alpha: 0.25)
+                  : AppTheme.border,
+            ),
           ),
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Unread indicator strip
-              if (unread)
-                Container(
-                  width: 4,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primary,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      bottomLeft: Radius.circular(12),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Unread indicator strip
+                if (unread)
+                  Container(
+                    width: 4,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.primary,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomLeft: Radius.circular(12),
+                      ),
+                    ),
+                  ),
+                // Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Icon
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: iconBg,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(_iconData(notif.type),
+                              size: 20, color: iconColor),
+                        ),
+                        const SizedBox(width: 12),
+                        // Text
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(notif.title,
+                                        style: GoogleFonts.nunito(
+                                            fontSize: 14,
+                                            fontWeight: unread
+                                                ? FontWeight.w700
+                                                : FontWeight.w600,
+                                            color: AppTheme.textPrimary)),
+                                  ),
+                                  if (unread)
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      margin: const EdgeInsets.only(
+                                          left: 6, top: 3),
+                                      decoration: const BoxDecoration(
+                                          color: AppTheme.primary,
+                                          shape: BoxShape.circle),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(notif.body,
+                                  style: GoogleFonts.nunito(
+                                      fontSize: 13,
+                                      color: AppTheme.textSecondary,
+                                      height: 1.4),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Icon(Icons.access_time_rounded,
+                                      size: 12, color: Colors.grey.shade400),
+                                  const SizedBox(width: 4),
+                                  Text(_timeAgo(notif.createdAt),
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 11,
+                                          color: Colors.grey.shade400)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              // Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Icon
-                      Container(
-                        width: 40, height: 40,
-                        decoration: BoxDecoration(
-                          color: iconBg,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(_iconData(notif.type), size: 20, color: iconColor),
-                      ),
-                      const SizedBox(width: 12),
-                      // Text
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(notif.title,
-                                      style: GoogleFonts.nunito(
-                                          fontSize: 14,
-                                          fontWeight: unread ? FontWeight.w700 : FontWeight.w600,
-                                          color: AppTheme.textPrimary)),
-                                ),
-                                if (unread)
-                                  Container(
-                                    width: 8, height: 8,
-                                    margin: const EdgeInsets.only(left: 6, top: 3),
-                                    decoration: const BoxDecoration(
-                                        color: AppTheme.primary, shape: BoxShape.circle),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(notif.body,
-                                style: GoogleFonts.nunito(
-                                    fontSize: 13,
-                                    color: AppTheme.textSecondary,
-                                    height: 1.4),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Icon(Icons.access_time_rounded,
-                                    size: 12, color: Colors.grey.shade400),
-                                const SizedBox(width: 4),
-                                Text(_timeAgo(notif.createdAt),
-                                    style: GoogleFonts.nunito(
-                                        fontSize: 11, color: Colors.grey.shade400)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -428,20 +464,28 @@ class _NotifCard extends StatelessWidget {
   IconData _iconData(String type) {
     switch (type.toLowerCase()) {
       case 'complaint':
-      case 'complaint_update': return Icons.report_rounded;
-      case 'announcement':     return Icons.campaign_rounded;
-      case 'system':           return Icons.info_rounded;
-      default:                 return Icons.notifications_rounded;
+      case 'complaint_update':
+        return Icons.report_rounded;
+      case 'announcement':
+        return Icons.campaign_rounded;
+      case 'system':
+        return Icons.info_rounded;
+      default:
+        return Icons.notifications_rounded;
     }
   }
 
   Color _iconColor(String type) {
     switch (type.toLowerCase()) {
       case 'complaint':
-      case 'complaint_update': return const Color(0xFFEF4444);
-      case 'announcement':     return AppTheme.primary;
-      case 'system':           return const Color(0xFF0891B2);
-      default:                 return AppTheme.textSecondary;
+      case 'complaint_update':
+        return const Color(0xFFEF4444);
+      case 'announcement':
+        return AppTheme.primary;
+      case 'system':
+        return const Color(0xFF0891B2);
+      default:
+        return AppTheme.textSecondary;
     }
   }
 
@@ -449,8 +493,8 @@ class _NotifCard extends StatelessWidget {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 1) return 'Baru saja';
     if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
-    if (diff.inHours < 24)   return '${diff.inHours} jam lalu';
-    if (diff.inDays < 7)     return '${diff.inDays} hari lalu';
+    if (diff.inHours < 24) return '${diff.inHours} jam lalu';
+    if (diff.inDays < 7) return '${diff.inDays} hari lalu';
     return DateFormat('dd/MM/yyyy HH:mm').format(dt);
   }
 }
@@ -460,7 +504,8 @@ class _ErrorView extends StatelessWidget {
   final bool isAuth;
   final String message;
   final VoidCallback onRetry;
-  const _ErrorView({required this.isAuth, required this.message, required this.onRetry});
+  const _ErrorView(
+      {required this.isAuth, required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -479,22 +524,28 @@ class _ErrorView extends StatelessWidget {
             Text(
               isAuth ? 'Sesi Berakhir' : 'Gagal Memuat',
               style: GoogleFonts.nunito(
-                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(message,
-                style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary),
+                style: GoogleFonts.nunito(
+                    fontSize: 13, color: AppTheme.textSecondary),
                 textAlign: TextAlign.center),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: onRetry,
-              icon: Icon(isAuth ? Icons.logout_rounded : Icons.refresh_rounded, size: 18),
+              icon: Icon(isAuth ? Icons.logout_rounded : Icons.refresh_rounded,
+                  size: 18),
               label: Text(isAuth ? 'Login Ulang' : 'Coba Lagi',
                   style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isAuth ? const Color(0xFFD97706) : AppTheme.primary,
+                backgroundColor:
+                    isAuth ? const Color(0xFFD97706) : AppTheme.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
                 elevation: 0,
               ),
             ),

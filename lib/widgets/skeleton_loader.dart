@@ -5,7 +5,7 @@ class SkeletonLoader extends StatefulWidget {
   final double? width;
   final double height;
   final BorderRadius? borderRadius;
-  
+
   const SkeletonLoader({
     super.key,
     this.width,
@@ -29,7 +29,7 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat();
-    
+
     _animation = Tween<double>(begin: -1, end: 2).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );

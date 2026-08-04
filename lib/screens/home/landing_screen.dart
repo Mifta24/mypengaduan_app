@@ -17,12 +17,12 @@ class _LandingScreenState extends State<LandingScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  static const Color _bgDeep    = AppTheme.bgDeep;
-  static const Color _bgDark    = AppTheme.bgDark;
-  static const Color _bgMid     = AppTheme.bgMid;
+  static const Color _bgDeep = AppTheme.bgDeep;
+  static const Color _bgDark = AppTheme.bgDark;
+  static const Color _bgMid = AppTheme.bgMid;
   static const Color _logoGreen = AppTheme.secondary;
   static const Color _leafBadge = AppTheme.primaryLight;
-  static const Color _accent    = AppTheme.accent;
+  static const Color _accent = AppTheme.accent;
   static const Color _leafDecor = AppTheme.primaryDark;
 
   @override
@@ -203,14 +203,26 @@ class _LandingScreenState extends State<LandingScreen>
   // ── Feature cards ─────────────────────────────────────────────
   Widget _buildFeatures() {
     final features = [
-      (Icons.add_circle_outline_rounded, 'Pengaduan Mudah',
-          'Ajukan keluhan lewat formulir online yang mudah digunakan'),
-      (Icons.track_changes_rounded, 'Tracking Real-time',
-          'Pantau status keluhan dengan notifikasi langsung'),
-      (Icons.bolt_rounded, 'Respon Cepat',
-          'Tim siap merespon keluhan Anda dengan sigap'),
-      (Icons.chat_bubble_outline_rounded, 'Transparan',
-          'Komunikasi dua arah antara warga dan pengurus'),
+      (
+        Icons.add_circle_outline_rounded,
+        'Pengaduan Mudah',
+        'Ajukan keluhan lewat formulir online yang mudah digunakan'
+      ),
+      (
+        Icons.track_changes_rounded,
+        'Tracking Real-time',
+        'Pantau status keluhan dengan notifikasi langsung'
+      ),
+      (
+        Icons.bolt_rounded,
+        'Respon Cepat',
+        'Tim siap merespon keluhan Anda dengan sigap'
+      ),
+      (
+        Icons.chat_bubble_outline_rounded,
+        'Transparan',
+        'Komunikasi dua arah antara warga dan pengurus'
+      ),
     ];
 
     return Column(
@@ -307,7 +319,8 @@ class _LandingScreenState extends State<LandingScreen>
             onPressed: () => context.go(AppRouter.login),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.5),
+              side: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.35), width: 1.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -341,12 +354,19 @@ class _LandingScreenState extends State<LandingScreen>
   // ── Dekorasi daun di background ──────────────────────────────
   List<Widget> _leafDecorations() {
     final leaves = [
-      (top: 60.0,  right: 18.0, left: null, bottom: null, size: 64.0, rot: 0.3),
-      (top: 110.0, left: 8.0,   right: null, bottom: null, size: 40.0, rot: -0.5),
+      (top: 60.0, right: 18.0, left: null, bottom: null, size: 64.0, rot: 0.3),
+      (top: 110.0, left: 8.0, right: null, bottom: null, size: 40.0, rot: -0.5),
       (top: 220.0, right: 35.0, left: null, bottom: null, size: 28.0, rot: 0.9),
-      (top: 380.0, left: 4.0,   right: null, bottom: null, size: 22.0, rot: -0.7),
-      (top: null,  bottom: 220.0, left: 16.0, right: null, size: 48.0, rot: -0.3),
-      (top: null,  bottom: 160.0, right: 12.0, left: null, size: 34.0, rot: 0.6),
+      (top: 380.0, left: 4.0, right: null, bottom: null, size: 22.0, rot: -0.7),
+      (
+        top: null,
+        bottom: 220.0,
+        left: 16.0,
+        right: null,
+        size: 48.0,
+        rot: -0.3
+      ),
+      (top: null, bottom: 160.0, right: 12.0, left: null, size: 34.0, rot: 0.6),
     ];
 
     return leaves.map((l) {
@@ -378,12 +398,10 @@ class _WavePainter extends CustomPainter {
         ..style = PaintingStyle.fill;
       final path = Path()
         ..moveTo(0, yStart * size.height)
-        ..quadraticBezierTo(
-            size.width * 0.25, yMid1 * size.height,
-            size.width * 0.5,  yStart * size.height)
-        ..quadraticBezierTo(
-            size.width * 0.75, yMid2 * size.height,
-            size.width,        yStart * size.height)
+        ..quadraticBezierTo(size.width * 0.25, yMid1 * size.height,
+            size.width * 0.5, yStart * size.height)
+        ..quadraticBezierTo(size.width * 0.75, yMid2 * size.height, size.width,
+            yStart * size.height)
         ..lineTo(size.width, size.height)
         ..lineTo(0, size.height)
         ..close();

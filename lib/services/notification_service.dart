@@ -10,16 +10,19 @@ class NotificationService {
   final AuthService _authService;
   CancelToken? _currentGetRequestToken;
 
-  NotificationService(this._authService) : _dio = Dio(BaseOptions(
-    baseUrl: AppConfig.baseUrl,
-    connectTimeout: AppConfig.connectionTimeout,
-    receiveTimeout: const Duration(seconds: 30), // Reduced timeout for notifications
-    headers: {'Accept': 'application/json'},
-  )) {
+  NotificationService(this._authService)
+      : _dio = Dio(BaseOptions(
+          baseUrl: AppConfig.baseUrl,
+          connectTimeout: AppConfig.connectionTimeout,
+          receiveTimeout:
+              const Duration(seconds: 30), // Reduced timeout for notifications
+          headers: {'Accept': 'application/json'},
+        )) {
     // Add interceptor for debugging
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        debugPrint('🌐 [Dio] REQUEST: ${options.method} ${options.baseUrl}${options.path}');
+        debugPrint(
+            '🌐 [Dio] REQUEST: ${options.method} ${options.baseUrl}${options.path}');
         debugPrint('📤 Headers: ${options.headers}');
         debugPrint('📤 Query: ${options.queryParameters}');
         return handler.next(options);
@@ -38,10 +41,11 @@ class NotificationService {
       },
     ));
   }
-  
+
   // Cancel any ongoing GET request
   void cancelOngoingRequest() {
-    if (_currentGetRequestToken != null && !_currentGetRequestToken!.isCancelled) {
+    if (_currentGetRequestToken != null &&
+        !_currentGetRequestToken!.isCancelled) {
       debugPrint('🚫 [NotificationService] Cancelling ongoing request');
       _currentGetRequestToken!.cancel('New request initiated');
     }
@@ -49,18 +53,20 @@ class NotificationService {
 
   Future<Options> _getOptions() async {
     final token = await _authService.getToken();
-    debugPrint('🔑 [NotificationService] Using token: ${token?.substring(0, 20)}...');
-    
+    debugPrint(
+        '🔑 [NotificationService] Using token: ${token?.substring(0, 20)}...');
+
     // Try to get user info for debugging
     try {
       final user = await _authService.getUserFromStorage();
       if (user != null) {
-        debugPrint('👤 [NotificationService] Current user: ID=${user.id}, Name=${user.name}, Role=${user.role}');
+        debugPrint(
+            '👤 [NotificationService] Current user: ID=${user.id}, Name=${user.name}, Role=${user.role}');
       }
     } catch (e) {
       debugPrint('⚠️ Could not get user info: $e');
     }
-    
+
     return Options(headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
@@ -76,17 +82,17 @@ class NotificationService {
   }) async {
     // Cancel any ongoing request first
     cancelOngoingRequest();
-    
+
     // Create new cancel token
     _currentGetRequestToken = CancelToken();
-    
+
     try {
       final options = await _getOptions();
-      
+
       debugPrint('🔔 [NotificationService] Fetching notifications...');
       debugPrint('📍 URL: ${AppConfig.baseUrl}notifications');
       debugPrint('📄 Page: $page, PerPage: $perPage');
-      
+
       final response = await _dio.get(
         'notifications',
         queryParameters: {
@@ -101,9 +107,10 @@ class NotificationService {
 
       debugPrint('✅ [NotificationService] Response received');
       debugPrint('📊 Status Code: ${response.statusCode}');
-      
+
       // Check if response is HTML (login redirect)
-      if (response.data is String && response.data.toString().contains('<!DOCTYPE html>')) {
+      if (response.data is String &&
+          response.data.toString().contains('<!DOCTYPE html>')) {
         debugPrint('🚨 [NotificationService] Received HTML instead of JSON!');
         debugPrint('🚨 This means TOKEN IS EXPIRED or INVALID');
         throw DioException(
@@ -116,19 +123,20 @@ class NotificationService {
           ),
         );
       }
-      
+
       debugPrint('📦 Response Data: ${response.data}');
 
       // Handle different response structures from backend
       Map<String, dynamic> responseData;
-      
+
       if (response.data is Map<String, dynamic>) {
         responseData = response.data as Map<String, dynamic>;
-        
+
         // Check if data is wrapped in 'data' key
-        if (responseData.containsKey('data') && 
+        if (responseData.containsKey('data') &&
             responseData['data'] is Map<String, dynamic> &&
-            (responseData['data'] as Map<String, dynamic>).containsKey('data')) {
+            (responseData['data'] as Map<String, dynamic>)
+                .containsKey('data')) {
           // Backend format: {success, message, data: {current_page, data: [], ...}}
           debugPrint('📦 Using nested data structure');
           final innerData = responseData['data'] as Map<String, dynamic>;
@@ -146,7 +154,8 @@ class NotificationService {
             },
             'unread_count': responseData['unread_count'],
           };
-        } else if (responseData.containsKey('data') && responseData['data'] is List) {
+        } else if (responseData.containsKey('data') &&
+            responseData['data'] is List) {
           // Backend format: {success, message, data: [...]}
           debugPrint('📦 Using direct list structure');
           responseData = {
@@ -178,27 +187,32 @@ class NotificationService {
       debugPrint('Response Data: ${e.response?.data}');
       debugPrint('Error Message: ${e.message}');
       debugPrint('Error Object: ${e.error}');
-      
+
       // Handle cancelled requests silently
       if (e.type == DioExceptionType.cancel) {
         debugPrint('🚫 Request was cancelled');
         throw Exception('Request cancelled');
       }
-      
+
       // Handle specific error types
-      if (e.type == DioExceptionType.receiveTimeout || 
+      if (e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Koneksi timeout. Periksa koneksi internet Anda atau coba lagi nanti.');
+        throw Exception(
+            'Koneksi timeout. Periksa koneksi internet Anda atau coba lagi nanti.');
       } else if (e.type == DioExceptionType.connectionError) {
-        throw Exception('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+        throw Exception(
+            'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
       } else if (e.type == DioExceptionType.unknown) {
         // Unknown error - could be network, SSL, or other issues
         final errorDetail = e.error?.toString() ?? 'Unknown error';
         debugPrint('🔍 Unknown error detail: $errorDetail');
-        
-        if (errorDetail.contains('SocketException') || errorDetail.contains('NetworkException')) {
-          throw Exception('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
-        } else if (errorDetail.contains('HandshakeException') || errorDetail.contains('CERTIFICATE')) {
+
+        if (errorDetail.contains('SocketException') ||
+            errorDetail.contains('NetworkException')) {
+          throw Exception(
+              'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+        } else if (errorDetail.contains('HandshakeException') ||
+            errorDetail.contains('CERTIFICATE')) {
           throw Exception('Masalah sertifikat SSL. Hubungi administrator.');
         } else {
           throw Exception('Terjadi kesalahan: $errorDetail');
@@ -208,12 +222,12 @@ class NotificationService {
       } else if (e.response?.statusCode == 401) {
         throw Exception('Sesi Anda telah berakhir. Silakan login kembali.');
       } else if (e.response != null) {
-        final message = e.response!.data is Map 
+        final message = e.response!.data is Map
             ? (e.response!.data['message'] ?? 'Gagal memuat notifikasi')
             : 'Gagal memuat notifikasi';
         throw Exception(message);
       }
-      
+
       throw Exception('Terjadi kesalahan jaringan. Silakan coba lagi.');
     } catch (e) {
       debugPrint('❌ [NotificationService] Exception caught: $e');
@@ -273,8 +287,9 @@ class NotificationService {
   Future<bool> registerFCMToken(String fcmToken) async {
     try {
       final options = await _getOptions();
-      debugPrint('🔑 Registering FCM token to backend: ${fcmToken.substring(0, 50)}...');
-      
+      debugPrint(
+          '🔑 Registering FCM token to backend: ${fcmToken.substring(0, 50)}...');
+
       final response = await _dio.post(
         'device-tokens',
         data: {
@@ -295,12 +310,14 @@ class NotificationService {
       // Handle duplicate token (already registered) as success
       if (e.response?.statusCode == 500) {
         final errorMsg = e.response?.data?['message']?.toString() ?? '';
-        if (errorMsg.contains('duplicate key') || errorMsg.contains('already exists')) {
-          debugPrint('⚠️ Token already registered (duplicate key), treating as success');
+        if (errorMsg.contains('duplicate key') ||
+            errorMsg.contains('already exists')) {
+          debugPrint(
+              '⚠️ Token already registered (duplicate key), treating as success');
           return true; // Token already exists, that's fine!
         }
       }
-      
+
       debugPrint('❌ DioException registering token: ${e.response?.statusCode}');
       debugPrint('❌ Error data: ${e.response?.data}');
       debugPrint('❌ Error message: ${e.message}');
@@ -352,7 +369,8 @@ class NotificationService {
   Future<Map<String, dynamic>?> getNotificationSettings() async {
     try {
       final options = await _getOptions();
-      final response = await _dio.get('notification-settings', options: options);
+      final response =
+          await _dio.get('notification-settings', options: options);
       final data = response.data;
       if (data is Map<String, dynamic>) {
         return data;

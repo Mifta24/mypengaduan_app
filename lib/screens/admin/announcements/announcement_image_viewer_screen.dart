@@ -17,7 +17,10 @@ class AnnouncementImageViewerScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.nunito(color: Colors.white)),
+        title: Text(title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.nunito(color: Colors.white)),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -29,7 +32,8 @@ class AnnouncementImageViewerScreen extends StatelessWidget {
             errorBuilder: (context, error, stackTrace) {
               return Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text('Gagal memuat gambar', style: GoogleFonts.nunito(color: Colors.white)),
+                child: Text('Gagal memuat gambar',
+                    style: GoogleFonts.nunito(color: Colors.white)),
               );
             },
           ),

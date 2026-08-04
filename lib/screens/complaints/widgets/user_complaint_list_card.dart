@@ -4,26 +4,51 @@ import 'package:intl/intl.dart';
 import '../../../models/complaint_model.dart';
 import '../../../theme/app_theme.dart';
 
-({Color color, Color bg, String label, IconData icon}) complaintListStatusInfo(String s) {
+({Color color, Color bg, String label, IconData icon}) complaintListStatusInfo(
+    String s) {
   switch (s) {
     case 'pending':
-      return (color: const Color(0xFFD97706), bg: const Color(0xFFFEF3C7),
-          label: 'Menunggu', icon: Icons.schedule_rounded);
+      return (
+        color: const Color(0xFFD97706),
+        bg: const Color(0xFFFEF3C7),
+        label: 'Menunggu',
+        icon: Icons.schedule_rounded
+      );
     case 'in_progress':
-      return (color: const Color(0xFF0891B2), bg: const Color(0xFFDBEAFE),
-          label: 'Diproses', icon: Icons.sync_rounded);
+      return (
+        color: const Color(0xFF0891B2),
+        bg: const Color(0xFFDBEAFE),
+        label: 'Diproses',
+        icon: Icons.sync_rounded
+      );
     case 'waiting_user_confirmation':
-      return (color: const Color(0xFFEA580C), bg: const Color(0xFFFFF7ED),
-          label: 'Konfirmasi', icon: Icons.hourglass_top_rounded);
+      return (
+        color: const Color(0xFFEA580C),
+        bg: const Color(0xFFFFF7ED),
+        label: 'Konfirmasi',
+        icon: Icons.hourglass_top_rounded
+      );
     case 'resolved':
-      return (color: AppTheme.primary, bg: const Color(0xFFD1FAE5),
-          label: 'Selesai', icon: Icons.check_circle_rounded);
+      return (
+        color: AppTheme.primary,
+        bg: const Color(0xFFD1FAE5),
+        label: 'Selesai',
+        icon: Icons.check_circle_rounded
+      );
     case 'rejected':
-      return (color: const Color(0xFFDC2626), bg: const Color(0xFFFEE2E2),
-          label: 'Ditolak', icon: Icons.cancel_rounded);
+      return (
+        color: const Color(0xFFDC2626),
+        bg: const Color(0xFFFEE2E2),
+        label: 'Ditolak',
+        icon: Icons.cancel_rounded
+      );
     default:
-      return (color: Colors.grey, bg: Colors.grey.shade100,
-          label: s, icon: Icons.info_rounded);
+      return (
+        color: Colors.grey,
+        bg: Colors.grey.shade100,
+        label: s,
+        icon: Icons.info_rounded
+      );
   }
 }
 
@@ -161,6 +186,8 @@ class UserComplaintListCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           _StatusBadge(info: si),
+                          const SizedBox(width: 6),
+                          _VisibilityBadge(complaint: complaint),
                           const Spacer(),
                           Row(
                             children: [
@@ -168,7 +195,8 @@ class UserComplaintListCard extends StatelessWidget {
                                   size: 11, color: Colors.grey.shade400),
                               const SizedBox(width: 3),
                               Text(
-                                DateFormat('dd/MM/yy').format(complaint.reportDate),
+                                DateFormat('dd/MM/yy')
+                                    .format(complaint.reportDate),
                                 style: GoogleFonts.nunito(
                                     fontSize: 11, color: Colors.grey.shade400),
                               ),
@@ -267,7 +295,8 @@ class UserComplaintListCard extends StatelessWidget {
                                   visualDensity: VisualDensity.compact,
                                 ),
                               ),
-                            if (complaint.status == 'waiting_user_confirmation' &&
+                            if (complaint.status ==
+                                    'waiting_user_confirmation' &&
                                 onConfirm != null)
                               FilledButton.icon(
                                 onPressed: onConfirm,
@@ -296,6 +325,45 @@ class UserComplaintListCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _VisibilityBadge extends StatelessWidget {
+  final Complaint complaint;
+  const _VisibilityBadge({required this.complaint});
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        complaint.isPublic ? AppTheme.primary : AppTheme.textSecondary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            complaint.isPublic
+                ? Icons.public_rounded
+                : Icons.lock_outline_rounded,
+            size: 10,
+            color: color,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            complaint.visibilityText,
+            style: GoogleFonts.nunito(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

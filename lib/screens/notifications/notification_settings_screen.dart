@@ -48,7 +48,8 @@ class _NotificationSettingsScreenState
         final settings = data['data'] ?? data;
         setState(() {
           _complaintCreated = _parseBool(settings['complaint_created'], true);
-          _statusChanged = _parseBool(settings['complaint_status_changed'], true);
+          _statusChanged =
+              _parseBool(settings['complaint_status_changed'], true);
           _adminResponse = _parseBool(settings['admin_response'], true);
           _complaintResolved = _parseBool(settings['complaint_resolved'], true);
           _announcementCreated =
@@ -213,8 +214,8 @@ class _NotificationSettingsScreenState
             decoration: BoxDecoration(
               color: AppTheme.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: AppTheme.primary.withValues(alpha: 0.2)),
+              border:
+                  Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [

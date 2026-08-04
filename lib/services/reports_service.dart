@@ -18,25 +18,31 @@ class ReportsService {
     String? dateFrom,
     String? dateTo,
   }) async {
-    final overview   = await _adminService.getReportOverview();
+    final overview = await _adminService.getReportOverview();
     final statistics = await _adminService.getComplaintStatistics();
 
     final complaintItems = await _fetchAllPages(
       fetcher: (page) => _adminService.getComplaintsReport(
-        dateFrom: dateFrom, dateTo: dateTo, perPage: 100, page: page,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        perPage: 100,
+        page: page,
       ),
     );
     final userItems = await _fetchAllPages(
       fetcher: (page) => _adminService.getUsersReport(
-        dateFrom: dateFrom, dateTo: dateTo, perPage: 100, page: page,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        perPage: 100,
+        page: page,
       ),
     );
 
     return {
-      'overview':         overview,
-      'statistics':       statistics,
-      'complaintItems':   complaintItems,
-      'userItems':        userItems,
+      'overview': overview,
+      'statistics': statistics,
+      'complaintItems': complaintItems,
+      'userItems': userItems,
     };
   }
 
@@ -63,7 +69,8 @@ class ReportsService {
           : int.tryParse(currentPageRaw?.toString() ?? '$page') ?? page;
       lastPage = lastPageRaw is num
           ? lastPageRaw.toInt()
-          : int.tryParse(lastPageRaw?.toString() ?? '$currentPage') ?? currentPage;
+          : int.tryParse(lastPageRaw?.toString() ?? '$currentPage') ??
+              currentPage;
 
       page = currentPage + 1;
     } while (page <= lastPage);
@@ -118,13 +125,19 @@ class ReportsService {
 
     final direct = response['data'];
     if (direct is List) {
-      return direct.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      return direct
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     }
 
     if (direct is Map) {
       final nested = direct['data'];
       if (nested is List) {
-        return nested.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+        return nested
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
       }
     }
 
@@ -151,7 +164,10 @@ class ReportsService {
       userId: userId,
       role: role,
     );
-    return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+    return raw
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> fetchComplaintsByUser(int userId) async {
@@ -174,15 +190,18 @@ class ReportsService {
             .map((item) => Map<String, dynamic>.from(item)),
       );
 
-      final currentPageRaw = response['current_page'] ?? response['meta']?['current_page'];
-      final lastPageRaw = response['last_page'] ?? response['meta']?['last_page'];
+      final currentPageRaw =
+          response['current_page'] ?? response['meta']?['current_page'];
+      final lastPageRaw =
+          response['last_page'] ?? response['meta']?['last_page'];
 
       final currentPage = currentPageRaw is num
           ? currentPageRaw.toInt()
           : int.tryParse(currentPageRaw?.toString() ?? '1') ?? page;
       lastPage = lastPageRaw is num
           ? lastPageRaw.toInt()
-          : int.tryParse(lastPageRaw?.toString() ?? '$currentPage') ?? currentPage;
+          : int.tryParse(lastPageRaw?.toString() ?? '$currentPage') ??
+              currentPage;
 
       page = currentPage + 1;
     } while (page <= lastPage);
@@ -225,12 +244,14 @@ class ReportsService {
         generatedAt: generatedAt,
       );
       extension = 'xlsx';
-      mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      mimeType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     } else {
       throw Exception('Format export tidak didukung');
     }
 
-    final fileName = '${reportType}_report_${DateFormat('yyyyMMdd_HHmmss').format(generatedAt)}.$extension';
+    final fileName =
+        '${reportType}_report_${DateFormat('yyyyMMdd_HHmmss').format(generatedAt)}.$extension';
 
     await Share.shareXFiles(
       [
@@ -260,14 +281,18 @@ class ReportsService {
         pageFormat: PdfPageFormat.a4.landscape,
         margin: const pw.EdgeInsets.all(24),
         build: (context) => [
-          pw.Text(title, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.Text(title,
+              style:
+                  pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 4),
-          pw.Text('Dibuat: ${DateFormat('dd/MM/yyyy HH:mm').format(generatedAt)}'),
+          pw.Text(
+              'Dibuat: ${DateFormat('dd/MM/yyyy HH:mm').format(generatedAt)}'),
           pw.SizedBox(height: 12),
           pw.TableHelper.fromTextArray(
             headers: headers,
             data: rows,
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+            headerStyle:
+                pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
             cellStyle: const pw.TextStyle(fontSize: 8),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
             cellAlignment: pw.Alignment.centerLeft,
@@ -296,7 +321,8 @@ class ReportsService {
     final sheet = excel[sheetName];
     sheet.appendRow([ex.TextCellValue(title)]);
     sheet.appendRow([
-      ex.TextCellValue('Dibuat: ${DateFormat('dd/MM/yyyy HH:mm').format(generatedAt)}'),
+      ex.TextCellValue(
+          'Dibuat: ${DateFormat('dd/MM/yyyy HH:mm').format(generatedAt)}'),
     ]);
     sheet.appendRow(const <ex.CellValue?>[]);
     sheet.appendRow(headers.map((h) => ex.TextCellValue(h)).toList());

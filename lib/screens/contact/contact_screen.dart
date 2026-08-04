@@ -10,7 +10,8 @@ class ContactScreen extends StatelessWidget {
     _ContactItem(
       icon: Icons.location_on_rounded,
       label: 'Alamat',
-      value: 'Gang Annur 2 RT 05 RW 01, Poris Plawad Utara, Cipondoh, Tangerang, Banten',
+      value:
+          'Gang Annur 2 RT 05 RW 01, Poris Plawad Utara, Cipondoh, Tangerang, Banten',
       action: null,
     ),
     _ContactItem(
@@ -61,7 +62,9 @@ class ContactScreen extends StatelessWidget {
           _leaf(bottom: 80, right: 10, size: 32, rot: 0.6),
           // ── Bottom wave ─────────────────────────────────────
           Positioned(
-            bottom: 0, left: 0, right: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
             child: CustomPaint(
               size: const Size(double.infinity, 130),
               painter: _WavePainter(),
@@ -100,7 +103,8 @@ class ContactScreen extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.white, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 4),
@@ -109,7 +113,9 @@ class ContactScreen extends StatelessWidget {
             children: [
               Text('Hubungi Kami',
                   style: GoogleFonts.nunito(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white)),
               Text('Kami siap membantu Anda',
                   style: GoogleFonts.nunito(
                       fontSize: 12,
@@ -144,10 +150,12 @@ class ContactScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(Icons.support_agent_rounded, size: 58, color: Colors.white),
+              child: const Icon(Icons.support_agent_rounded,
+                  size: 58, color: Colors.white),
             ),
             Positioned(
-              top: 0, right: 2,
+              top: 0,
+              right: 2,
               child: Container(
                 width: 36,
                 height: 36,
@@ -156,7 +164,8 @@ class ContactScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.bgDark, width: 2.5),
                 ),
-                child: const Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 18),
+                child: const Icon(Icons.chat_bubble_rounded,
+                    color: Colors.white, size: 18),
               ),
             ),
           ],
@@ -164,11 +173,15 @@ class ContactScreen extends StatelessWidget {
         const SizedBox(height: 16),
         Text('Tim MyPengaduan',
             style: GoogleFonts.nunito(
-                fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Colors.white)),
         const SizedBox(height: 4),
         Text('Siap merespons pengaduan Anda',
             style: GoogleFonts.nunito(
-                fontSize: 13, color: AppTheme.accent, fontStyle: FontStyle.italic)),
+                fontSize: 13,
+                color: AppTheme.accent,
+                fontStyle: FontStyle.italic)),
       ],
     );
   }
@@ -208,7 +221,9 @@ class ContactScreen extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(item.value,
                       style: GoogleFonts.nunito(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
                 ],
               ),
             ),
@@ -248,14 +263,22 @@ class ContactScreen extends StatelessWidget {
     );
   }
 
-  Widget _leaf({double? top, double? bottom, double? left, double? right,
-      required double size, required double rot}) {
+  Widget _leaf(
+      {double? top,
+      double? bottom,
+      double? left,
+      double? right,
+      required double size,
+      required double rot}) {
     return Positioned(
-      top: top, bottom: bottom, left: left, right: right,
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
       child: Transform.rotate(
         angle: rot,
-        child: Icon(Icons.eco_rounded, size: size,
-            color: AppTheme.primaryDark.withValues(alpha: 0.4)),
+        child: Icon(Icons.eco_rounded,
+            size: size, color: AppTheme.primaryDark.withValues(alpha: 0.4)),
       ),
     );
   }
@@ -266,18 +289,26 @@ class _ContactItem {
   final String label;
   final String value;
   final String? action;
-  const _ContactItem({required this.icon, required this.label, required this.value, this.action});
+  const _ContactItem(
+      {required this.icon,
+      required this.label,
+      required this.value,
+      this.action});
 }
 
 class _WavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     void draw(Color color, double y0, double y1, double y2) {
-      final p = Paint()..color = color..style = PaintingStyle.fill;
+      final p = Paint()
+        ..color = color
+        ..style = PaintingStyle.fill;
       final path = Path()
         ..moveTo(0, y0 * size.height)
-        ..quadraticBezierTo(size.width * 0.25, y1 * size.height, size.width * 0.5, y0 * size.height)
-        ..quadraticBezierTo(size.width * 0.75, y2 * size.height, size.width, y0 * size.height)
+        ..quadraticBezierTo(size.width * 0.25, y1 * size.height,
+            size.width * 0.5, y0 * size.height)
+        ..quadraticBezierTo(
+            size.width * 0.75, y2 * size.height, size.width, y0 * size.height)
         ..lineTo(size.width, size.height)
         ..lineTo(0, size.height)
         ..close();

@@ -39,8 +39,10 @@ class _EditUserScreenState extends State<EditUserScreen> {
     final d = widget.detail;
     _nameController = TextEditingController(text: _pick(d, ['name']));
     _emailController = TextEditingController(text: _pick(d, ['email']));
-    _phoneController = TextEditingController(text: _pick(d, ['phone', 'phone_number']));
-    _addressController = TextEditingController(text: _pick(d, ['address', 'alamat']));
+    _phoneController =
+        TextEditingController(text: _pick(d, ['phone', 'phone_number']));
+    _addressController =
+        TextEditingController(text: _pick(d, ['address', 'alamat']));
     _nikController = TextEditingController(text: _pick(d, ['nik']));
     _rtController = TextEditingController(text: _pick(d, ['rt_number', 'rt']));
     _rwController = TextEditingController(text: _pick(d, ['rw_number', 'rw']));
@@ -73,35 +75,59 @@ class _EditUserScreenState extends State<EditUserScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: Text('Edit Pengguna', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        title: Text('Edit Pengguna',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         actions: [
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
             )
           else
-            IconButton(icon: const Icon(Icons.check_rounded), onPressed: _handleSave, tooltip: 'Simpan'),
+            IconButton(
+                icon: const Icon(Icons.check_rounded),
+                onPressed: _handleSave,
+                tooltip: 'Simpan'),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
         children: [
-          TextField(controller: _nameController, decoration: userFormFieldDecoration(label: 'Nama Lengkap')),
+          TextField(
+              controller: _nameController,
+              decoration: userFormFieldDecoration(label: 'Nama Lengkap')),
           const SizedBox(height: 10),
-          TextField(controller: _emailController, decoration: userFormFieldDecoration(label: 'Email')),
+          TextField(
+              controller: _emailController,
+              decoration: userFormFieldDecoration(label: 'Email')),
           const SizedBox(height: 10),
-          TextField(controller: _phoneController, decoration: userFormFieldDecoration(label: 'Nomor Telepon')),
+          TextField(
+              controller: _phoneController,
+              decoration: userFormFieldDecoration(label: 'Nomor Telepon')),
           const SizedBox(height: 10),
-          TextField(controller: _addressController, decoration: userFormFieldDecoration(label: 'Alamat')),
+          TextField(
+              controller: _addressController,
+              decoration: userFormFieldDecoration(label: 'Alamat')),
           const SizedBox(height: 10),
-          TextField(controller: _nikController, decoration: userFormFieldDecoration(label: 'NIK')),
+          TextField(
+              controller: _nikController,
+              decoration: userFormFieldDecoration(label: 'NIK')),
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: TextField(controller: _rtController, decoration: userFormFieldDecoration(label: 'RT'))),
+              Expanded(
+                  child: TextField(
+                      controller: _rtController,
+                      decoration: userFormFieldDecoration(label: 'RT'))),
               const SizedBox(width: 8),
-              Expanded(child: TextField(controller: _rwController, decoration: userFormFieldDecoration(label: 'RW'))),
+              Expanded(
+                  child: TextField(
+                      controller: _rwController,
+                      decoration: userFormFieldDecoration(label: 'RW'))),
             ],
           ),
           const SizedBox(height: 10),
@@ -119,12 +145,21 @@ class _EditUserScreenState extends State<EditUserScreen> {
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: _isActive ? AppTheme.primary.withValues(alpha: 0.06) : Colors.grey.shade50,
+              color: _isActive
+                  ? AppTheme.primary.withValues(alpha: 0.06)
+                  : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _isActive ? AppTheme.primary.withValues(alpha: 0.3) : AppTheme.border),
+              border: Border.all(
+                  color: _isActive
+                      ? AppTheme.primary.withValues(alpha: 0.3)
+                      : AppTheme.border),
             ),
             child: SwitchListTile(
-              title: Text('Status Aktif', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+              title: Text('Status Aktif',
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppTheme.textPrimary)),
               value: _isActive,
               onChanged: (value) => setState(() => _isActive = value),
               activeTrackColor: AppTheme.primary,
@@ -138,14 +173,20 @@ class _EditUserScreenState extends State<EditUserScreen> {
           ElevatedButton.icon(
             onPressed: _isLoading ? null : _handleSave,
             icon: _isLoading
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.save_rounded, size: 18),
-            label: Text(_isLoading ? 'Menyimpan...' : 'Simpan Perubahan', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+            label: Text(_isLoading ? 'Menyimpan...' : 'Simpan Perubahan',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
@@ -176,7 +217,9 @@ class _EditUserScreenState extends State<EditUserScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal update pengguna: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal update pengguna: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }

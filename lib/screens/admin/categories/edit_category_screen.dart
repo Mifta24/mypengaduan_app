@@ -27,9 +27,12 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController        = TextEditingController(text: widget.category['name'] ?? '');
-    _descriptionController = TextEditingController(text: widget.category['description'] ?? '');
-    _slugController        = TextEditingController(text: widget.category['slug'] ?? '');
+    _nameController =
+        TextEditingController(text: widget.category['name'] ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.category['description'] ?? '');
+    _slugController =
+        TextEditingController(text: widget.category['slug'] ?? '');
     _isActive = _toBool(widget.category['is_active']);
   }
 
@@ -69,7 +72,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil diperbarui'), backgroundColor: AppTheme.success),
+          const SnackBar(
+              content: Text('Kategori berhasil diperbarui'),
+              backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
@@ -77,7 +82,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memperbarui: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal memperbarui: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -88,9 +95,12 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Konfirmasi Hapus'),
-        content: const Text('Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.'),
+        content: const Text(
+            'Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Batal')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
@@ -106,7 +116,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       await _adminService.deleteCategory(widget.category['id']);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil dihapus'), backgroundColor: AppTheme.success),
+          const SnackBar(
+              content: Text('Kategori berhasil dihapus'),
+              backgroundColor: AppTheme.success),
         );
         Navigator.pop(context, true);
       }
@@ -114,7 +126,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menghapus: $e'), backgroundColor: AppTheme.danger),
+          SnackBar(
+              content: Text('Gagal menghapus: $e'),
+              backgroundColor: AppTheme.danger),
         );
       }
     }
@@ -125,17 +139,23 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
     final complaintsCount = widget.category['complaints_count'] ?? 0;
     final createdAt = _parseDate(widget.category['created_at']);
     final creatorUser = widget.category['user'];
-    final creatorName = (creatorUser is Map) ? creatorUser['name']?.toString() : null;
+    final creatorName =
+        (creatorUser is Map) ? creatorUser['name']?.toString() : null;
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: Text('Edit Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        title: Text('Edit Kategori',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         actions: [
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
             )
           else
             IconButton(
@@ -180,14 +200,17 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                       children: [
                         Text(
                           widget.category['name']?.toString() ?? '-',
-                          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                          style: GoogleFonts.nunito(
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.textPrimary),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '$complaintsCount keluhan',
-                          style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                          style: GoogleFonts.nunito(
+                              fontSize: 12, color: AppTheme.textSecondary),
                         ),
                       ],
                     ),
@@ -196,18 +219,28 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       if (createdAt != null) ...[
-                        Text('Dibuat', style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+                        Text('Dibuat',
+                            style: GoogleFonts.nunito(
+                                fontSize: 11, color: AppTheme.textSecondary)),
                         Text(
                           DateFormat('d MMM y').format(createdAt),
-                          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                          style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary),
                         ),
                       ],
                       if (creatorName != null) ...[
                         const SizedBox(height: 4),
-                        Text('Oleh', style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+                        Text('Oleh',
+                            style: GoogleFonts.nunito(
+                                fontSize: 11, color: AppTheme.textSecondary)),
                         Text(
                           creatorName,
-                          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                          style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary),
                         ),
                       ],
                     ],
@@ -218,7 +251,11 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             const SizedBox(height: 24),
 
             // ── Nama ─────────────────────────────────────────
-            Text('Nama Kategori *', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            Text('Nama Kategori *',
+                style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 6),
             TextFormField(
               controller: _nameController,
@@ -227,12 +264,18 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                 hint: 'Contoh: Fasilitas Umum',
                 prefixIcon: const Icon(Icons.category_outlined, size: 20),
               ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama kategori harus diisi' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Nama kategori harus diisi'
+                  : null,
             ),
             const SizedBox(height: 16),
 
             // ── Slug ─────────────────────────────────────────
-            Text('Slug (opsional)', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            Text('Slug (opsional)',
+                style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 6),
             TextFormField(
               controller: _slugController,
@@ -250,7 +293,11 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             const SizedBox(height: 16),
 
             // ── Deskripsi ─────────────────────────────────────
-            Text('Deskripsi (opsional)', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+            Text('Deskripsi (opsional)',
+                style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 6),
             TextFormField(
               controller: _descriptionController,
@@ -274,14 +321,23 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                     : Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: _isActive ? AppTheme.primary.withValues(alpha: 0.3) : AppTheme.border,
+                  color: _isActive
+                      ? AppTheme.primary.withValues(alpha: 0.3)
+                      : AppTheme.border,
                 ),
               ),
               child: SwitchListTile(
-                title: Text('Status Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+                title: Text('Status Kategori',
+                    style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: AppTheme.textPrimary)),
                 subtitle: Text(
-                  _isActive ? 'Aktif — muncul di form pengaduan' : 'Nonaktif — tidak muncul',
-                  style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                  _isActive
+                      ? 'Aktif — muncul di form pengaduan'
+                      : 'Nonaktif — tidak muncul',
+                  style: GoogleFonts.nunito(
+                      fontSize: 12, color: AppTheme.textSecondary),
                 ),
                 value: _isActive,
                 onChanged: (v) => setState(() => _isActive = v),
@@ -298,7 +354,11 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             ElevatedButton.icon(
               onPressed: _isLoading ? null : _submit,
               icon: _isLoading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.save_rounded, size: 18),
               label: Text(
                 _isLoading ? 'Menyimpan...' : 'Perbarui Kategori',
@@ -308,7 +368,8 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
@@ -318,11 +379,13 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             OutlinedButton.icon(
               onPressed: _isLoading ? null : _deleteCategory,
               icon: const Icon(Icons.delete_outline_rounded, size: 18),
-              label: Text('Hapus Kategori', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+              label: Text('Hapus Kategori',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppTheme.danger,
                 side: const BorderSide(color: AppTheme.danger),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
@@ -335,17 +398,20 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.warning.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.warning.withValues(alpha: 0.3)),
+                  border: Border.all(
+                      color: AppTheme.warning.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.warning_amber_rounded, size: 18, color: AppTheme.warning),
+                    Icon(Icons.warning_amber_rounded,
+                        size: 18, color: AppTheme.warning),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Kategori ini memiliki $complaintsCount keluhan. Pastikan memindahkan keluhan sebelum menghapus.',
-                        style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.warning),
+                        style: GoogleFonts.nunito(
+                            fontSize: 12, color: AppTheme.warning),
                       ),
                     ),
                   ],

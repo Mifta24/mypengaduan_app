@@ -139,7 +139,8 @@ class _AdminAnnouncementDetailScreenState
     }
 
     try {
-      await _fileDownloadService.downloadToDownloads(url: url, fileName: fileName);
+      await _fileDownloadService.downloadToDownloads(
+          url: url, fileName: fileName);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('File tersimpan di Downloads: $fileName')),
@@ -162,22 +163,28 @@ class _AdminAnnouncementDetailScreenState
   Widget build(BuildContext context) {
     final isActive = announcementToBool(_detail['is_active']);
     final priority = (_detail['priority']?.toString() ?? 'low').toLowerCase();
-    final viewsCount = announcementToInt(_detail['views_count'] ?? _detail['views']);
+    final viewsCount =
+        announcementToInt(_detail['views_count'] ?? _detail['views']);
     final author = firstAnnouncementString(_detail,
         ['author_name', 'author', 'created_by_name', 'created_by', 'user_name'],
         fallback: 'Admin');
-    final publishDate = formatAnnouncementDateTime(
-        _detail['published_at'] ?? _detail['publish_date'] ?? _detail['created_at']);
+    final publishDate = formatAnnouncementDateTime(_detail['published_at'] ??
+        _detail['publish_date'] ??
+        _detail['created_at']);
 
-    final photos = extractAnnouncementMediaItems(_detail, ['photos', 'images', 'media', 'photo_urls']);
-    final attachments = extractAnnouncementMediaItems(_detail, ['attachments', 'files', 'documents']);
+    final photos = extractAnnouncementMediaItems(
+        _detail, ['photos', 'images', 'media', 'photo_urls']);
+    final attachments = extractAnnouncementMediaItems(
+        _detail, ['attachments', 'files', 'documents']);
     final coverImage = firstAnnouncementString(
-        _detail, ['cover_image', 'cover', 'thumbnail', 'image_url', 'image'], fallback: '');
+        _detail, ['cover_image', 'cover', 'thumbnail', 'image_url', 'image'],
+        fallback: '');
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: Text('Detail Pengumuman', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+        title: Text('Detail Pengumuman',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textPrimary,
         elevation: 0,
@@ -188,7 +195,8 @@ class _AdminAnnouncementDetailScreenState
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary))
           : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +213,8 @@ class _AdminAnnouncementDetailScreenState
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          image: coverImage.isNotEmpty && isAnnouncementImageFile(coverImage)
+                          image: coverImage.isNotEmpty &&
+                                  isAnnouncementImageFile(coverImage)
                               ? DecorationImage(
                                   image: NetworkImage(coverImage),
                                   fit: BoxFit.cover,
@@ -236,7 +245,9 @@ class _AdminAnnouncementDetailScreenState
                               ]),
                           alignment: Alignment.center,
                           child: Icon(
-                            priority == 'urgent' ? Icons.priority_high_rounded : Icons.campaign_rounded,
+                            priority == 'urgent'
+                                ? Icons.priority_high_rounded
+                                : Icons.campaign_rounded,
                             color: announcementPriorityColor(priority),
                             size: 32,
                           ),
@@ -246,7 +257,8 @@ class _AdminAnnouncementDetailScreenState
                         bottom: 12,
                         right: 20,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(20),
@@ -254,11 +266,15 @@ class _AdminAnnouncementDetailScreenState
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.visibility_rounded, size: 14, color: AppTheme.textSecondary),
+                              const Icon(Icons.visibility_rounded,
+                                  size: 14, color: AppTheme.textSecondary),
                               const SizedBox(width: 4),
                               Text(
                                 '$viewsCount Views',
-                                style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
+                                style: GoogleFonts.nunito(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textSecondary),
                               ),
                             ],
                           ),
@@ -289,7 +305,9 @@ class _AdminAnnouncementDetailScreenState
                             AnnouncementDetailBadge(
                               label: isActive ? 'Aktif' : 'Nonaktif',
                               color: isActive ? AppTheme.primary : Colors.grey,
-                              icon: isActive ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                              icon: isActive
+                                  ? Icons.check_circle_rounded
+                                  : Icons.cancel_rounded,
                             ),
                             AnnouncementDetailBadge(
                               label: capitalizeAnnouncement(priority),
@@ -304,9 +322,13 @@ class _AdminAnnouncementDetailScreenState
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                            border: Border.all(
+                                color: AppTheme.border.withValues(alpha: 0.5)),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                              BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4)),
                             ],
                           ),
                           child: Row(
@@ -315,20 +337,27 @@ class _AdminAnnouncementDetailScreenState
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primary.withValues(alpha: 0.1),
+                                  color:
+                                      AppTheme.primary.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.person_outline_rounded, color: AppTheme.primary),
+                                child: const Icon(Icons.person_outline_rounded,
+                                    color: AppTheme.primary),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Penulis', style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
+                                    Text('Penulis',
+                                        style: GoogleFonts.nunito(
+                                            fontSize: 12,
+                                            color: AppTheme.textSecondary)),
                                     Text(
                                       author,
-                                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                                      style: GoogleFonts.nunito(
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.textPrimary),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -338,8 +367,14 @@ class _AdminAnnouncementDetailScreenState
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text('Diterbitkan', style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
-                                  Text(publishDate, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                                  Text('Diterbitkan',
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 12,
+                                          color: AppTheme.textSecondary)),
+                                  Text(publishDate,
+                                      style: GoogleFonts.nunito(
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.textPrimary)),
                                 ],
                               ),
                             ],
@@ -357,13 +392,16 @@ class _AdminAnnouncementDetailScreenState
                         const AnnouncementSectionTitle('Ringkasan'),
                         const SizedBox(height: 8),
                         AnnouncementContentBlock(
-                          content: firstAnnouncementString(_detail, ['summary', 'excerpt'], fallback: '-'),
+                          content: firstAnnouncementString(
+                              _detail, ['summary', 'excerpt'],
+                              fallback: '-'),
                           isItalic: true,
                         ),
                         const SizedBox(height: 18),
                         const AnnouncementSectionTitle('Konten'),
                         const SizedBox(height: 8),
-                        AnnouncementContentBlock(content: _detail['content']?.toString() ?? '-'),
+                        AnnouncementContentBlock(
+                            content: _detail['content']?.toString() ?? '-'),
                         const SizedBox(height: 24),
                         if (photos.isNotEmpty || attachments.isNotEmpty) ...[
                           const AnnouncementSectionTitle('Lampiran & Media'),
@@ -376,7 +414,8 @@ class _AdminAnnouncementDetailScreenState
                               onImageTap: _openImageViewer,
                               onDownloadAttachment: _downloadAttachment,
                             ),
-                          if (photos.isNotEmpty && attachments.isNotEmpty) const SizedBox(height: 12),
+                          if (photos.isNotEmpty && attachments.isNotEmpty)
+                            const SizedBox(height: 12),
                           if (attachments.isNotEmpty)
                             AnnouncementMediaSection(
                               title: 'Dokumen',
@@ -400,20 +439,34 @@ class _AdminAnnouncementDetailScreenState
                             children: [
                               AnnouncementDetailRow(
                                 label: 'Target Audience',
-                                value: firstAnnouncementString(_detail, ['target_audience', 'audience', 'target'], fallback: 'Semua Warga'),
+                                value: firstAnnouncementString(_detail,
+                                    ['target_audience', 'audience', 'target'],
+                                    fallback: 'Semua Warga'),
                               ),
                               const Divider(height: 20),
                               AnnouncementDetailRow(
                                 label: 'Komentar',
-                                value: announcementToBool(_detail['allow_comments'] ?? _detail['comments_enabled']) ? 'Diizinkan' : 'Ditutup',
+                                value: announcementToBool(
+                                        _detail['allow_comments'] ??
+                                            _detail['comments_enabled'])
+                                    ? 'Diizinkan'
+                                    : 'Ditutup',
                               ),
                               const Divider(height: 20),
-                              AnnouncementDetailRow(label: 'Dibuat', value: formatAnnouncementDateTime(_detail['created_at'])),
+                              AnnouncementDetailRow(
+                                  label: 'Dibuat',
+                                  value: formatAnnouncementDateTime(
+                                      _detail['created_at'])),
                               const Divider(height: 20),
-                              AnnouncementDetailRow(label: 'Terakhir Update', value: formatAnnouncementDateTime(_detail['updated_at'])),
+                              AnnouncementDetailRow(
+                                  label: 'Terakhir Update',
+                                  value: formatAnnouncementDateTime(
+                                      _detail['updated_at'])),
                               if (_extractUpdaterName() != null) ...[
                                 const Divider(height: 20),
-                                AnnouncementDetailRow(label: 'Diperbarui oleh', value: _extractUpdaterName()!),
+                                AnnouncementDetailRow(
+                                    label: 'Diperbarui oleh',
+                                    value: _extractUpdaterName()!),
                               ],
                             ],
                           ),
@@ -430,7 +483,10 @@ class _AdminAnnouncementDetailScreenState
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5)),
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -5)),
           ],
         ),
         child: Row(
@@ -439,12 +495,14 @@ class _AdminAnnouncementDetailScreenState
               child: OutlinedButton.icon(
                 onPressed: _deleteAnnouncement,
                 icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                label: Text('Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                label: Text('Hapus',
+                    style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.danger,
                   side: const BorderSide(color: AppTheme.danger),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
@@ -454,13 +512,15 @@ class _AdminAnnouncementDetailScreenState
               child: ElevatedButton.icon(
                 onPressed: _editAnnouncement,
                 icon: const Icon(Icons.edit_rounded, size: 18),
-                label: Text('Edit Pengumuman', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                label: Text('Edit Pengumuman',
+                    style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),

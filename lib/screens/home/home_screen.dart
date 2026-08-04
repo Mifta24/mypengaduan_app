@@ -67,8 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: FloatingActionButton(
           heroTag: 'fab_create_complaint',
           onPressed: () {
-            final user =
-                Provider.of<AuthProvider>(context, listen: false).user;
+            final user = Provider.of<AuthProvider>(context, listen: false).user;
             if (user != null && !user.isUserVerified) {
               showUnverifiedDialog(context);
               return;
@@ -163,8 +162,7 @@ class _NavItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(selected ? icon : outlinedIcon,
-                color:
-                    selected ? AppTheme.primary : Colors.grey.shade400,
+                color: selected ? AppTheme.primary : Colors.grey.shade400,
                 size: 24),
             const SizedBox(height: 2),
             Text(
@@ -173,11 +171,8 @@ class _NavItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.nunito(
                 fontSize: 10,
-                fontWeight:
-                    selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected
-                    ? AppTheme.primary
-                    : Colors.grey.shade400,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? AppTheme.primary : Colors.grey.shade400,
               ),
             ),
           ],

@@ -102,7 +102,8 @@ class _FaqScreenState extends State<FaqScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.white, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 4),
@@ -111,7 +112,9 @@ class _FaqScreenState extends State<FaqScreen> {
             children: [
               Text('FAQ',
                   style: GoogleFonts.nunito(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white)),
               Text('Pertanyaan yang Sering Diajukan',
                   style: GoogleFonts.nunito(
                       fontSize: 12,
@@ -176,7 +179,9 @@ class _FaqScreenState extends State<FaqScreen> {
                             height: 1.3)),
                   ),
                   Icon(
-                    isOpen ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    isOpen
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
                     color: AppTheme.accent,
                     size: 22,
                   ),
@@ -200,14 +205,22 @@ class _FaqScreenState extends State<FaqScreen> {
     );
   }
 
-  Widget _leaf({double? top, double? bottom, double? left, double? right,
-      required double size, required double rot}) {
+  Widget _leaf(
+      {double? top,
+      double? bottom,
+      double? left,
+      double? right,
+      required double size,
+      required double rot}) {
     return Positioned(
-      top: top, bottom: bottom, left: left, right: right,
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
       child: Transform.rotate(
         angle: rot,
-        child: Icon(Icons.eco_rounded, size: size,
-            color: AppTheme.primaryDark.withValues(alpha: 0.4)),
+        child: Icon(Icons.eco_rounded,
+            size: size, color: AppTheme.primaryDark.withValues(alpha: 0.4)),
       ),
     );
   }

@@ -27,5 +27,6 @@ class ReportPieChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ReportPieChartPainter old) => old.segments != segments;
+  bool shouldRepaint(covariant ReportPieChartPainter old) =>
+      old.segments != segments;
 }

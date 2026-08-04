@@ -14,15 +14,20 @@ bool announcementToBool(dynamic value) {
   if (value is int) return value == 1;
   if (value is String) {
     final normalized = value.toLowerCase();
-    return normalized == '1' || normalized == 'true' || normalized == 'yes' || normalized == 'aktif';
+    return normalized == '1' ||
+        normalized == 'true' ||
+        normalized == 'yes' ||
+        normalized == 'aktif';
   }
   return false;
 }
 
-String firstAnnouncementString(Map<String, dynamic> source, List<String> keys, {String fallback = '-'}) {
+String firstAnnouncementString(Map<String, dynamic> source, List<String> keys,
+    {String fallback = '-'}) {
   for (final key in keys) {
     final value = source[key];
-    if (value != null && value.toString().trim().isNotEmpty) return value.toString();
+    if (value != null && value.toString().trim().isNotEmpty)
+      return value.toString();
   }
   return fallback;
 }
@@ -67,7 +72,8 @@ bool isAnnouncementImageFile(String value) {
 /// Normalizes the announcement's media fields (which the backend may
 /// represent as plain URL strings or richer attachment objects) into a
 /// uniform `{name, url}` shape.
-List<Map<String, String>> extractAnnouncementMediaItems(Map<String, dynamic> detail, List<String> keys) {
+List<Map<String, String>> extractAnnouncementMediaItems(
+    Map<String, dynamic> detail, List<String> keys) {
   final List<Map<String, String>> items = [];
 
   for (final key in keys) {

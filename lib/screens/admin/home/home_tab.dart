@@ -26,7 +26,8 @@ class _AdminHomeTabState extends State<AdminHomeTab>
   int _resolved = 0;
   List<dynamic> _recent = [];
   List<int> _chartData = List.filled(7, 0);
-  List<Map<String, dynamic>> _dailyData = List.generate(7, (_) => {'date': '', 'count': 0, 'pending': 0, 'resolved': 0});
+  List<Map<String, dynamic>> _dailyData = List.generate(
+      7, (_) => {'date': '', 'count': 0, 'pending': 0, 'resolved': 0});
   int _todayNew = 0;
   int _yesterdayNew = 0;
   int _resolvedToday = 0;
@@ -77,16 +78,19 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 .whereType<Map>()
                 .map((e) => Map<String, dynamic>.from(e))
                 .toList();
-            _chartData = _dailyData.map((e) => (e['count'] as num?)?.toInt() ?? 0).toList();
+            _chartData = _dailyData
+                .map((e) => (e['count'] as num?)?.toInt() ?? 0)
+                .toList();
           }
 
           // Parse today vs yesterday stats
           final todayStats = d['today_stats'];
           if (todayStats is Map) {
-            _todayNew     = (todayStats['new_today']      as num?)?.toInt() ?? 0;
-            _yesterdayNew = (todayStats['new_yesterday']  as num?)?.toInt() ?? 0;
-            _resolvedToday = (todayStats['resolved_today'] as num?)?.toInt() ?? 0;
-            _pendingToday  = (todayStats['pending_today']  as num?)?.toInt() ?? 0;
+            _todayNew = (todayStats['new_today'] as num?)?.toInt() ?? 0;
+            _yesterdayNew = (todayStats['new_yesterday'] as num?)?.toInt() ?? 0;
+            _resolvedToday =
+                (todayStats['resolved_today'] as num?)?.toInt() ?? 0;
+            _pendingToday = (todayStats['pending_today'] as num?)?.toInt() ?? 0;
           }
 
           _isLoading = false;
@@ -117,7 +121,9 @@ class _AdminHomeTabState extends State<AdminHomeTab>
           // ── Stats cards ──────────────────────────────────────
           Text('Ringkasan Hari Ini',
               style: GoogleFonts.nunito(
-                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
           GridView.count(
             shrinkWrap: true,
@@ -129,14 +135,24 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             children: [
               _statCard('Total Pengaduan', _total, Icons.assignment_rounded,
                   AppTheme.primary, _deltaText(_todayNew, _yesterdayNew)),
-              _statCard('Menunggu', _pending, Icons.schedule_rounded,
+              _statCard(
+                  'Menunggu',
+                  _pending,
+                  Icons.schedule_rounded,
                   const Color(0xFFD97706),
-                  _pendingToday > 0 ? '$_pendingToday baru hari ini' : 'tidak ada baru hari ini'),
+                  _pendingToday > 0
+                      ? '$_pendingToday baru hari ini'
+                      : 'tidak ada baru hari ini'),
               _statCard('Diproses', _processing, Icons.sync_rounded,
                   const Color(0xFF0891B2), 'sedang ditangani'),
-              _statCard('Selesai', _resolved, Icons.check_circle_rounded,
+              _statCard(
+                  'Selesai',
+                  _resolved,
+                  Icons.check_circle_rounded,
                   AppTheme.primaryLight,
-                  _resolvedToday > 0 ? '$_resolvedToday selesai hari ini' : 'belum ada hari ini'),
+                  _resolvedToday > 0
+                      ? '$_resolvedToday selesai hari ini'
+                      : 'belum ada hari ini'),
             ],
           ),
           const SizedBox(height: 24),
@@ -151,7 +167,9 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             children: [
               Text('Pengaduan Terbaru',
                   style: GoogleFonts.nunito(
-                      fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary)),
               TextButton(
                 onPressed: () {
                   AdminTabNavigator.of(context)?.switchTab(1);
@@ -162,25 +180,32 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                 child: Text('Lihat Semua',
                     style: GoogleFonts.nunito(
-                        fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primary)),
               ),
             ],
           ),
           const SizedBox(height: 12),
           _isLoading && _recent.isEmpty
-              ? const Center(child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(color: AppTheme.primary)))
+              ? const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child:
+                          CircularProgressIndicator(color: AppTheme.primary)))
               : _recent.isEmpty
                   ? _emptyState('Belum ada pengaduan')
                   : Column(
-                      children: _recent.map((item) => _recentCard(item)).toList()),
+                      children:
+                          _recent.map((item) => _recentCard(item)).toList()),
           const SizedBox(height: 24),
 
           // ── Quick actions ─────────────────────────────────────
           Text('Aksi Cepat',
               style: GoogleFonts.nunito(
-                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
           _buildQuickActions(context),
         ],
@@ -202,7 +227,8 @@ class _AdminHomeTabState extends State<AdminHomeTab>
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppTheme.primaryLight,
               shape: BoxShape.circle,
@@ -211,7 +237,9 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             child: Center(
               child: Text(name[0].toUpperCase(),
                   style: GoogleFonts.nunito(
-                      fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white)),
             ),
           ),
           const SizedBox(width: 14),
@@ -221,10 +249,13 @@ class _AdminHomeTabState extends State<AdminHomeTab>
               children: [
                 Text(name,
                     style: GoogleFonts.nunito(
-                        fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white)),
                 Text(role,
                     style: GoogleFonts.nunito(
-                        fontSize: 12, color: Colors.white.withValues(alpha: 0.75))),
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.75))),
               ],
             ),
           ),
@@ -236,14 +267,17 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             ),
             child: Text('Super Admin',
                 style: GoogleFonts.nunito(
-                    fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  Widget _statCard(String label, int value, IconData icon, Color color, String sub) {
+  Widget _statCard(
+      String label, int value, IconData icon, Color color, String sub) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -273,13 +307,15 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             children: [
               Text('$value',
                   style: GoogleFonts.nunito(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary)),
               Text(label,
                   style: GoogleFonts.nunito(
-                      fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-              Text(sub,
-                  style: GoogleFonts.nunito(
-                      fontSize: 10, color: color)),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary)),
+              Text(sub, style: GoogleFonts.nunito(fontSize: 10, color: color)),
             ],
           ),
         ],
@@ -305,9 +341,12 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             children: [
               Text('Pengaduan 7 Hari Terakhir',
                   style: GoogleFonts.nunito(
-                      fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary)),
               Text('Ketuk bar untuk detail',
-                  style: GoogleFonts.nunito(fontSize: 10, color: AppTheme.textSecondary)),
+                  style: GoogleFonts.nunito(
+                      fontSize: 10, color: AppTheme.textSecondary)),
             ],
           ),
           const SizedBox(height: 16),
@@ -319,7 +358,8 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 final count = i < _chartData.length ? _chartData[i] : 0;
                 final ratio = maxVal == 0 ? 0.0 : count / maxVal;
                 final isSelected = _selectedBarIndex == i;
-                final barHeight = math.max(ratio * 100.0, count > 0 ? 6.0 : 0.0);
+                final barHeight =
+                    math.max(ratio * 100.0, count > 0 ? 6.0 : 0.0);
 
                 return Expanded(
                   child: GestureDetector(
@@ -332,7 +372,9 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                               style: GoogleFonts.nunito(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,
-                                  color: isSelected ? AppTheme.primary : AppTheme.textSecondary)),
+                                  color: isSelected
+                                      ? AppTheme.primary
+                                      : AppTheme.textSecondary)),
                         const SizedBox(height: 2),
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
@@ -342,7 +384,8 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                             color: isSelected
                                 ? AppTheme.primary
                                 : AppTheme.primary.withValues(alpha: 0.65),
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(4)),
                           ),
                         ),
                       ],
@@ -362,8 +405,10 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 '${date.day} ${_monthShort(date.month)}',
                 style: GoogleFonts.nunito(
                     fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                    color: isSelected ? AppTheme.primary : AppTheme.textSecondary),
+                    fontWeight:
+                        isSelected ? FontWeight.w700 : FontWeight.normal,
+                    color:
+                        isSelected ? AppTheme.primary : AppTheme.textSecondary),
               );
             }),
           ),
@@ -375,12 +420,13 @@ class _AdminHomeTabState extends State<AdminHomeTab>
   void _showBarDetail(int index) {
     setState(() => _selectedBarIndex = index);
 
-    final dayData = index < _dailyData.length ? _dailyData[index] : <String, dynamic>{};
+    final dayData =
+        index < _dailyData.length ? _dailyData[index] : <String, dynamic>{};
     final date = DateTime.tryParse(dayData['date']?.toString() ?? '');
-    final count    = (dayData['count']    as num?)?.toInt() ?? 0;
-    final pending  = (dayData['pending']  as num?)?.toInt() ?? 0;
+    final count = (dayData['count'] as num?)?.toInt() ?? 0;
+    final pending = (dayData['pending'] as num?)?.toInt() ?? 0;
     final resolved = (dayData['resolved'] as num?)?.toInt() ?? 0;
-    final other    = math.max(0, count - pending - resolved);
+    final other = math.max(0, count - pending - resolved);
 
     final isToday = date != null &&
         date.year == DateTime.now().year &&
@@ -403,10 +449,14 @@ class _AdminHomeTabState extends State<AdminHomeTab>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(dateLabel,
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15)),
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w700, fontSize: 15)),
             Text(
-              count == 0 ? 'Tidak ada pengaduan masuk' : '$count pengaduan masuk',
-              style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+              count == 0
+                  ? 'Tidak ada pengaduan masuk'
+                  : '$count pengaduan masuk',
+              style: GoogleFonts.nunito(
+                  fontSize: 12, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -419,11 +469,11 @@ class _AdminHomeTabState extends State<AdminHomeTab>
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _detailRow('Total masuk',  count,    AppTheme.primary),
-                  _detailRow('Menunggu',     pending,  const Color(0xFFD97706)),
-                  _detailRow('Selesai',      resolved, const Color(0xFF059669)),
+                  _detailRow('Total masuk', count, AppTheme.primary),
+                  _detailRow('Menunggu', pending, const Color(0xFFD97706)),
+                  _detailRow('Selesai', resolved, const Color(0xFF059669)),
                   if (other > 0)
-                    _detailRow('Lainnya',   other,    const Color(0xFF0891B2)),
+                    _detailRow('Lainnya', other, const Color(0xFF0891B2)),
                 ],
               ),
         actions: [
@@ -432,7 +482,8 @@ class _AdminHomeTabState extends State<AdminHomeTab>
               setState(() => _selectedBarIndex = null);
               Navigator.pop(context);
             },
-            child: Text('Tutup', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+            child: Text('Tutup',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -447,13 +498,15 @@ class _AdminHomeTabState extends State<AdminHomeTab>
       child: Row(
         children: [
           Container(
-            width: 10, height: 10,
+            width: 10,
+            height: 10,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(label,
-                style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary)),
+                style: GoogleFonts.nunito(
+                    fontSize: 13, color: AppTheme.textPrimary)),
           ),
           Text('$count',
               style: GoogleFonts.nunito(
@@ -471,7 +524,21 @@ class _AdminHomeTabState extends State<AdminHomeTab>
   }
 
   String _monthShort(int m) {
-    const names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const names = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
+    ];
     return names[m];
   }
 
@@ -511,15 +578,19 @@ class _AdminHomeTabState extends State<AdminHomeTab>
           children: [
             // Colored avatar
             Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                child: Text(
+                    userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                     style: GoogleFonts.nunito(
-                        fontSize: 16, fontWeight: FontWeight.w700, color: statusColor)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor)),
               ),
             ),
             const SizedBox(width: 12),
@@ -529,25 +600,33 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 children: [
                   Text(title,
                       style: GoogleFonts.nunito(
-                          fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 3),
                   if (category.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppTheme.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(category,
                           style: GoogleFonts.nunito(
-                              fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primary)),
                     ),
                   const SizedBox(height: 2),
                   Text(
                     '${location.isNotEmpty ? location : '-'}  •  ${createdAt != null ? '${createdAt.day} ${_monthShort(createdAt.month)}, ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}' : '-'}',
-                    style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary),
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(
+                        fontSize: 11, color: AppTheme.textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -561,7 +640,9 @@ class _AdminHomeTabState extends State<AdminHomeTab>
               ),
               child: Text(statusLabel,
                   style: GoogleFonts.nunito(
-                      fontSize: 11, fontWeight: FontWeight.w700, color: statusColor)),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor)),
             ),
           ],
         ),
@@ -571,18 +652,38 @@ class _AdminHomeTabState extends State<AdminHomeTab>
 
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
-      (Icons.verified_user_rounded, 'Verifikasi\nPending', const Color(0xFFEA580C), () {
-        AdminTabNavigator.of(context)?.switchTab(3);
-      }),
-      (Icons.add_box_rounded, 'Tambah\nPengumuman', AppTheme.primary, () async {
-        await context.push(AppRouter.adminAnnouncementsAdd);
-      }),
-      (Icons.category_rounded, 'Kelola\nKategori', const Color(0xFF6366F1), () {
-        context.push(AppRouter.adminCategoriesManage);
-      }),
-      (Icons.bar_chart_rounded, 'Laporan &\nStatistik', AppTheme.secondary, () {
-        context.push(AppRouter.adminReports);
-      }),
+      (
+        Icons.verified_user_rounded,
+        'Verifikasi\nPending',
+        const Color(0xFFEA580C),
+        () {
+          AdminTabNavigator.of(context)?.switchTab(3);
+        }
+      ),
+      (
+        Icons.add_box_rounded,
+        'Tambah\nPengumuman',
+        AppTheme.primary,
+        () async {
+          await context.push(AppRouter.adminAnnouncementsAdd);
+        }
+      ),
+      (
+        Icons.category_rounded,
+        'Kelola\nKategori',
+        const Color(0xFF6366F1),
+        () {
+          context.push(AppRouter.adminCategoriesManage);
+        }
+      ),
+      (
+        Icons.bar_chart_rounded,
+        'Laporan &\nStatistik',
+        AppTheme.secondary,
+        () {
+          context.push(AppRouter.adminReports);
+        }
+      ),
     ];
 
     return GridView.count(
@@ -616,7 +717,10 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 Expanded(
                   child: Text(a.$2,
                       style: GoogleFonts.nunito(
-                          fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, height: 1.3)),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                          height: 1.3)),
                 ),
               ],
             ),
@@ -630,30 +734,42 @@ class _AdminHomeTabState extends State<AdminHomeTab>
     return Container(
       padding: const EdgeInsets.all(24),
       alignment: Alignment.center,
-      child: Text(msg, style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
+      child:
+          Text(msg, style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
     );
   }
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'pending': return const Color(0xFFD97706);
-      case 'in_progress': return const Color(0xFF0891B2);
-      case 'resolved': return AppTheme.primary;
-      case 'rejected': return const Color(0xFFDC2626);
-      case 'waiting_user_confirmation': return const Color(0xFFEA580C);
-      default: return Colors.grey;
+      case 'pending':
+        return const Color(0xFFD97706);
+      case 'in_progress':
+        return const Color(0xFF0891B2);
+      case 'resolved':
+        return AppTheme.primary;
+      case 'rejected':
+        return const Color(0xFFDC2626);
+      case 'waiting_user_confirmation':
+        return const Color(0xFFEA580C);
+      default:
+        return Colors.grey;
     }
   }
 
   String _statusLabel(String status) {
     switch (status) {
-      case 'pending': return 'Menunggu';
-      case 'in_progress': return 'Diproses';
-      case 'resolved': return 'Selesai';
-      case 'rejected': return 'Ditolak';
-      case 'waiting_user_confirmation': return 'Konfirmasi';
-      default: return status;
+      case 'pending':
+        return 'Menunggu';
+      case 'in_progress':
+        return 'Diproses';
+      case 'resolved':
+        return 'Selesai';
+      case 'rejected':
+        return 'Ditolak';
+      case 'waiting_user_confirmation':
+        return 'Konfirmasi';
+      default:
+        return status;
     }
   }
 }
-

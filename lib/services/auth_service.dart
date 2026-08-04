@@ -10,15 +10,16 @@ class AuthService {
   final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  AuthService() : _dio = Dio(BaseOptions(
-    baseUrl: AppConfig.baseUrl,
-    connectTimeout: AppConfig.connectionTimeout,
-    receiveTimeout: AppConfig.receiveTimeout,
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  ));
+  AuthService()
+      : _dio = Dio(BaseOptions(
+          baseUrl: AppConfig.baseUrl,
+          connectTimeout: AppConfig.connectionTimeout,
+          receiveTimeout: AppConfig.receiveTimeout,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        ));
 
   // Register
   Future<AuthResponse> register({
@@ -66,7 +67,7 @@ class AuthService {
       );
 
       final authResponse = AuthResponse.fromJson(response.data);
-      
+
       // Note: After registration with admin verification, user might not get token immediately
       // Only save token if provided
       if (authResponse.success && authResponse.data != null) {
@@ -215,8 +216,10 @@ class AuthService {
       // Use POST for multipart (file upload) because PHP only populates $_FILES for POST.
       // The backend has a POST alias for auth/profile to support this.
       final response = (avatarPath != null || removeAvatar)
-          ? await _dio.post('auth/profile', data: requestData, options: requestOptions)
-          : await _dio.put('auth/profile', data: requestData, options: requestOptions);
+          ? await _dio.post('auth/profile',
+              data: requestData, options: requestOptions)
+          : await _dio.put('auth/profile',
+              data: requestData, options: requestOptions);
 
       if (kDebugMode) {
         debugPrint('=== updateProfile RESPONSE ===');
@@ -235,7 +238,8 @@ class AuthService {
           if (freshUser != null) {
             return {
               'success': true,
-              'message': response.data['message'] ?? 'Profile updated successfully',
+              'message':
+                  response.data['message'] ?? 'Profile updated successfully',
               'user': freshUser,
             };
           }
@@ -327,31 +331,39 @@ class AuthService {
   // ── Forgot Password ───────────────────────────────────────────
   Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
-      final response = await _dio.post('auth/forgot-password', data: {'email': email});
+      final response =
+          await _dio.post('auth/forgot-password', data: {'email': email});
       return {
-        'success': response.data['success'] == true || response.statusCode == 200,
-        'message': response.data['message'] ?? 'Kode OTP telah dikirim ke email Anda.',
+        'success':
+            response.data['success'] == true || response.statusCode == 200,
+        'message':
+            response.data['message'] ?? 'Kode OTP telah dikirim ke email Anda.',
       };
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data?['message'] ?? 'Gagal mengirim OTP. Periksa email Anda.',
+        'message': e.response?.data?['message'] ??
+            'Gagal mengirim OTP. Periksa email Anda.',
       };
     }
   }
 
-  Future<Map<String, dynamic>> verifyOtp({required String email, required String otp}) async {
+  Future<Map<String, dynamic>> verifyOtp(
+      {required String email, required String otp}) async {
     try {
-      final response = await _dio.post('auth/verify-otp', data: {'email': email, 'otp': otp});
+      final response = await _dio
+          .post('auth/verify-otp', data: {'email': email, 'otp': otp});
       return {
-        'success': response.data['success'] == true || response.statusCode == 200,
+        'success':
+            response.data['success'] == true || response.statusCode == 200,
         'message': response.data['message'] ?? 'OTP valid.',
         'reset_token': response.data['data']?['reset_token'],
       };
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data?['message'] ?? 'Kode OTP tidak valid atau sudah kedaluwarsa.',
+        'message': e.response?.data?['message'] ??
+            'Kode OTP tidak valid atau sudah kedaluwarsa.',
       };
     }
   }
@@ -368,7 +380,8 @@ class AuthService {
         'password_confirmation': passwordConfirmation,
       });
       return {
-        'success': response.data['success'] == true || response.statusCode == 200,
+        'success':
+            response.data['success'] == true || response.statusCode == 200,
         'message': response.data['message'] ?? 'Password berhasil direset.',
       };
     } on DioException catch (e) {
@@ -436,7 +449,8 @@ class AuthService {
       await _clearStorage();
       return true;
     } catch (e) {
-      debugPrint('AuthService.logout error (proceeding with local cleanup): $e');
+      debugPrint(
+          'AuthService.logout error (proceeding with local cleanup): $e');
       await _clearStorage();
       return true;
     }
@@ -455,7 +469,8 @@ class AuthService {
       await _clearStorage();
       return true;
     } catch (e) {
-      debugPrint('AuthService.logoutAll error (proceeding with local cleanup): $e');
+      debugPrint(
+          'AuthService.logoutAll error (proceeding with local cleanup): $e');
       await _clearStorage();
       return true;
     }
@@ -484,7 +499,7 @@ class AuthService {
     try {
       final userJson = await _storage.read(key: AppConfig.userKey);
       if (userJson == null) return null;
-      
+
       final userMap = jsonDecode(userJson) as Map<String, dynamic>;
       return User.fromJson(userMap);
     } catch (e) {
@@ -495,7 +510,8 @@ class AuthService {
 
   // Save remember-me preference
   Future<void> _saveRememberMe(bool rememberMe) async {
-    await _storage.write(key: AppConfig.rememberMeKey, value: rememberMe.toString());
+    await _storage.write(
+        key: AppConfig.rememberMeKey, value: rememberMe.toString());
   }
 
   // Get remember-me preference (defaults to true for sessions saved before this setting existed)

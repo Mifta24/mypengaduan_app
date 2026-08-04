@@ -10,7 +10,11 @@ class CategoryDetailBadge extends StatelessWidget {
   final Color color;
   final IconData icon;
 
-  const CategoryDetailBadge({super.key, required this.label, required this.color, required this.icon});
+  const CategoryDetailBadge(
+      {super.key,
+      required this.label,
+      required this.color,
+      required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +30,9 @@ class CategoryDetailBadge extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 6),
-          Text(label, style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+          Text(label,
+              style: GoogleFonts.nunito(
+                  fontSize: 12, fontWeight: FontWeight.w700, color: color)),
         ],
       ),
     );
@@ -38,7 +44,8 @@ class CategoryDetailSectionHeader extends StatelessWidget {
   final Widget? action;
   final IconData? icon;
 
-  const CategoryDetailSectionHeader({super.key, required this.title, this.action, this.icon});
+  const CategoryDetailSectionHeader(
+      {super.key, required this.title, this.action, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +62,11 @@ class CategoryDetailSectionHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        Text(title, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        Text(title,
+            style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary)),
         const Spacer(),
         if (action != null) action!,
       ],
@@ -69,7 +80,12 @@ class CategoryDetailStatCard extends StatelessWidget {
   final IconData icon;
   final Color color;
 
-  const CategoryDetailStatCard({super.key, required this.title, required this.value, required this.icon, required this.color});
+  const CategoryDetailStatCard(
+      {super.key,
+      required this.title,
+      required this.value,
+      required this.icon,
+      required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -85,9 +101,15 @@ class CategoryDetailStatCard extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 22),
           const SizedBox(height: 10),
-          Text(value, style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          Text(value,
+              style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 2),
-          Text(title, style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
+          Text(title,
+              style: GoogleFonts.nunito(
+                  fontSize: 11, color: AppTheme.textSecondary)),
         ],
       ),
     );
@@ -98,7 +120,8 @@ class CategoryDetailEmptyTile extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const CategoryDetailEmptyTile({super.key, required this.title, required this.subtitle});
+  const CategoryDetailEmptyTile(
+      {super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -113,11 +136,17 @@ class CategoryDetailEmptyTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_rounded, size: 32, color: AppTheme.textSecondary.withValues(alpha: 0.4)),
+          Icon(Icons.inbox_rounded,
+              size: 32, color: AppTheme.textSecondary.withValues(alpha: 0.4)),
           const SizedBox(height: 8),
-          Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          Text(title,
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
           const SizedBox(height: 4),
-          Text(subtitle, style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12), textAlign: TextAlign.center),
+          Text(subtitle,
+              style: GoogleFonts.nunito(
+                  color: AppTheme.textSecondary, fontSize: 12),
+              textAlign: TextAlign.center),
         ],
       ),
     );
@@ -129,7 +158,11 @@ class CategoryDetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const CategoryDetailRow({super.key, required this.icon, required this.label, required this.value});
+  const CategoryDetailRow(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -142,8 +175,13 @@ class CategoryDetailRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary)),
-              Text(value, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+              Text(label,
+                  style: GoogleFonts.nunito(
+                      fontSize: 12, color: AppTheme.textSecondary)),
+              Text(value,
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary)),
             ],
           ),
         ),

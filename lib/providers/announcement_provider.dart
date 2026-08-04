@@ -59,7 +59,7 @@ class AnnouncementProvider extends ChangeNotifier {
       _isLoading = true;
       _announcements = [];
     }
-    
+
     _errorMessage = null;
     notifyListeners();
 
@@ -71,8 +71,9 @@ class AnnouncementProvider extends ChangeNotifier {
       );
 
       _announcements = response['data'] ?? [];
-      _hasMorePages = (response['current_page'] ?? page) < (response['last_page'] ?? page);
-      
+      _hasMorePages =
+          (response['current_page'] ?? page) < (response['last_page'] ?? page);
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -224,7 +225,8 @@ class AnnouncementProvider extends ChangeNotifier {
         // Update local state
         final index = _announcements.indexWhere((ann) => ann['id'] == id);
         if (index != -1) {
-          _announcements[index]['is_active'] = !(_announcements[index]['is_active'] ?? false);
+          _announcements[index]['is_active'] =
+              !(_announcements[index]['is_active'] ?? false);
           notifyListeners();
         }
         return true;
@@ -249,7 +251,8 @@ class AnnouncementProvider extends ChangeNotifier {
         // Update local state
         final index = _announcements.indexWhere((ann) => ann['id'] == id);
         if (index != -1) {
-          _announcements[index]['is_sticky'] = !(_announcements[index]['is_sticky'] ?? false);
+          _announcements[index]['is_sticky'] =
+              !(_announcements[index]['is_sticky'] ?? false);
           notifyListeners();
         }
         return true;

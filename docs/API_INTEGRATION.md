@@ -59,6 +59,12 @@ Setiap *service* membuat instance `Dio` sendiri dengan `baseUrl` dari `AppConfig
 ### `ComplaintService` — pengaduan milik user
 CRUD pengaduan (list, detail, create, update, delete), termasuk endpoint pendukung filter & status. Lihat [`lib/services/complaint_service.dart`](../lib/services/complaint_service.dart) untuk detail.
 
+Endpoint `GET public/complaints` dan `GET public/complaints/{id}` menampilkan
+pengaduan dengan visibilitas **Publik** kepada seluruh pengguna yang sudah
+login. Keduanya tetap wajib mengirim header `Authorization: Bearer <token>`;
+kata “public” mengacu pada cakupan data antarwarga, bukan akses tanpa
+autentikasi. Identitas pelapor tidak disertakan dalam respons endpoint ini.
+
 ### `AdminService` — prefix `admin/`
 | Area | Endpoint |
 |---|---|

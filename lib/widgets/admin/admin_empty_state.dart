@@ -28,7 +28,8 @@ class AdminEmptyState extends StatelessWidget {
                 color: AppTheme.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 48, color: AppTheme.primary.withValues(alpha: 0.6)),
+              child: Icon(icon,
+                  size: 48, color: AppTheme.primary.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 10),
             Text(
@@ -43,7 +44,8 @@ class AdminEmptyState extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 subtitle!,
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
             ],

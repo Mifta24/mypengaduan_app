@@ -8,6 +8,7 @@ class Complaint {
   final String description;
   final String location;
   final String status;
+  final String visibility;
   final String? priority;
   final String? photo;
   final String? photoUrl;
@@ -29,6 +30,7 @@ class Complaint {
     required this.description,
     required this.location,
     required this.status,
+    this.visibility = 'public',
     this.priority,
     this.photo,
     this.photoUrl,
@@ -75,6 +77,7 @@ class Complaint {
         description: json['description']?.toString() ?? '',
         location: json['location']?.toString() ?? '',
         status: json['status']?.toString() ?? 'pending',
+        visibility: _parseVisibility(json),
         priority: json['priority']?.toString(),
         photo: json['photo']?.toString(),
         photoUrl: json['photo_url']?.toString(),
@@ -117,6 +120,22 @@ class Complaint {
       rethrow;
     }
   }
+
+  static String _parseVisibility(Map<String, dynamic> json) {
+    final value = json['visibility']?.toString().toLowerCase();
+    if (value == 'private') return 'private';
+    if (value == 'public') return 'public';
+
+    final isPublic = json['is_public'];
+    if (isPublic == false || isPublic == 0 || isPublic == '0') {
+      return 'private';
+    }
+    return 'public';
+  }
+
+  bool get isPublic => visibility == 'public';
+
+  String get visibilityText => isPublic ? 'Publik' : 'Privat';
 
   String get statusText {
     switch (status) {

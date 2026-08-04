@@ -20,7 +20,10 @@ bool toBoolValue(dynamic value) {
   if (value is int) return value == 1;
   if (value is String) {
     final normalized = value.toLowerCase();
-    return normalized == '1' || normalized == 'true' || normalized == 'yes' || normalized == 'aktif';
+    return normalized == '1' ||
+        normalized == 'true' ||
+        normalized == 'yes' ||
+        normalized == 'aktif';
   }
   return false;
 }
@@ -33,10 +36,12 @@ int firstInt(Map<String, dynamic> source, List<String> keys) {
   return 0;
 }
 
-String firstString(Map<String, dynamic> source, List<String> keys, {String fallback = '-'}) {
+String firstString(Map<String, dynamic> source, List<String> keys,
+    {String fallback = '-'}) {
   for (final key in keys) {
     final value = source[key];
-    if (value != null && value.toString().trim().isNotEmpty) return value.toString();
+    if (value != null && value.toString().trim().isNotEmpty)
+      return value.toString();
   }
   return fallback;
 }
@@ -50,7 +55,8 @@ Map<String, dynamic>? firstMap(Map<String, dynamic> source, List<String> keys) {
   return null;
 }
 
-Map<String, dynamic>? firstMapFromList(Map<String, dynamic> source, List<String> keys) {
+Map<String, dynamic>? firstMapFromList(
+    Map<String, dynamic> source, List<String> keys) {
   for (final key in keys) {
     final value = source[key];
     if (value is List && value.isNotEmpty) {
@@ -70,11 +76,19 @@ DateTime? parseUserDate(dynamic value) {
 }
 
 List<Map<String, dynamic>> extractComplaintList(Map<String, dynamic> source) {
-  const listKeys = ['complaints', 'latest_complaints', 'recent_complaints', 'user_complaints'];
+  const listKeys = [
+    'complaints',
+    'latest_complaints',
+    'recent_complaints',
+    'user_complaints'
+  ];
   for (final key in listKeys) {
     final value = source[key];
     if (value is List) {
-      return value.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      return value
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     }
   }
   return const [];
@@ -83,7 +97,13 @@ List<Map<String, dynamic>> extractComplaintList(Map<String, dynamic> source) {
 int countComplaintsByStatus(Map<String, dynamic> source, Set<String> statuses) {
   final normalizedTargets = statuses.map((e) => e.toLowerCase()).toSet();
 
-  const mapKeys = ['complaints_by_status', 'complaint_status_counts', 'status_counts', 'statistics', 'stats'];
+  const mapKeys = [
+    'complaints_by_status',
+    'complaint_status_counts',
+    'status_counts',
+    'statistics',
+    'stats'
+  ];
   for (final key in mapKeys) {
     final value = source[key];
     if (value is Map) {

@@ -32,23 +32,23 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize date formatting for Indonesian locale
   await initializeDateFormatting('id_ID', null);
-  
+
   // Initialize Firebase with error handling
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     // Register background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
     // Continue without Firebase for web testing
   }
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -117,21 +117,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     try {
       // Wait a bit for providers to be ready
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       if (mounted) {
         final authService = AuthService();
         final notificationService = NotificationService(authService);
         _fcmService = FCMService(notificationService);
         fcmService = _fcmService; // expose global
-        
+
         // Initialize FCM
         await _fcmService!.initialize();
-        
+
         debugPrint('FCM Service initialized successfully');
 
         // Listen ke perubahan auth — saat login berhasil, cek unread notif
         if (mounted) {
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          final authProvider =
+              Provider.of<AuthProvider>(context, listen: false);
           _wasAuthenticated = authProvider.isAuthenticated;
           authProvider.addListener(() {
             final isAuthenticated = authProvider.isAuthenticated;
@@ -165,7 +166,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       title: 'MyPengaduan',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      routerConfig: AppRouter.createRouter(authProvider, navigatorKey: navigatorKey),
+      routerConfig:
+          AppRouter.createRouter(authProvider, navigatorKey: navigatorKey),
     );
   }
 }

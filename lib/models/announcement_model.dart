@@ -87,13 +87,16 @@ class Announcement {
       summary: json['summary'] as String?,
       content: json['content']?.toString() ?? '',
       priority: json['priority'] as String? ?? 'medium',
-      coverImage: json['cover_image'] as String? ?? json['image_url'] as String? ?? json['image'] as String?,
+      coverImage: json['cover_image'] as String? ??
+          json['image_url'] as String? ??
+          json['image'] as String?,
       targetAudience: targetAudience,
       attachments: attachments,
       attachmentItems: attachmentItems,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
       isSticky: json['is_sticky'] == 1 || json['is_sticky'] == true,
-      allowComments: json['allow_comments'] == 1 || json['allow_comments'] == true,
+      allowComments:
+          json['allow_comments'] == 1 || json['allow_comments'] == true,
       publishedAt: _parseDate(json['published_at']),
       viewsCount: json['views_count'] as int? ?? 0,
       authorId: json['author_id'] as int?,

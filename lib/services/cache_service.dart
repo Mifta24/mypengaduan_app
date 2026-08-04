@@ -16,12 +16,12 @@ class CacheService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final expiry = DateTime.now().add(ttl ?? _defaultTTL);
-      
+
       final cacheData = {
         'data': data,
         'expiry': expiry.toIso8601String(),
       };
-      
+
       await prefs.setString('$_prefix$key', jsonEncode(cacheData));
     } catch (e) {
       debugPrint('Cache set error: $e');
@@ -33,18 +33,18 @@ class CacheService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cached = prefs.getString('$_prefix$key');
-      
+
       if (cached == null) return null;
-      
+
       final cacheData = jsonDecode(cached);
       final expiry = DateTime.parse(cacheData['expiry']);
-      
+
       // Check if expired
       if (DateTime.now().isAfter(expiry)) {
         await remove(key);
         return null;
       }
-      
+
       return cacheData['data'];
     } catch (e) {
       debugPrint('Cache get error: $e');

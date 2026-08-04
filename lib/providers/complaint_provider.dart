@@ -122,6 +122,7 @@ class ComplaintProvider extends ChangeNotifier {
     required String description,
     required String location,
     required DateTime reportDate,
+    required String visibility,
     List<String>? attachments,
     List<String>? videos,
   }) async {
@@ -145,6 +146,7 @@ class ComplaintProvider extends ChangeNotifier {
         description: description,
         location: location,
         reportDate: reportDate,
+        visibility: visibility,
         attachments: attachments,
         videoUrls: videoUrls.isEmpty ? null : videoUrls,
       );
@@ -177,6 +179,7 @@ class ComplaintProvider extends ChangeNotifier {
     required String description,
     required String location,
     required DateTime reportDate,
+    required String visibility,
     List<String>? attachments,
     List<String>? videos,
   }) async {
@@ -201,6 +204,7 @@ class ComplaintProvider extends ChangeNotifier {
         description: description,
         location: location,
         reportDate: reportDate,
+        visibility: visibility,
         attachments: attachments,
         videoUrls: videoUrls.isEmpty ? null : videoUrls,
       );

@@ -42,9 +42,10 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     try {
       // Handle nested user object (e.g., {user: {...}})
-      final userData = json.containsKey('user') && json['user'] is Map<String, dynamic>
-          ? json['user'] as Map<String, dynamic>
-          : json;
+      final userData =
+          json.containsKey('user') && json['user'] is Map<String, dynamic>
+              ? json['user'] as Map<String, dynamic>
+              : json;
       if (kDebugMode) {
         debugPrint('User.fromJson input: $json');
         debugPrint('userData after check: $userData');
@@ -74,10 +75,12 @@ class User {
         rwNumber: (userData['rw_number'] ?? userData['rw'])?.toString(),
         avatar: (userData['avatar'] ?? userData['avatar_url'])?.toString(),
         role: userData['role']?.toString() ?? 'user',
-        roles: userData['roles'] != null 
-            ? (userData['roles'] is List 
-                ? List<String>.from(userData['roles'].map((role) => 
-                    role is String ? role : (role['name']?.toString() ?? 'user')))
+        roles: userData['roles'] != null
+            ? (userData['roles'] is List
+                ? List<String>.from(userData['roles'].map((role) =>
+                    role is String
+                        ? role
+                        : (role['name']?.toString() ?? 'user')))
                 : [userData['role']?.toString() ?? 'user'])
             : [userData['role']?.toString() ?? 'user'],
         isEmailVerified: _toBool(userData['is_email_verified']) ||
@@ -85,9 +88,12 @@ class User {
         isUserVerified: _toBool(userData['is_verified']) ||
             _toBool(userData['is_user_verified']) ||
             userData['verified_at'] != null,
-        isActive: userData['is_active'] == 1 || userData['is_active'] == true || userData['is_active'] == null,
-        createdAt: userData['created_at'] != null 
-            ? (DateTime.tryParse(userData['created_at'].toString()) ?? DateTime.now())
+        isActive: userData['is_active'] == 1 ||
+            userData['is_active'] == true ||
+            userData['is_active'] == null,
+        createdAt: userData['created_at'] != null
+            ? (DateTime.tryParse(userData['created_at'].toString()) ??
+                DateTime.now())
             : DateTime.now(),
       );
     } catch (e) {

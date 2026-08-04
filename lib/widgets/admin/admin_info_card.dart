@@ -34,7 +34,7 @@ class AdminInfoCard extends StatelessWidget {
         color: backgroundColor ?? Colors.white,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: borderColor ?? AppTheme.primary.withValues(alpha: 0.08), 
+          color: borderColor ?? AppTheme.primary.withValues(alpha: 0.08),
           width: borderWidth,
         ),
         boxShadow: [

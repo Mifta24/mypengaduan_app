@@ -55,11 +55,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         maxHeight: 1080,
         imageQuality: 85,
       );
-      
+
       if (image != null) {
         final File imageFile = File(image.path);
         final int fileSize = await imageFile.length();
-        
+
         // Check file size (max 2MB)
         if (fileSize > 2 * 1024 * 1024) {
           if (mounted) {
@@ -68,13 +68,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 content: const Text('Ukuran file maksimal 2MB'),
                 backgroundColor: AppTheme.danger,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
             );
           }
           return;
         }
-        
+
         setState(() {
           _ktpImage = imageFile;
         });
@@ -86,7 +87,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             content: Text('Gagal memilih gambar: $e'),
             backgroundColor: AppTheme.danger,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -102,7 +104,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           content: const Text('Silakan upload foto KTP Anda'),
           backgroundColor: AppTheme.danger,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
@@ -114,14 +117,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           content: const Text('Anda harus menyetujui syarat & ketentuan'),
           backgroundColor: AppTheme.danger,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     final success = await authProvider.register(
       name: _nameController.text.trim(),
       nik: _nikController.text.trim(),
@@ -129,7 +133,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       email: _emailController.text.trim(),
       rt: _rtController.text.trim(),
       rw: _rwController.text.trim(),
-      phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty
+          ? null
+          : _phoneController.text.trim(),
       address: _addressController.text.trim(),
       password: _passwordController.text,
       passwordConfirmation: _confirmPasswordController.text,
@@ -140,14 +146,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Show success message for pending verification
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Pendaftaran berhasil! Menunggu verifikasi admin.'),
+            content:
+                const Text('Pendaftaran berhasil! Menunggu verifikasi admin.'),
             backgroundColor: AppTheme.success,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
-        
+
         // Redirect to login page
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) {
@@ -159,7 +167,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             content: Text(authProvider.errorMessage ?? 'Registrasi gagal'),
             backgroundColor: AppTheme.danger,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -228,11 +237,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 48),
-                      _buildBenefit(Icons.flash_on_rounded, 'Proses Cepat', 'Pendaftaran hanya memerlukan beberapa langkah sederhana'),
+                      _buildBenefit(Icons.flash_on_rounded, 'Proses Cepat',
+                          'Pendaftaran hanya memerlukan beberapa langkah sederhana'),
                       const SizedBox(height: 20),
-                      _buildBenefit(Icons.verified_user_rounded, 'Aman & Terpercaya', 'Data Anda dijaga dengan enkripsi tingkat tinggi'),
+                      _buildBenefit(
+                          Icons.verified_user_rounded,
+                          'Aman & Terpercaya',
+                          'Data Anda dijaga dengan enkripsi tingkat tinggi'),
                       const SizedBox(height: 20),
-                      _buildBenefit(Icons.support_agent_rounded, 'Dukungan RT', 'Langsung terhubung dengan pengurus wilayah Anda'),
+                      _buildBenefit(Icons.support_agent_rounded, 'Dukungan RT',
+                          'Langsung terhubung dengan pengurus wilayah Anda'),
                     ],
                   ),
                 ),
@@ -256,7 +270,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           // ── Mobile Header (gradient card) ──────────────
                           if (!isTablet) ...[
                             Container(
-                              padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 28, horizontal: 24),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
@@ -270,7 +285,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary.withValues(alpha: 0.3),
+                                    color:
+                                        AppTheme.primary.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),
@@ -281,7 +297,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -314,7 +331,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               border: Border.all(color: AppTheme.border),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primary.withValues(alpha: 0.06),
+                                  color:
+                                      AppTheme.primary.withValues(alpha: 0.06),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -350,12 +368,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     controller: _nameController,
                                     hintText: 'Sesuai KTP',
                                     icon: Icons.person_outline_rounded,
-                                    validator: (v) => (v == null || v.isEmpty) ? 'Nama tidak boleh kosong' : null,
+                                    validator: (v) => (v == null || v.isEmpty)
+                                        ? 'Nama tidak boleh kosong'
+                                        : null,
                                   ),
                                   const SizedBox(height: 16),
 
                                   // NIK field
-                                  _buildLabel('NIK (Nomor Induk Kependudukan) *'),
+                                  _buildLabel(
+                                      'NIK (Nomor Induk Kependudukan) *'),
                                   const SizedBox(height: 8),
                                   _buildTextField(
                                     controller: _nikController,
@@ -367,9 +388,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       LengthLimitingTextInputFormatter(16),
                                     ],
                                     validator: (v) {
-                                      if (v == null || v.isEmpty) return 'NIK tidak boleh kosong';
-                                      if (v.length != 16) return 'NIK harus 16 digit angka';
-                                      if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'NIK hanya boleh berisi angka';
+                                      if (v == null || v.isEmpty)
+                                        return 'NIK tidak boleh kosong';
+                                      if (v.length != 16)
+                                        return 'NIK harus 16 digit angka';
+                                      if (!RegExp(r'^[0-9]+$').hasMatch(v))
+                                        return 'NIK hanya boleh berisi angka';
                                       return null;
                                     },
                                   ),
@@ -385,7 +409,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       decoration: BoxDecoration(
                                         color: AppTheme.surface,
                                         border: Border.all(
-                                          color: _ktpImage == null ? AppTheme.border : AppTheme.primary,
+                                          color: _ktpImage == null
+                                              ? AppTheme.border
+                                              : AppTheme.primary,
                                           width: _ktpImage == null ? 1 : 2,
                                         ),
                                         borderRadius: BorderRadius.circular(12),
@@ -393,7 +419,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       child: _ktpImage == null
                                           ? Column(
                                               children: [
-                                                const Icon(Icons.cloud_upload_outlined, size: 48, color: AppTheme.textSecondary),
+                                                const Icon(
+                                                    Icons.cloud_upload_outlined,
+                                                    size: 48,
+                                                    color:
+                                                        AppTheme.textSecondary),
                                                 const SizedBox(height: 12),
                                                 Text(
                                                   'Klik untuk upload foto',
@@ -406,25 +436,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 const SizedBox(height: 4),
                                                 Text(
                                                   'JPG/PNG, Max. 2MB',
-                                                  style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                                                  style: GoogleFonts.nunito(
+                                                      fontSize: 12,
+                                                      color: AppTheme
+                                                          .textSecondary),
                                                 ),
                                               ],
                                             )
                                           : Stack(
                                               children: [
                                                 ClipRRect(
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  child: Image.file(_ktpImage!, height: 160, width: double.infinity, fit: BoxFit.cover),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: Image.file(_ktpImage!,
+                                                      height: 160,
+                                                      width: double.infinity,
+                                                      fit: BoxFit.cover),
                                                 ),
                                                 Positioned(
                                                   top: 8,
                                                   right: 8,
                                                   child: GestureDetector(
-                                                    onTap: () => setState(() => _ktpImage = null),
+                                                    onTap: () => setState(
+                                                        () => _ktpImage = null),
                                                     child: Container(
-                                                      padding: const EdgeInsets.all(6),
-                                                      decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                                      child: const Icon(Icons.close, color: Colors.white, size: 18),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              6),
+                                                      decoration: BoxDecoration(
+                                                          color: Colors.red,
+                                                          shape:
+                                                              BoxShape.circle),
+                                                      child: const Icon(
+                                                          Icons.close,
+                                                          color: Colors.white,
+                                                          size: 18),
                                                     ),
                                                   ),
                                                 ),
@@ -443,8 +489,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     icon: Icons.email_outlined,
                                     keyboardType: TextInputType.emailAddress,
                                     validator: (v) {
-                                      if (v == null || v.isEmpty) return 'Email tidak boleh kosong';
-                                      if (!v.contains('@')) return 'Email tidak valid';
+                                      if (v == null || v.isEmpty)
+                                        return 'Email tidak boleh kosong';
+                                      if (!v.contains('@'))
+                                        return 'Email tidak valid';
                                       return null;
                                     },
                                   ),
@@ -455,7 +503,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             _buildLabel('RT *'),
                                             const SizedBox(height: 8),
@@ -463,8 +512,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                               controller: _rtController,
                                               hintText: 'Contoh: 01',
                                               icon: Icons.home_work_outlined,
-                                              keyboardType: TextInputType.number,
-                                              validator: (v) => (v == null || v.isEmpty) ? 'Wajib' : null,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              validator: (v) =>
+                                                  (v == null || v.isEmpty)
+                                                      ? 'Wajib'
+                                                      : null,
                                             ),
                                           ],
                                         ),
@@ -472,16 +525,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             _buildLabel('RW *'),
                                             const SizedBox(height: 8),
                                             _buildTextField(
                                               controller: _rwController,
                                               hintText: 'Contoh: 05',
-                                              icon: Icons.location_city_outlined,
-                                              keyboardType: TextInputType.number,
-                                              validator: (v) => (v == null || v.isEmpty) ? 'Wajib' : null,
+                                              icon:
+                                                  Icons.location_city_outlined,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              validator: (v) =>
+                                                  (v == null || v.isEmpty)
+                                                      ? 'Wajib'
+                                                      : null,
                                             ),
                                           ],
                                         ),
@@ -509,7 +568,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     hintText: 'Sesuai KTP',
                                     icon: Icons.home_outlined,
                                     maxLines: 3,
-                                    validator: (v) => (v == null || v.isEmpty) ? 'Alamat tidak boleh kosong' : null,
+                                    validator: (v) => (v == null || v.isEmpty)
+                                        ? 'Alamat tidak boleh kosong'
+                                        : null,
                                   ),
                                   const SizedBox(height: 16),
 
@@ -523,15 +584,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     obscureText: _obscurePassword,
                                     suffixIcon: IconButton(
                                       icon: Icon(
-                                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
                                         color: AppTheme.textSecondary,
                                         size: 20,
                                       ),
-                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                      onPressed: () => setState(() =>
+                                          _obscurePassword = !_obscurePassword),
                                     ),
                                     validator: (v) {
-                                      if (v == null || v.isEmpty) return 'Password tidak boleh kosong';
-                                      if (v.length < 8) return 'Password minimal 8 karakter';
+                                      if (v == null || v.isEmpty)
+                                        return 'Password tidak boleh kosong';
+                                      if (v.length < 8)
+                                        return 'Password minimal 8 karakter';
                                       return null;
                                     },
                                   ),
@@ -547,15 +613,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     obscureText: _obscureConfirmPassword,
                                     suffixIcon: IconButton(
                                       icon: Icon(
-                                        _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        _obscureConfirmPassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
                                         color: AppTheme.textSecondary,
                                         size: 20,
                                       ),
-                                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                                      onPressed: () => setState(() =>
+                                          _obscureConfirmPassword =
+                                              !_obscureConfirmPassword),
                                     ),
                                     validator: (v) {
-                                      if (v == null || v.isEmpty) return 'Konfirmasi password tidak boleh kosong';
-                                      if (v != _passwordController.text) return 'Password tidak cocok';
+                                      if (v == null || v.isEmpty)
+                                        return 'Konfirmasi password tidak boleh kosong';
+                                      if (v != _passwordController.text)
+                                        return 'Password tidak cocok';
                                       return null;
                                     },
                                   ),
@@ -563,14 +635,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                                   // Terms Checkbox
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       SizedBox(
                                         height: 20,
                                         width: 20,
                                         child: Checkbox(
                                           value: _agreeToTerms,
-                                          onChanged: (v) => setState(() => _agreeToTerms = v ?? false),
+                                          onChanged: (v) => setState(
+                                              () => _agreeToTerms = v ?? false),
                                           activeColor: AppTheme.primary,
                                         ),
                                       ),
@@ -578,10 +652,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       Expanded(
                                         child: Wrap(
                                           children: [
-                                            Text('Saya setuju dengan ', style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary)),
-                                            Text('Syarat & Ketentuan', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary)),
-                                            Text(' serta ', style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary)),
-                                            Text('Kebijakan Privasi', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                                            Text('Saya setuju dengan ',
+                                                style: GoogleFonts.nunito(
+                                                    fontSize: 13,
+                                                    color:
+                                                        AppTheme.textPrimary)),
+                                            Text('Syarat & Ketentuan',
+                                                style: GoogleFonts.nunito(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppTheme.primary)),
+                                            Text(' serta ',
+                                                style: GoogleFonts.nunito(
+                                                    fontSize: 13,
+                                                    color:
+                                                        AppTheme.textPrimary)),
+                                            Text('Kebijakan Privasi',
+                                                style: GoogleFonts.nunito(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppTheme.primary)),
                                           ],
                                         ),
                                       ),
@@ -595,17 +685,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       return SizedBox(
                                         height: 52,
                                         child: ElevatedButton(
-                                          onPressed: authProvider.isLoading ? null : _handleRegister,
+                                          onPressed: authProvider.isLoading
+                                              ? null
+                                              : _handleRegister,
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: AppTheme.primary,
                                             foregroundColor: Colors.white,
                                             elevation: 0,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                            disabledBackgroundColor: AppTheme.primary.withValues(alpha: 0.4),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(14)),
+                                            disabledBackgroundColor: AppTheme
+                                                .primary
+                                                .withValues(alpha: 0.4),
                                           ),
                                           child: authProvider.isLoading
-                                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
-                                              : Text('Daftar Sekarang', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w700)),
+                                              ? const SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                                  Color>(
+                                                              Colors.white)))
+                                              : Text('Daftar Sekarang',
+                                                  style: GoogleFonts.nunito(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w700)),
                                         ),
                                       );
                                     },
@@ -621,18 +729,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Sudah punya akun? ', style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textSecondary)),
+                              Text('Sudah punya akun? ',
+                                  style: GoogleFonts.nunito(
+                                      fontSize: 14,
+                                      color: AppTheme.textSecondary)),
                               TextButton(
                                 onPressed: () => context.go(AppRouter.login),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                   foregroundColor: AppTheme.primary,
                                 ),
                                 child: Text(
                                   'Masuk di sini',
-                                  style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                                  style: GoogleFonts.nunito(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.primary),
                                 ),
                               ),
                             ],
@@ -644,7 +759,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Text(
                             '© 2026 MyPengaduan · Gang Annur 2 RT 05',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.nunito(fontSize: 12, color: AppTheme.textSecondary),
+                            style: GoogleFonts.nunito(
+                                fontSize: 12, color: AppTheme.textSecondary),
                           ),
                         ],
                       ),
@@ -692,7 +808,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       style: GoogleFonts.nunito(color: AppTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14),
+        hintStyle:
+            GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14),
         prefixIcon: Padding(
           padding: EdgeInsets.only(bottom: maxLines > 1 ? 40 : 0),
           child: Icon(icon, color: AppTheme.textSecondary, size: 20),
@@ -700,7 +817,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: AppTheme.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppTheme.border),
@@ -745,12 +863,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               Text(
                 title,
-                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                style: GoogleFonts.nunito(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: GoogleFonts.nunito(fontSize: 14, color: Colors.white.withValues(alpha: 0.85), height: 1.4),
+                style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    height: 1.4),
               ),
             ],
           ),

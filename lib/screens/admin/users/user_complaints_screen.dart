@@ -48,7 +48,8 @@ class AdminUserComplaintsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: complaints.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, index) => _ComplaintTile(complaint: complaints[index]),
+            itemBuilder: (context, index) =>
+                _ComplaintTile(complaint: complaints[index]),
           );
         },
       ),
@@ -80,8 +81,11 @@ class _ComplaintTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              complaint['title']?.toString() ?? complaint['description']?.toString() ?? '-',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+              complaint['title']?.toString() ??
+                  complaint['description']?.toString() ??
+                  '-',
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -89,20 +93,27 @@ class _ComplaintTile extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: complaintStatusColor(status).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     complaintStatusText(status),
-                    style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: complaintStatusColor(status)),
+                    style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: complaintStatusColor(status)),
                   ),
                 ),
                 const Spacer(),
                 Text(
-                  firstString(complaint, ['category_name', 'category', 'category_title'], fallback: 'Tanpa Kategori'),
-                  style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12),
+                  firstString(complaint,
+                      ['category_name', 'category', 'category_title'],
+                      fallback: 'Tanpa Kategori'),
+                  style: GoogleFonts.nunito(
+                      color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ],
             ),

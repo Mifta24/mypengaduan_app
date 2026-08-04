@@ -13,7 +13,7 @@ class NotificationProvider extends ChangeNotifier {
   int _unreadCount = 0;
   bool _isLoading = false;
   String? _errorMessage;
-  
+
   int _currentPage = 1;
   bool _hasMorePages = false;
 
@@ -34,29 +34,35 @@ class NotificationProvider extends ChangeNotifier {
       _isLoading = true;
       _notifications = [];
     }
-    
+
     _errorMessage = null;
     notifyListeners();
 
     try {
       debugPrint('🔄 [NotificationProvider] Loading notifications...');
-      debugPrint('🔑 User requesting notifications (check auth_service for user details)');
-      
+      debugPrint(
+          '🔑 User requesting notifications (check auth_service for user details)');
+
       final response = await _notificationService.getNotifications(
         page: page,
         status: status,
         type: type,
       );
 
-      debugPrint('✅ [NotificationProvider] Received ${response.data.length} notifications');
-      debugPrint('📊 Metadata: currentPage=${response.meta.currentPage}, total=${response.meta.total}');
+      debugPrint(
+          '✅ [NotificationProvider] Received ${response.data.length} notifications');
+      debugPrint(
+          '📊 Metadata: currentPage=${response.meta.currentPage}, total=${response.meta.total}');
 
       if (response.meta.total == 0) {
-        debugPrint('⚠️ [NotificationProvider] ZERO notifications found for this user!');
+        debugPrint(
+            '⚠️ [NotificationProvider] ZERO notifications found for this user!');
         debugPrint('💡 Possible reasons:');
-        debugPrint('   1. No notifications created for this user_id in database');
+        debugPrint(
+            '   1. No notifications created for this user_id in database');
         debugPrint('   2. User ID mismatch between app and backend');
-        debugPrint('   3. Data not inserted yet - try creating a test notification');
+        debugPrint(
+            '   3. Data not inserted yet - try creating a test notification');
       }
 
       if (page == 1 || refresh) {
@@ -67,20 +73,21 @@ class NotificationProvider extends ChangeNotifier {
 
       _currentPage = page;
       _hasMorePages = response.meta.hasMorePages;
-      
+
       // Count unread notifications
       _unreadCount = _notifications.where((n) => !n.isRead).length;
-      
-      debugPrint('✅ [NotificationProvider] Total notifications: ${_notifications.length}');
+
+      debugPrint(
+          '✅ [NotificationProvider] Total notifications: ${_notifications.length}');
       debugPrint('🔔 Unread count: $_unreadCount');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       debugPrint('❌ [NotificationProvider] Error loading notifications: $e');
-      
+
       // Check if it's authentication error
-      if (e.toString().contains('Token expired') || 
+      if (e.toString().contains('Token expired') ||
           e.toString().contains('Sesi Anda telah berakhir') ||
           e.toString().contains('401')) {
         _errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
@@ -88,7 +95,7 @@ class NotificationProvider extends ChangeNotifier {
       } else {
         _errorMessage = e.toString();
       }
-      
+
       _isLoading = false;
       notifyListeners();
     }
@@ -112,7 +119,7 @@ class NotificationProvider extends ChangeNotifier {
   Future<bool> markAsRead(int notificationId) async {
     try {
       final success = await _notificationService.markAsRead(notificationId);
-      
+
       if (success) {
         // Update local state
         final index = _notifications.indexWhere((n) => n.id == notificationId);
@@ -122,7 +129,7 @@ class NotificationProvider extends ChangeNotifier {
           notifyListeners();
         }
       }
-      
+
       return success;
     } catch (e) {
       return false;
@@ -133,14 +140,15 @@ class NotificationProvider extends ChangeNotifier {
   Future<bool> markAllAsRead() async {
     try {
       final success = await _notificationService.markAllAsRead();
-      
+
       if (success) {
         // Update local state
-        _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
+        _notifications =
+            _notifications.map((n) => n.copyWith(isRead: true)).toList();
         _unreadCount = 0;
         notifyListeners();
       }
-      
+
       return success;
     } catch (e) {
       return false;
@@ -150,7 +158,8 @@ class NotificationProvider extends ChangeNotifier {
   // Delete a single notification
   Future<bool> deleteNotification(int notificationId) async {
     try {
-      final success = await _notificationService.deleteNotification(notificationId);
+      final success =
+          await _notificationService.deleteNotification(notificationId);
 
       if (success) {
         _notifications.removeWhere((n) => n.id == notificationId);

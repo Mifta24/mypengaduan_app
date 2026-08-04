@@ -217,8 +217,8 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                       _loadComplaints(forceRefresh: true);
                     },
                     icon: const Icon(Icons.delete_sweep, size: 16),
-                    label: Text('Trash',
-                        style: GoogleFonts.nunito(fontSize: 13)),
+                    label:
+                        Text('Trash', style: GoogleFonts.nunito(fontSize: 13)),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.danger,
                       side: const BorderSide(color: AppTheme.danger),
@@ -248,8 +248,8 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
                       : null,
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: AppTheme.border)),
@@ -316,10 +316,12 @@ class _AdminComplaintsTabState extends State<AdminComplaintsTab>
       context,
       item,
       onResolve: () async {
-        final result = await context.push(AppRouter.adminComplaintsResolve, extra: item);
+        final result =
+            await context.push(AppRouter.adminComplaintsResolve, extra: item);
         if (result == true) await _loadComplaints(forceRefresh: true);
       },
-      onMarkInProgress: () => _updateStatus(complaintIdOf(item['id']), 'in_progress'),
+      onMarkInProgress: () =>
+          _updateStatus(complaintIdOf(item['id']), 'in_progress'),
       onReject: () => _updateStatus(complaintIdOf(item['id']), 'rejected'),
       onManageAttachments: () => showComplaintAttachmentDialog(
         context,

@@ -25,7 +25,10 @@ class AnnouncementMediaSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayItems = isImageSection
-        ? items.where((item) => isAnnouncementImageFile(item['url'] ?? item['name'] ?? '')).toList()
+        ? items
+            .where((item) =>
+                isAnnouncementImageFile(item['url'] ?? item['name'] ?? ''))
+            .toList()
         : items;
 
     if (displayItems.isEmpty) return const SizedBox.shrink();
@@ -41,7 +44,9 @@ class AnnouncementMediaSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          Text(title,
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
           if (isImageSection)
             GridView.builder(
@@ -65,7 +70,8 @@ class AnnouncementMediaSection extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                      border: Border.all(
+                          color: AppTheme.border.withValues(alpha: 0.5)),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
@@ -75,14 +81,19 @@ class AnnouncementMediaSection extends StatelessWidget {
                           url.isEmpty
                               ? Container(
                                   color: Colors.grey.shade100,
-                                  child: const Center(child: Icon(Icons.image_not_supported_outlined)),
+                                  child: const Center(
+                                      child: Icon(
+                                          Icons.image_not_supported_outlined)),
                                 )
                               : Image.network(
                                   url,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Container(
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
                                     color: Colors.grey.shade100,
-                                    child: const Center(child: Icon(Icons.broken_image_outlined)),
+                                    child: const Center(
+                                        child:
+                                            Icon(Icons.broken_image_outlined)),
                                   ),
                                 ),
                           Positioned(
@@ -90,19 +101,26 @@ class AnnouncementMediaSection extends StatelessWidget {
                             left: 0,
                             right: 0,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 6),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
-                                  colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.7),
+                                    Colors.transparent
+                                  ],
                                 ),
                               ),
                               child: Text(
                                 name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.nunito(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                                style: GoogleFonts.nunito(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
@@ -123,13 +141,19 @@ class AnnouncementMediaSection extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppTheme.surface,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                  border:
+                      Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
                 ),
                 child: ListTile(
                   dense: true,
-                  leading: const Icon(Icons.description_outlined, color: AppTheme.primary),
-                  title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
-                  trailing: const Icon(Icons.download_rounded, size: 20, color: AppTheme.textSecondary),
+                  leading: const Icon(Icons.description_outlined,
+                      color: AppTheme.primary),
+                  title: Text(name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+                  trailing: const Icon(Icons.download_rounded,
+                      size: 20, color: AppTheme.textSecondary),
                   onTap: () => onDownloadAttachment(url, name),
                 ),
               );

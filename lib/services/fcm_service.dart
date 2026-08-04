@@ -18,7 +18,8 @@ class FCMService {
 
   static const _channelId = 'high_importance_channel';
   static const _channelName = 'High Importance Notifications';
-  static const _channelDesc = 'This channel is used for important notifications.';
+  static const _channelDesc =
+      'This channel is used for important notifications.';
 
   FCMService(this._notificationService);
 
@@ -32,7 +33,8 @@ class FCMService {
       provisional: false,
     );
 
-    debugPrint('🔔 Notification permission status: ${settings.authorizationStatus}');
+    debugPrint(
+        '🔔 Notification permission status: ${settings.authorizationStatus}');
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       debugPrint('✅ User granted notification permission');
@@ -43,7 +45,8 @@ class FCMService {
 
     // Initialize local notifications
     // '@drawable/ic_notification' is a white monochrome icon required for Android notification bar
-    const androidSettings = AndroidInitializationSettings('@drawable/ic_notification');
+    const androidSettings =
+        AndroidInitializationSettings('@drawable/ic_notification');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -75,9 +78,10 @@ class FCMService {
       ledColor: Color(0xFF1E6B3A), // Hijau forest - sesuai branding app
     );
 
-    final androidPlugin = _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
     if (androidPlugin != null) {
       await androidPlugin.createNotificationChannel(androidChannel);
       debugPrint('✅ Notification channel created: $_channelId');
@@ -96,7 +100,7 @@ class FCMService {
     if (token != null) {
       debugPrint('✅ FCM Token berhasil didapat: $token');
       await _saveFCMToken(token);
-      
+
       // Register token to backend with error handling
       try {
         final success = await _notificationService.registerFCMToken(token);
@@ -126,7 +130,8 @@ class FCMService {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
     // Handle notification when app is opened from terminated state
-    RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
+    RemoteMessage? initialMessage =
+        await _firebaseMessaging.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(initialMessage);
     }
@@ -203,17 +208,18 @@ class FCMService {
     );
     final notifDetails = NotificationDetails(android: androidDetails);
 
-    await _localNotifications.show(id, title, body, notifDetails, payload: payload);
+    await _localNotifications.show(id, title, body, notifDetails,
+        payload: payload);
     debugPrint('✅ Local notification shown (id=$id)');
   }
 
   // Handle notification tap (FCM background/terminated)
   void _handleNotificationTap(RemoteMessage message) {
     debugPrint('🔔 Notification tapped: ${message.data}');
-    
+
     final type = message.data['type'] as String?;
     final data = message.data;
-    
+
     // Delay agar app fully mounted
     Future.delayed(const Duration(milliseconds: 800), () {
       _navigateFromNotification(type: type, data: data);
@@ -322,7 +328,8 @@ class FCMService {
       );
 
       final unreadList = response.data;
-      debugPrint('📬 [FCMService] Found ${unreadList.length} unread notifications');
+      debugPrint(
+          '📬 [FCMService] Found ${unreadList.length} unread notifications');
 
       if (unreadList.isEmpty) return;
 

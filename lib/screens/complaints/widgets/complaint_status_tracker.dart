@@ -13,10 +13,10 @@ class ComplaintStatusTracker extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = complaint;
     const steps = [
-      ('Diterima',     'Keluhan Anda telah diterima.'),
+      ('Diterima', 'Keluhan Anda telah diterima.'),
       ('Diverifikasi', 'Keluhan Anda sedang diverifikasi.'),
       ('Dalam Proses', 'Keluhan Anda sedang dalam proses penanganan.'),
-      ('Selesai',      'Keluhan Anda telah selesai ditangani.'),
+      ('Selesai', 'Keluhan Anda telah selesai ditangani.'),
     ];
     final times = [c.createdAt, c.updatedAt, c.updatedAt, c.updatedAt];
 
@@ -28,7 +28,9 @@ class ComplaintStatusTracker extends StatelessWidget {
         children: [
           Text('Status Penanganan',
               style: GoogleFonts.nunito(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 16),
           ...List.generate(steps.length, (i) {
             final state = complaintStepState(i, c.status);
@@ -50,12 +52,14 @@ class ComplaintStatusTracker extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.cancel_outlined, color: Color(0xFFDC2626), size: 18),
+                  const Icon(Icons.cancel_outlined,
+                      color: Color(0xFFDC2626), size: 18),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Pengaduan ini ditolak dan tidak dapat diproses.',
-                      style: GoogleFonts.nunito(fontSize: 12, color: const Color(0xFFDC2626)),
+                      style: GoogleFonts.nunito(
+                          fontSize: 12, color: const Color(0xFFDC2626)),
                     ),
                   ),
                 ],
@@ -92,14 +96,16 @@ class _TrackingStep extends StatelessWidget {
     if (state == 1) {
       circleColor = AppTheme.primary;
       lineColor = AppTheme.primary;
-      circleChild = const Icon(Icons.check_rounded, size: 14, color: Colors.white);
+      circleChild =
+          const Icon(Icons.check_rounded, size: 14, color: Colors.white);
     } else if (state == 2) {
       circleColor = const Color(0xFFEA580C);
       lineColor = AppTheme.border;
       circleChild = Container(
         width: 8,
         height: 8,
-        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+        decoration:
+            const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
       );
     } else {
       circleColor = Colors.grey.shade300;
@@ -107,7 +113,8 @@ class _TrackingStep extends StatelessWidget {
       circleChild = Container(
         width: 8,
         height: 8,
-        decoration: BoxDecoration(color: Colors.grey.shade400, shape: BoxShape.circle),
+        decoration:
+            BoxDecoration(color: Colors.grey.shade400, shape: BoxShape.circle),
       );
     }
 
@@ -121,7 +128,8 @@ class _TrackingStep extends StatelessWidget {
               Container(
                 width: 28,
                 height: 28,
-                decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
+                decoration:
+                    BoxDecoration(color: circleColor, shape: BoxShape.circle),
                 child: Center(child: circleChild),
               ),
               if (!isLast)
@@ -145,19 +153,24 @@ class _TrackingStep extends StatelessWidget {
                     style: GoogleFonts.nunito(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: state == 0 ? Colors.grey.shade400 : AppTheme.textPrimary)),
+                        color: state == 0
+                            ? Colors.grey.shade400
+                            : AppTheme.textPrimary)),
                 if (time != null) ...[
                   const SizedBox(height: 2),
                   Text(
                     DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(time!),
-                    style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary),
+                    style: GoogleFonts.nunito(
+                        fontSize: 11, color: AppTheme.textSecondary),
                   ),
                 ],
                 const SizedBox(height: 3),
                 Text(desc,
                     style: GoogleFonts.nunito(
                         fontSize: 12,
-                        color: state == 0 ? Colors.grey.shade400 : AppTheme.textSecondary,
+                        color: state == 0
+                            ? Colors.grey.shade400
+                            : AppTheme.textSecondary,
                         height: 1.4)),
               ],
             ),

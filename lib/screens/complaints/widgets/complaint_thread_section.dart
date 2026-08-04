@@ -119,10 +119,11 @@ class ComplaintLegacyResponse extends StatelessWidget {
           Container(
             width: 34,
             height: 34,
-            decoration:
-                const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+                color: AppTheme.primary, shape: BoxShape.circle),
             child: const Center(
-              child: Icon(Icons.admin_panel_settings, size: 18, color: Colors.white),
+              child: Icon(Icons.admin_panel_settings,
+                  size: 18, color: Colors.white),
             ),
           ),
           const SizedBox(width: 10),
@@ -138,7 +139,9 @@ class ComplaintLegacyResponse extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(response,
                     style: GoogleFonts.nunito(
-                        fontSize: 13, color: AppTheme.textPrimary, height: 1.5)),
+                        fontSize: 13,
+                        color: AppTheme.textPrimary,
+                        height: 1.5)),
               ],
             ),
           ),
@@ -176,7 +179,8 @@ class ComplaintResponseForm extends StatelessWidget {
           TextField(
             controller: controller,
             maxLines: 4,
-            style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
+            style:
+                GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
             decoration: InputDecoration(
               hintText: isAdmin
                   ? 'Tulis tanggapan Anda untuk pengaduan ini...'
@@ -194,7 +198,8 @@ class ComplaintResponseForm extends StatelessWidget {
                   borderSide: BorderSide(color: AppTheme.border)),
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+                  borderSide:
+                      const BorderSide(color: AppTheme.primary, width: 1.5)),
             ),
           ),
           const SizedBox(height: 10),
@@ -245,7 +250,8 @@ class ComplaintConfirmationCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.verified_user, size: 20, color: Color(0xFFEA580C)),
+              const Icon(Icons.verified_user,
+                  size: 20, color: Color(0xFFEA580C)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text('Tindakan Anda Dibutuhkan',
@@ -306,7 +312,8 @@ class ComplaintReporterCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('Informasi Pelapor', style: complaintSectionTitle(context)),
+            child: Text('Informasi Pelapor',
+                style: complaintSectionTitle(context)),
           ),
           Divider(height: 1, color: AppTheme.border),
           _InfoRow(
@@ -315,8 +322,7 @@ class ComplaintReporterCard extends StatelessWidget {
             _InfoRow(Icons.email_outlined, 'Email', email!),
           if (phone?.isNotEmpty == true)
             _InfoRow(Icons.phone_outlined, 'Telepon', phone!),
-          if (nik?.isNotEmpty == true)
-            _InfoRow(Icons.credit_card, 'NIK', nik!),
+          if (nik?.isNotEmpty == true) _InfoRow(Icons.credit_card, 'NIK', nik!),
         ],
       ),
     );

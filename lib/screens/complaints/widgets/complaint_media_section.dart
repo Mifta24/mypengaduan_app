@@ -38,7 +38,9 @@ class ComplaintPhotosSection extends StatelessWidget {
         children: [
           Text('Foto Lampiran',
               style: GoogleFonts.nunito(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
           Row(
             children: List.generate(shown.length, (i) {
@@ -107,7 +109,9 @@ class ComplaintVideosSection extends StatelessWidget {
         children: [
           Text('Video Lampiran',
               style: GoogleFonts.nunito(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
           ListView.separated(
             shrinkWrap: true,
@@ -128,7 +132,8 @@ class ComplaintVideosSection extends StatelessWidget {
                 },
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(10),
@@ -159,7 +164,8 @@ class ComplaintVideosSection extends StatelessWidget {
                                     color: AppTheme.textPrimary)),
                             Text('Ketuk untuk membuka',
                                 style: GoogleFonts.nunito(
-                                    fontSize: 11, color: AppTheme.textSecondary)),
+                                    fontSize: 11,
+                                    color: AppTheme.textSecondary)),
                           ],
                         ),
                       ),
@@ -191,7 +197,9 @@ class ComplaintResolutionPhotos extends StatelessWidget {
         children: [
           Text('Foto Dokumentasi Penyelesaian',
               style: GoogleFonts.nunito(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
           GridView.builder(
             shrinkWrap: true,
@@ -209,10 +217,12 @@ class ComplaintResolutionPhotos extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: photoUrls[i],
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: Colors.grey.shade200),
+                  placeholder: (_, __) =>
+                      Container(color: Colors.grey.shade200),
                   errorWidget: (_, __, ___) => Container(
                     color: Colors.grey.shade200,
-                    child: Icon(Icons.broken_image, color: Colors.grey.shade400),
+                    child:
+                        Icon(Icons.broken_image, color: Colors.grey.shade400),
                   ),
                 ),
               ),

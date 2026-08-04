@@ -23,7 +23,8 @@ class ReportMetricTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.08), width: 1.5),
+        border: Border.all(
+            color: AppTheme.primary.withValues(alpha: 0.08), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,7 +33,8 @@ class ReportMetricTile extends StatelessWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade700),
+            style:
+                GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade700),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -40,7 +42,9 @@ class ReportMetricTile extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(value, style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18)),
+            child: Text(value,
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.bold, fontSize: 18)),
           ),
         ],
       ),

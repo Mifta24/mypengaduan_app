@@ -63,6 +63,63 @@ class ComplaintService {
     }
   }
 
+  // Read-only public complaint feed for authenticated users.
+  Future<PaginatedResponse<Complaint>> getPublicComplaints({
+    int page = 1,
+    int perPage = 15,
+    String? status,
+    int? categoryId,
+    String? search,
+  }) async {
+    try {
+      final options = await _getOptions();
+      final response = await _dio.get(
+        'public/complaints',
+        queryParameters: {
+          'page': page,
+          'per_page': perPage,
+          if (status != null) 'status': status,
+          if (categoryId != null) 'category_id': categoryId,
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
+        },
+        options: options,
+      );
+
+      return PaginatedResponse.fromJson(
+        Map<String, dynamic>.from(response.data as Map),
+        (item) => Complaint.fromJson(Map<String, dynamic>.from(item as Map)),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data is Map) {
+        final data = Map<String, dynamic>.from(e.response!.data as Map);
+        throw Exception(data['message'] ?? 'Gagal memuat pengaduan publik');
+      }
+      throw Exception('Network error: ${e.message}');
+    }
+  }
+
+  // Authenticated read-only detail. Reporter identity is omitted by backend.
+  Future<Complaint> getPublicComplaintDetail(int complaintId) async {
+    try {
+      final options = await _getOptions();
+      final response = await _dio.get(
+        'public/complaints/$complaintId',
+        options: options,
+      );
+      final body = Map<String, dynamic>.from(response.data as Map);
+      return Complaint.fromJson(
+        Map<String, dynamic>.from(body['data'] as Map),
+      );
+    } on DioException catch (e) {
+      if (e.response?.data is Map) {
+        final data = Map<String, dynamic>.from(e.response!.data as Map);
+        throw Exception(data['message'] ?? 'Pengaduan publik tidak ditemukan');
+      }
+      throw Exception('Network error: ${e.message}');
+    }
+  }
+
   // Get complaint detail
   Future<Complaint?> getComplaintDetail(int complaintId) async {
     try {
@@ -110,6 +167,7 @@ class ComplaintService {
     required String description,
     required String location,
     required DateTime reportDate,
+    required String visibility,
     List<String>? attachments,
     List<String>? videoUrls,
   }) async {
@@ -122,6 +180,7 @@ class ComplaintService {
         'description': description,
         'location': location,
         'report_date': reportDate.toIso8601String().split('T')[0],
+        'visibility': visibility,
       });
 
       // Add attachments if any
@@ -192,6 +251,7 @@ class ComplaintService {
     required String description,
     required String location,
     required DateTime reportDate,
+    required String visibility,
     List<String>? attachments,
     List<String>? videoUrls,
   }) async {
@@ -204,6 +264,7 @@ class ComplaintService {
         'description': description,
         'location': location,
         'report_date': reportDate.toIso8601String().split('T')[0],
+        'visibility': visibility,
         '_method': 'PUT',
       });
 
@@ -363,10 +424,12 @@ class ComplaintService {
         data: data,
         options: options,
       );
-      debugPrint('✅ [ComplaintService] addResponse status: ${response.statusCode}');
+      debugPrint(
+          '✅ [ComplaintService] addResponse status: ${response.statusCode}');
       return ApiResponse.fromJson(response.data, null);
     } on DioException catch (e) {
-      debugPrint('❌ [ComplaintService] addResponse failed: ${e.response?.statusCode} ${e.requestOptions.path}');
+      debugPrint(
+          '❌ [ComplaintService] addResponse failed: ${e.response?.statusCode} ${e.requestOptions.path}');
       if (e.response?.statusCode == 404) {
         return ApiResponse(
           success: false,

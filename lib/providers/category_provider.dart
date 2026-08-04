@@ -4,12 +4,11 @@ import '../services/admin_service.dart';
 class CategoryProvider extends ChangeNotifier {
   final AdminService _adminService;
 
-  CategoryProvider()
-      : _adminService = AdminService();
+  CategoryProvider() : _adminService = AdminService();
 
   List<dynamic> _categories = [];
   Map<String, dynamic>? _selectedCategory;
-  
+
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -236,7 +235,8 @@ class CategoryProvider extends ChangeNotifier {
         // Update local state
         final index = _categories.indexWhere((cat) => cat['id'] == id);
         if (index != -1) {
-          _categories[index]['is_active'] = !(_categories[index]['is_active'] ?? false);
+          _categories[index]['is_active'] =
+              !(_categories[index]['is_active'] ?? false);
           notifyListeners();
         }
         return true;

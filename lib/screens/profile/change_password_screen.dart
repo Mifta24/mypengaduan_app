@@ -50,14 +50,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         if (result['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message']?.toString() ?? 'Password berhasil diubah'),
+              content: Text(
+                  result['message']?.toString() ?? 'Password berhasil diubah'),
               backgroundColor: AppTheme.success,
             ),
           );
 
           Navigator.pop(context);
         } else {
-          String errorMessage = result['message']?.toString() ?? 'Gagal mengubah password';
+          String errorMessage =
+              result['message']?.toString() ?? 'Gagal mengubah password';
 
           // Handle validation errors
           if (result['errors'] != null && result['errors'] is Map) {
@@ -116,22 +118,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-             Center(
-               child: Container(
-                 padding: const EdgeInsets.all(24),
-                 decoration: BoxDecoration(
-                   color: AppTheme.primary.withValues(alpha: 0.1),
-                   shape: BoxShape.circle,
-                 ),
-                 child: Icon(
-                   Icons.lock_outline,
-                   size: 80,
-                   color: AppTheme.primary,
-                 ),
-               ),
-             ),
-             const SizedBox(height: 24),
-             Text(
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.lock_outline,
+                  size: 80,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
               'Untuk keamanan akun Anda, pastikan password baru minimal 8 karakter dan berbeda dari password lama.',
               style: GoogleFonts.nunito(
                 fontSize: 14,
@@ -250,7 +252,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    :  Text(
+                    : Text(
                         'Ubah Password',
                         style: GoogleFonts.nunito(fontSize: 16),
                       ),

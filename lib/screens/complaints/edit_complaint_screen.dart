@@ -35,6 +35,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
 
   DateTime? _selectedDate;
   int? _selectedCategoryId;
+  String _visibility = 'public';
   final List<File> _newImages = [];
   final List<File> _newVideos = [];
   final List<String> _existingPhotoUrls = [];
@@ -53,6 +54,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
     _selectedDate = widget.complaint.reportDate;
     _selectedCategoryId =
         widget.complaint.categoryId ?? widget.complaint.category?.id;
+    _visibility = widget.complaint.visibility;
     _descLength = widget.complaint.description.length;
 
     _descriptionController.addListener(
@@ -180,7 +182,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
       return;
     }
     if (!widget.allowEditAnyStatus && widget.complaint.status != 'pending') {
-      _showSnack('Pengaduan tidak dapat diedit karena sudah diproses', isError: true);
+      _showSnack('Pengaduan tidak dapat diedit karena sudah diproses',
+          isError: true);
       return;
     }
 
@@ -193,6 +196,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
             description: _descriptionController.text.trim(),
             location: _locationController.text.trim(),
             reportDate: _selectedDate!,
+            visibility: _visibility,
             attachments: _newImages.map((f) => f.path).toList(),
             videos: _newVideos.map((f) => f.path).toList(),
           );
@@ -215,13 +219,15 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
     final t = raw.trim();
     if (t.isEmpty) return '';
     if (t.startsWith('http://') || t.startsWith('https://')) return t;
-    final base = AppConfig.baseUrl.replaceAll('/api', '').replaceAll('/api/', '');
+    final base =
+        AppConfig.baseUrl.replaceAll('/api', '').replaceAll('/api/', '');
     return t.startsWith('/') ? '$base$t' : '$base/$t';
   }
 
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+      content:
+          Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
       backgroundColor: isError ? Colors.red.shade700 : AppTheme.primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -292,7 +298,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                       if (v == null || v.trim().isEmpty) {
                         return 'Judul tidak boleh kosong';
                       }
-                      if (v.trim().length < 10) return 'Judul minimal 10 karakter';
+                      if (v.trim().length < 10)
+                        return 'Judul minimal 10 karakter';
                       return null;
                     },
                   ),
@@ -310,6 +317,20 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                   _buildDateField(),
                   const SizedBox(height: 20),
 
+                  _buildFieldLabel('Visibilitas Pengaduan'),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Perubahan hanya dapat dilakukan selama pengaduan belum diproses.',
+                    style: GoogleFonts.nunito(
+                        fontSize: 12, color: AppTheme.textSecondary),
+                  ),
+                  const SizedBox(height: 10),
+                  ComplaintVisibilitySelector(
+                    value: _visibility,
+                    onChanged: (value) => setState(() => _visibility = value),
+                  ),
+                  const SizedBox(height: 20),
+
                   // Foto
                   _buildFieldLabel('Unggah Foto Tambahan'),
                   Text('Lampirkan foto baru untuk memperbarui keluhan Anda.',
@@ -321,7 +342,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
 
                   // Video
                   _buildFieldLabel('Unggah Video Baru'),
-                  Text('Lampirkan video pendukung (maks. 3 video, 100MB per file).',
+                  Text(
+                      'Lampirkan video pendukung (maks. 3 video, 100MB per file).',
                       style: GoogleFonts.nunito(
                           fontSize: 12, color: AppTheme.textSecondary)),
                   const SizedBox(height: 10),
@@ -341,23 +363,29 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
 
   Widget _buildGroupLabel(String label) => Text(label,
       style: GoogleFonts.nunito(
-          fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary));
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.textPrimary));
 
   Widget _buildFieldLabel(String label) => Text(label,
       style: GoogleFonts.nunito(
-          fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary));
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textPrimary));
 
   InputDecoration _inputDecoration({String hint = '', Widget? suffix}) =>
       InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+        hintStyle:
+            GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
         suffixIcon: suffix != null
             ? Padding(padding: const EdgeInsets.only(right: 12), child: suffix)
             : null,
         suffixIconConstraints: const BoxConstraints(),
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: AppTheme.border)),
@@ -394,9 +422,12 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
         initialValue: _selectedCategoryId,
         style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
         decoration: _inputDecoration(
-            hint: _categories.isEmpty ? 'Tidak ada kategori' : 'Pilih kategori keluhan'),
+            hint: _categories.isEmpty
+                ? 'Tidak ada kategori'
+                : 'Pilih kategori keluhan'),
         isExpanded: true,
-        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textSecondary),
+        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+            color: AppTheme.textSecondary),
         items: _categories
             .map((c) => DropdownMenuItem(
                 value: c.id,
@@ -412,13 +443,18 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
             controller: _descriptionController,
             maxLines: 6,
             maxLength: 500,
-            buildCounter: (_, {required currentLength, required isFocused, maxLength}) =>
+            buildCounter: (_,
+                    {required currentLength, required isFocused, maxLength}) =>
                 const SizedBox.shrink(),
-            style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
-            decoration: _inputDecoration(hint: 'Jelaskan keluhan Anda secara detail')
-                .copyWith(contentPadding: const EdgeInsets.fromLTRB(14, 14, 14, 32)),
+            style:
+                GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
+            decoration: _inputDecoration(
+                    hint: 'Jelaskan keluhan Anda secara detail')
+                .copyWith(
+                    contentPadding: const EdgeInsets.fromLTRB(14, 14, 14, 32)),
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Deskripsi tidak boleh kosong';
+              if (v == null || v.trim().isEmpty)
+                return 'Deskripsi tidak boleh kosong';
               if (v.trim().length < 20) return 'Deskripsi minimal 20 karakter';
               return null;
             },
@@ -427,7 +463,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
             bottom: 10,
             right: 12,
             child: Text('$_descLength/500',
-                style: GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade400)),
+                style: GoogleFonts.nunito(
+                    fontSize: 11, color: Colors.grey.shade400)),
           ),
         ],
       );
@@ -447,7 +484,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                 child: Text(
                   _selectedDate == null
                       ? 'Pilih tanggal kejadian'
-                      : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedDate!),
+                      : DateFormat('dd MMMM yyyy', 'id_ID')
+                          .format(_selectedDate!),
                   style: GoogleFonts.nunito(
                     fontSize: 14,
                     color: _selectedDate == null
@@ -477,7 +515,9 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8,
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
               ),
               itemCount: _existingPhotoUrls.length,
               itemBuilder: (_, i) => ClipRRect(
@@ -487,10 +527,12 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
-                  placeholder: (_, __) => Container(color: Colors.grey.shade200),
+                  placeholder: (_, __) =>
+                      Container(color: Colors.grey.shade200),
                   errorWidget: (_, __, ___) => Container(
                     color: Colors.grey.shade200,
-                    child: Icon(Icons.broken_image, color: Colors.grey.shade400),
+                    child:
+                        Icon(Icons.broken_image, color: Colors.grey.shade400),
                   ),
                 ),
               ),
@@ -510,7 +552,9 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8,
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
               ),
               itemCount: _newImages.length,
               itemBuilder: (_, i) => Stack(
@@ -523,14 +567,16 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                         height: double.infinity),
                   ),
                   Positioned(
-                    top: 4, right: 4,
+                    top: 4,
+                    right: 4,
                     child: GestureDetector(
                       onTap: () => setState(() => _newImages.removeAt(i)),
                       child: Container(
                         padding: const EdgeInsets.all(3),
                         decoration: const BoxDecoration(
                             color: Colors.red, shape: BoxShape.circle),
-                        child: const Icon(Icons.close, size: 14, color: Colors.white),
+                        child: const Icon(Icons.close,
+                            size: 14, color: Colors.white),
                       ),
                     ),
                   ),
@@ -579,7 +625,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
             ),
           const SizedBox(height: 6),
           Text('Maks. 5 foto (5MB per foto)',
-              style: GoogleFonts.nunito(fontSize: 11, color: Colors.grey.shade400)),
+              style: GoogleFonts.nunito(
+                  fontSize: 11, color: Colors.grey.shade400)),
         ],
       );
 
@@ -590,7 +637,9 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
           if (_existingVideoUrls.isNotEmpty) ...[
             Text('Video Saat Ini',
                 style: GoogleFonts.nunito(
-                    fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 8),
             ListView.separated(
               shrinkWrap: true,
@@ -598,9 +647,11 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
               itemCount: _existingVideoUrls.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (_, i) {
-                final name = _existingVideoUrls[i].split('/').last.split('?').first;
+                final name =
+                    _existingVideoUrls[i].split('/').last.split('?').first;
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(10),
@@ -614,14 +665,16 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                           color: Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(Icons.videocam_rounded, color: Colors.grey.shade600, size: 20),
+                        child: Icon(Icons.videocam_rounded,
+                            color: Colors.grey.shade600, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary)),
+                            style: GoogleFonts.nunito(
+                                fontSize: 13, color: AppTheme.textPrimary)),
                       ),
                     ],
                   ),
@@ -631,7 +684,9 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
             const SizedBox(height: 14),
             Text('Tambah Video Baru',
                 style: GoogleFonts.nunito(
-                    fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary)),
             const SizedBox(height: 8),
           ],
           if (_newVideos.isNotEmpty) ...[
@@ -643,7 +698,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
               itemBuilder: (_, i) {
                 final name = _newVideos[i].path.split('/').last;
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(10),
@@ -736,13 +792,16 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
               backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               disabledBackgroundColor: AppTheme.primary.withValues(alpha: 0.4),
             ),
             child: _isLoading
                 ? const SizedBox(
-                    width: 22, height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : Text('Simpan Perubahan',
                     style: GoogleFonts.nunito(
                         fontSize: 16, fontWeight: FontWeight.w700)),

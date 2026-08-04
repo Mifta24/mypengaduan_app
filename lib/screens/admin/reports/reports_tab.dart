@@ -35,7 +35,8 @@ class _AdminReportsTabState extends State<AdminReportsTab>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    debugPrint('📊 [AdminReportsTab] Screen initialized - will load after visible');
+    debugPrint(
+        '📊 [AdminReportsTab] Screen initialized - will load after visible');
   }
 
   @override
@@ -52,7 +53,8 @@ class _AdminReportsTabState extends State<AdminReportsTab>
       _hasLoadedOnce = true;
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted && !_reportsProvider.hasLoadedData) {
-          debugPrint('📊 [AdminReportsTab] Screen visible - loading reports now');
+          debugPrint(
+              '📊 [AdminReportsTab] Screen visible - loading reports now');
           _loadReports();
         }
       });
@@ -90,11 +92,14 @@ class _AdminReportsTabState extends State<AdminReportsTab>
         to = null;
       }
 
-      await _reportsProvider.loadReports(forceRefresh: forceRefresh, dateFrom: from, dateTo: to);
+      await _reportsProvider.loadReports(
+          forceRefresh: forceRefresh, dateFrom: from, dateTo: to);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat laporan: $e'), backgroundColor: Colors.red),
+        SnackBar(
+            content: Text('Gagal memuat laporan: $e'),
+            backgroundColor: Colors.red),
       );
     }
   }
@@ -106,7 +111,8 @@ class _AdminReportsTabState extends State<AdminReportsTab>
 
   Future<void> _exportReport(String type, String format) async {
     try {
-      final message = await _reportsProvider.exportReport(type, format, period: _periodFilter);
+      final message = await _reportsProvider.exportReport(type, format,
+          period: _periodFilter);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.green),
@@ -114,7 +120,8 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal export: $e'), backgroundColor: Colors.red),
+        SnackBar(
+            content: Text('Gagal export: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -188,7 +195,8 @@ class _AdminReportsTabState extends State<AdminReportsTab>
     if (_periodFilter == 'week') {
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final weekEnd = weekStart.add(const Duration(days: 6));
-      dateLabel = '${fmt.format(weekStart)} – ${fmt.format(weekEnd)} ${weekEnd.year}';
+      dateLabel =
+          '${fmt.format(weekStart)} – ${fmt.format(weekEnd)} ${weekEnd.year}';
     } else if (_periodFilter == 'month') {
       dateLabel = DateFormat('MMMM yyyy', 'id_ID').format(now);
     } else {
@@ -210,12 +218,22 @@ class _AdminReportsTabState extends State<AdminReportsTab>
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _periodFilter,
-                style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary),
+                style: GoogleFonts.nunito(
+                    fontSize: 13, color: AppTheme.textPrimary),
                 icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
                 items: [
-                  DropdownMenuItem(value: 'week', child: Text('Minggu Ini', style: GoogleFonts.nunito(fontSize: 13))),
-                  DropdownMenuItem(value: 'month', child: Text('Bulan Ini', style: GoogleFonts.nunito(fontSize: 13))),
-                  DropdownMenuItem(value: 'all', child: Text('Semua', style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(
+                      value: 'week',
+                      child: Text('Minggu Ini',
+                          style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(
+                      value: 'month',
+                      child: Text('Bulan Ini',
+                          style: GoogleFonts.nunito(fontSize: 13))),
+                  DropdownMenuItem(
+                      value: 'all',
+                      child: Text('Semua',
+                          style: GoogleFonts.nunito(fontSize: 13))),
                 ],
                 onChanged: (value) {
                   if (value == null) return;
@@ -237,12 +255,14 @@ class _AdminReportsTabState extends State<AdminReportsTab>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_today_outlined, size: 13, color: AppTheme.textSecondary),
+                  Icon(Icons.calendar_today_outlined,
+                      size: 13, color: AppTheme.textSecondary),
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(
                       dateLabel,
-                      style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary),
+                      style: GoogleFonts.nunito(
+                          fontSize: 11, color: AppTheme.textSecondary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

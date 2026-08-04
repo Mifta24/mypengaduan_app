@@ -26,25 +26,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final List<FocusNode> _otpFocus = List.generate(6, (_) => FocusNode());
 
   // Step 3 — New password
-  final _passCtrl    = TextEditingController();
+  final _passCtrl = TextEditingController();
   final _passConfCtrl = TextEditingController();
   final _passFormKey = GlobalKey<FormState>();
-  bool _obscurePass  = true;
-  bool _obscureConf  = true;
+  bool _obscurePass = true;
+  bool _obscureConf = true;
 
-  int  _step      = 1;
-  bool _loading   = false;
+  int _step = 1;
+  bool _loading = false;
   String _resetToken = '';
 
   // Countdown resend
-  int  _countdown = 0;
+  int _countdown = 0;
   Timer? _timer;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
-    for (final c in _otpCtrls) { c.dispose(); }
-    for (final f in _otpFocus) { f.dispose(); }
+    for (final c in _otpCtrls) {
+      c.dispose();
+    }
+    for (final f in _otpFocus) {
+      f.dispose();
+    }
     _passCtrl.dispose();
     _passConfCtrl.dispose();
     _timer?.cancel();
@@ -117,7 +121,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _loading = false);
     if (res['success'] == true) {
       _startCountdown();
-      for (final c in _otpCtrls) { c.clear(); }
+      for (final c in _otpCtrls) {
+        c.clear();
+      }
       _otpFocus.first.requestFocus();
       _showSnack('Kode OTP baru telah dikirim');
     } else {
@@ -129,16 +135,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     _timer?.cancel();
     setState(() => _countdown = 60);
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) { t.cancel(); return; }
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
       setState(() {
-        if (_countdown > 0) { _countdown--; } else { t.cancel(); }
+        if (_countdown > 0) {
+          _countdown--;
+        } else {
+          t.cancel();
+        }
       });
     });
   }
 
   void _showSnack(String msg, {bool error = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
+      content:
+          Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.w500)),
       backgroundColor: error ? Colors.red.shade700 : AppTheme.primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -162,9 +176,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
           ),
           // Leaf decorations
-          _leaf(top: 70,  right: 16, size: 50, rot: 0.3),
-          _leaf(top: 130, left: 8,   size: 34, rot: -0.5),
-          _leaf(bottom: 160, left: 14,  size: 42, rot: -0.3),
+          _leaf(top: 70, right: 16, size: 50, rot: 0.3),
+          _leaf(top: 130, left: 8, size: 34, rot: -0.5),
+          _leaf(bottom: 160, left: 14, size: 42, rot: -0.3),
           _leaf(bottom: 100, right: 10, size: 28, rot: 0.6),
 
           // Content
@@ -195,7 +209,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   // ── Header ────────────────────────────────────────────────────
   Widget _buildHeader() {
     final titles = ['Lupa Password', 'Verifikasi OTP', 'Password Baru'];
-    final subs   = [
+    final subs = [
       'Masukkan email terdaftar Anda',
       'Masukkan kode yang dikirim ke email',
       'Buat password baru yang kuat',
@@ -205,7 +219,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.white, size: 20),
             onPressed: () {
               if (_step > 1) {
                 setState(() => _step--);
@@ -220,10 +235,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             children: [
               Text(titles[_step - 1],
                   style: GoogleFonts.nunito(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white)),
               Text(subs[_step - 1],
                   style: GoogleFonts.nunito(
-                      fontSize: 12, color: AppTheme.accent, fontStyle: FontStyle.italic)),
+                      fontSize: 12,
+                      color: AppTheme.accent,
+                      fontStyle: FontStyle.italic)),
             ],
           ),
         ],
@@ -246,10 +265,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           );
         }
         final step = i ~/ 2 + 1;
-        final done   = step < _step;
+        final done = step < _step;
         final active = step == _step;
         return Container(
-          width: 32, height: 32,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
             color: done
                 ? AppTheme.accent
@@ -258,7 +278,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     : Colors.white.withValues(alpha: 0.15),
             shape: BoxShape.circle,
             border: Border.all(
-              color: active ? Colors.white : Colors.white.withValues(alpha: 0.3),
+              color:
+                  active ? Colors.white : Colors.white.withValues(alpha: 0.3),
               width: 2,
             ),
           ),
@@ -269,7 +290,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: active ? AppTheme.bgDark : Colors.white.withValues(alpha: 0.5),
+                      color: active
+                          ? AppTheme.bgDark
+                          : Colors.white.withValues(alpha: 0.5),
                     )),
           ),
         );
@@ -315,16 +338,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   color: AppTheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.email_rounded, color: AppTheme.primary, size: 22),
+                child: const Icon(Icons.email_rounded,
+                    color: AppTheme.primary, size: 22),
               ),
               const SizedBox(width: 12),
               Text('Verifikasi Email',
                   style: GoogleFonts.nunito(
-                      fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary)),
             ],
           ),
           const SizedBox(height: 20),
-          Text('Masukkan alamat email yang terdaftar. Kami akan mengirimkan kode OTP untuk verifikasi.',
+          Text(
+              'Masukkan alamat email yang terdaftar. Kami akan mengirimkan kode OTP untuk verifikasi.',
               style: GoogleFonts.nunito(
                   fontSize: 13, color: AppTheme.textSecondary, height: 1.5)),
           const SizedBox(height: 20),
@@ -335,8 +362,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Email tidak boleh kosong';
-              if (!v.contains('@') || !v.contains('.')) return 'Format email tidak valid';
+              if (v == null || v.trim().isEmpty)
+                return 'Email tidak boleh kosong';
+              if (!v.contains('@') || !v.contains('.'))
+                return 'Format email tidak valid';
               return null;
             },
           ),
@@ -364,18 +393,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 color: const Color(0xFF0891B2).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.pin_rounded, color: Color(0xFF0891B2), size: 22),
+              child: const Icon(Icons.pin_rounded,
+                  color: Color(0xFF0891B2), size: 22),
             ),
             const SizedBox(width: 12),
             Text('Kode Verifikasi',
                 style: GoogleFonts.nunito(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary)),
           ],
         ),
         const SizedBox(height: 12),
         RichText(
           text: TextSpan(
-            style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary, height: 1.5),
+            style: GoogleFonts.nunito(
+                fontSize: 13, color: AppTheme.textSecondary, height: 1.5),
             children: [
               const TextSpan(text: 'Kode dikirim ke '),
               TextSpan(
@@ -400,7 +433,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Tidak menerima kode? ',
-                style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary)),
+                style: GoogleFonts.nunito(
+                    fontSize: 13, color: AppTheme.textSecondary)),
             GestureDetector(
               onTap: _countdown > 0 ? null : _resendOtp,
               child: Text(
@@ -438,7 +472,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           LengthLimitingTextInputFormatter(1),
         ],
         style: GoogleFonts.nunito(
-            fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textPrimary),
         decoration: InputDecoration(
           filled: true,
           fillColor: Colors.grey.shade50,
@@ -479,17 +515,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   color: AppTheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.lock_rounded, color: AppTheme.primary, size: 22),
+                child: const Icon(Icons.lock_rounded,
+                    color: AppTheme.primary, size: 22),
               ),
               const SizedBox(width: 12),
               Text('Buat Password Baru',
                   style: GoogleFonts.nunito(
-                      fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary)),
             ],
           ),
           const SizedBox(height: 12),
           Text('Password minimal 8 karakter, kombinasi huruf dan angka.',
-              style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary, height: 1.5)),
+              style: GoogleFonts.nunito(
+                  fontSize: 13, color: AppTheme.textSecondary, height: 1.5)),
           const SizedBox(height: 20),
           _inputField(
             controller: _passCtrl,
@@ -498,8 +538,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             icon: Icons.lock_outline_rounded,
             obscure: _obscurePass,
             suffixIcon: IconButton(
-              icon: Icon(_obscurePass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                  size: 20, color: AppTheme.textSecondary),
+              icon: Icon(
+                  _obscurePass
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  size: 20,
+                  color: AppTheme.textSecondary),
               onPressed: () => setState(() => _obscurePass = !_obscurePass),
             ),
             validator: (v) {
@@ -516,18 +560,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             icon: Icons.lock_reset_rounded,
             obscure: _obscureConf,
             suffixIcon: IconButton(
-              icon: Icon(_obscureConf ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                  size: 20, color: AppTheme.textSecondary),
+              icon: Icon(
+                  _obscureConf
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  size: 20,
+                  color: AppTheme.textSecondary),
               onPressed: () => setState(() => _obscureConf = !_obscureConf),
             ),
             validator: (v) {
-              if (v == null || v.isEmpty) return 'Konfirmasi password tidak boleh kosong';
+              if (v == null || v.isEmpty)
+                return 'Konfirmasi password tidak boleh kosong';
               if (v != _passCtrl.text) return 'Password tidak cocok';
               return null;
             },
           ),
           const SizedBox(height: 24),
-          _primaryButton(label: 'Reset Password', icon: Icons.check_circle_rounded, onPressed: _resetPassword),
+          _primaryButton(
+              label: 'Reset Password',
+              icon: Icons.check_circle_rounded,
+              onPressed: _resetPassword),
         ],
       ),
     );
@@ -549,7 +601,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       children: [
         Text(label,
             style: GoogleFonts.nunito(
-                fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary)),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
@@ -558,12 +612,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
+            hintStyle:
+                GoogleFonts.nunito(fontSize: 14, color: Colors.grey.shade400),
             prefixIcon: Icon(icon, size: 18, color: AppTheme.textSecondary),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: Colors.grey.shade50,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(color: AppTheme.border)),
@@ -572,7 +628,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 borderSide: BorderSide(color: AppTheme.border)),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+                borderSide:
+                    const BorderSide(color: AppTheme.primary, width: 1.5)),
             errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(color: Colors.red.shade400)),
@@ -594,30 +651,43 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: ElevatedButton.icon(
         onPressed: _loading ? null : onPressed,
         icon: _loading
-            ? const SizedBox(width: 18, height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white))
             : Icon(icon, size: 18),
         label: Text(_loading ? 'Memproses...' : label,
-            style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700)),
+            style:
+                GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700)),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
           elevation: 0,
           disabledBackgroundColor: color.withValues(alpha: 0.4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
   }
 
-  Widget _leaf({double? top, double? bottom, double? left, double? right,
-      required double size, required double rot}) {
+  Widget _leaf(
+      {double? top,
+      double? bottom,
+      double? left,
+      double? right,
+      required double size,
+      required double rot}) {
     return Positioned(
-      top: top, bottom: bottom, left: left, right: right,
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
       child: Transform.rotate(
         angle: rot,
-        child: Icon(Icons.eco_rounded, size: size,
-            color: AppTheme.primaryDark.withValues(alpha: 0.4)),
+        child: Icon(Icons.eco_rounded,
+            size: size, color: AppTheme.primaryDark.withValues(alpha: 0.4)),
       ),
     );
   }
