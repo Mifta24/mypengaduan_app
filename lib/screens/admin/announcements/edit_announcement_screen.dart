@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../services/admin_service.dart';
 import '../../../theme/app_theme.dart';
+import 'announcement_detail_utils.dart';
 
 class EditAnnouncementScreen extends StatefulWidget {
   final Map<String, dynamic> announcement;
@@ -32,6 +33,8 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
   late bool _wasActive; // tracks original status to detect activation
   bool _isLoading = false;
   String? _imagePath;
+  String? _existingCoverImageUrl;
+  bool _removeCoverImage = false;
   final ImagePicker _picker = ImagePicker();
   List<Map<String, dynamic>> _existingAttachments = [];
   final List<int> _removedAttachmentIndices = [];
@@ -48,6 +51,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
       if (image != null) {
         setState(() {
           _imagePath = image.path;
+          _removeCoverImage = false;
         });
       }
     } catch (e) {
@@ -78,6 +82,13 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     _isActive = widget.announcement['is_active'] == true ||
         widget.announcement['is_active'] == 1;
     _wasActive = _isActive;
+
+    final coverUrl = firstAnnouncementString(
+      widget.announcement,
+      ['cover_image_url', 'cover_image', 'cover', 'thumbnail', 'image_url', 'image'],
+      fallback: '',
+    );
+    _existingCoverImageUrl = coverUrl.isNotEmpty ? coverUrl : null;
 
     final raw = widget.announcement['attachments'];
     if (raw is List) {
@@ -175,6 +186,8 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
           'priority': _priority,
           'is_sticky': _isSticky ? 1 : 0,
           'is_active': _isActive ? 1 : 0,
+          'remove_cover_image':
+              (_imagePath == null && _removeCoverImage) ? 1 : 0,
         },
         imagePath: _imagePath,
         attachmentPaths: _newAttachments
@@ -516,7 +529,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Gambar Pengumuman (Baru)',
+                          'Gambar Pengumuman',
                           style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -525,6 +538,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    // Gambar baru yang baru saja dipilih (menggantikan yang lama)
                     if (_imagePath != null) ...[
                       Stack(
                         alignment: Alignment.topRight,
@@ -556,6 +570,85 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                    ]
+                    // Gambar saat ini (dari server) — bisa dihapus tanpa mengganti
+                    else if (_existingCoverImageUrl != null) ...[
+                      Text('Gambar Saat Ini',
+                          style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey)),
+                      const SizedBox(height: 8),
+                      if (_removeCoverImage)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.image_not_supported_outlined,
+                                  color: Colors.grey.shade500, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text('Gambar akan dihapus',
+                                    style: GoogleFonts.nunito(
+                                        color: Colors.grey.shade600,
+                                        fontStyle: FontStyle.italic)),
+                              ),
+                              TextButton.icon(
+                                onPressed: () {
+                                  setState(() => _removeCoverImage = false);
+                                },
+                                icon: const Icon(Icons.undo, size: 16),
+                                label: const Text('Batal'),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: AppTheme.primary),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                _existingCoverImageUrl!,
+                                width: double.infinity,
+                                height: 200,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                  width: double.infinity,
+                                  height: 200,
+                                  color: Colors.grey.shade200,
+                                  child: Icon(Icons.broken_image_outlined,
+                                      color: Colors.grey.shade400, size: 40),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CircleAvatar(
+                                backgroundColor: AppTheme.danger,
+                                radius: 18,
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.white, size: 18),
+                                  tooltip: 'Hapus gambar saat ini',
+                                  onPressed: () {
+                                    setState(() => _removeCoverImage = true);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       const SizedBox(height: 12),
                     ],
                     InkWell(

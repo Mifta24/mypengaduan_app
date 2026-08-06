@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../main.dart' show navigatorKey;
+import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import 'notification_service.dart';
 
@@ -175,6 +176,26 @@ class FCMService {
         debugPrint('Failed to refresh notification provider: $e');
       }
     }
+
+    _refreshProfileIfVerificationChanged(message.data['type'] as String?);
+  }
+
+  /// Status verifikasi user berubah (diverifikasi/ditolak admin) → refresh
+  /// data user supaya UI (mis. tombol buat pengaduan) langsung update.
+  void _refreshProfileIfVerificationChanged(String? type) {
+    if (type != AppConfig.notificationUserVerified &&
+        type != AppConfig.notificationUserVerificationRejected &&
+        type != AppConfig.notificationUserVerificationUpdated) {
+      return;
+    }
+
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    try {
+      Provider.of<AuthProvider>(context, listen: false).refreshProfile();
+    } catch (e) {
+      debugPrint('Failed to refresh auth profile: $e');
+    }
   }
 
   // Tampilkan local notification
@@ -248,6 +269,15 @@ class FCMService {
 
     try {
       switch (type) {
+        // Notifikasi status verifikasi akun (diverifikasi/ditolak admin)
+        case AppConfig.notificationUserVerified:
+        case AppConfig.notificationUserVerificationRejected:
+        case AppConfig.notificationUserVerificationUpdated:
+          debugPrint('➡️ Navigate to home (verification status changed)');
+          _refreshProfileIfVerificationChanged(type);
+          context.go('/home');
+          break;
+
         // Notifikasi untuk USER: status complaint berubah / admin reply
         case AppConfig.notificationStatusChanged:
         case AppConfig.notificationAdminResponse:
