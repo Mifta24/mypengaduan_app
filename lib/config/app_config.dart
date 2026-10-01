@@ -30,4 +30,9 @@ class AppConfig {
   static const String notificationComplaintResolved = 'complaint_resolved';
   static const String notificationAnnouncementCreated = 'announcement_created';
   static const String notificationCommentAdded = 'comment_added';
+  static const String notificationUserVerified = 'user_verified';
+  static const String notificationUserVerificationRejected =
+      'user_verification_rejected';
+  static const String notificationUserVerificationUpdated =
+      'user_verification_updated';
 }

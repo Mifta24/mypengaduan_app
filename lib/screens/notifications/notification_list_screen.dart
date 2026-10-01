@@ -222,6 +222,17 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
       return;
     }
 
+    // ── Status verifikasi akun ───────────────────────────────
+    if (type == 'user_verified' ||
+        type == 'user_verification_rejected' ||
+        type == 'user_verification_updated') {
+      try {
+        ctx.read<AuthProvider>().refreshProfile();
+      } catch (_) {}
+      if (ctx.mounted) ctx.go('/home');
+      return;
+    }
+
     // ── Announcement ─────────────────────────────────────────
     if (type == 'announcement') {
       final rawId = data['announcement_id'] ?? data['id'];
@@ -470,6 +481,12 @@ class _NotifCard extends StatelessWidget {
         return Icons.campaign_rounded;
       case 'system':
         return Icons.info_rounded;
+      case 'user_verified':
+        return Icons.verified_rounded;
+      case 'user_verification_rejected':
+        return Icons.gpp_bad_rounded;
+      case 'user_verification_updated':
+        return Icons.verified_user_rounded;
       default:
         return Icons.notifications_rounded;
     }
@@ -484,6 +501,12 @@ class _NotifCard extends StatelessWidget {
         return AppTheme.primary;
       case 'system':
         return const Color(0xFF0891B2);
+      case 'user_verified':
+        return AppTheme.primary;
+      case 'user_verification_rejected':
+        return const Color(0xFFEF4444);
+      case 'user_verification_updated':
+        return const Color(0xFFD97706);
       default:
         return AppTheme.textSecondary;
     }
